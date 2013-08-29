@@ -1,20 +1,11 @@
 "use strict";
 
 var _ = require("underscore");
-var Converter = null;
 var Converter = require("substance-converter");
+var ImporterError = Converter.ImporterError;
 var NLMImporter = Converter.NLMImporter;
 
 var LensImporter = function() {
-
-  this.viewMappings = {
-    "table": "figures",
-    "image": "figures",
-    "figure": "figures",
-    "video": "figures",
-    "mixed_citation": "citations",
-    "article_citation": "citations",
-  };
 };
 
 LensImporter.Prototype = function() {
@@ -26,23 +17,19 @@ LensImporter.Prototype = function() {
     return doc;
   };
 
-  // This is called for top-level nodes which should be added to a view
-  // TODO: this is experimental, and needs some experience from developing a more complex converter (e.g., for lens)
+  var _viewMapping = {
+    "image": "figures",
+    "table": "figures",
+    "video": "figures"
+  };
+
   this.show = function(state, nodes) {
     var doc = state.doc;
 
-    // Defaults to content
-    function getView(viewName) {
-      return doc.get(viewName || "content").nodes;
-    }
-
-    // show the created nodes in the content view
-    for (var j = 0; j < nodes.length; j++) {
-      var node = nodes[j];
-      var view = getView(this.viewMappings[node.type]);
-
-      view.push(node.id);
-    }
+    _.each(nodes, function(n) {
+      var view = _viewMapping[n.type] || "content";
+      doc.show(view, n.id);
+    });
   };
 
   var _annotationTypes = {
@@ -92,6 +79,51 @@ LensImporter.Prototype = function() {
 
     state.annotations.push(anno);
   };
+
+  this.figure = function(state, figure) {
+    var doc = state.doc;
+
+    var imageNode = {
+      type: "image",
+      "label": "",
+      "title": "",
+      "url": "",
+      "large_url": "",
+      "caption": null
+    };
+    var id = figure.getAttribute("id") || state.nextId(imageNode.type);
+    imageNode.id = id;
+
+    // Caption: is a paragraph
+    var caption = figure.querySelector("caption");
+    if (caption) {
+      var p = caption.querySelector("p");
+      var nodes = this.paragraph(state, p);
+      if (nodes.length > 1) {
+        throw new ImporterError("Ooops. Not ready for that...");
+      }
+      imageNode.caption = nodes[0].id;
+    }
+
+    var graphic = figure.querySelector("graphic");
+    var url = graphic.getAttribute("xlink:href");
+    imageNode.url = url;
+    imageNode.large_url = url;
+
+    var label = figure.querySelector("label");
+    if (label) {
+      imageNode.label = label.textContent;
+    }
+
+    var title = figure.querySelector("title");
+    if (title) {
+      imageNode.title = title.textContent;
+    }
+
+    doc.create(imageNode);
+    return imageNode;
+  };
+
 };
 
 LensImporter.Prototype.prototype = NLMImporter.prototype;
