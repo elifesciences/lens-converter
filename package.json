@@ -1,0 +1,17 @@
+{
+  "name":"lens-converter",
+  "private":true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elifesciences/lens-converter.git"
+  },
+  "dependencies":{
+    "underscore": "1.5.x",
+    "substance-converter":"git+https://github.com/substance/converter#nlm_converter"
+  },
+  "version":"0.1.0",
+  "engines": {
+    "node": ">=0.8.x",
+    "npm": ">=1.1.x"
+  }
+}
