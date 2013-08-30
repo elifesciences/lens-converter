@@ -145,6 +145,106 @@ LensImporter.Prototype = function() {
     return imageNode;
   };
 
+  this.refList = function(state, refList) {
+    var refs = refList.querySelectorAll("ref");
+    for (var i = 0; i < refs.length; i++) {
+      this.ref(state, refs[i]);
+    }
+  };
+
+  this.ref = function(state, ref) {
+
+    var children = ref.children;
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      var type = this.getNodeType(child);
+
+      if (type === "mixed-citation" || type === "element-citation") {
+        this.citation(state, ref, child);
+      } else {
+        console.log("Not supported in 'ref': ", type);
+      }
+    }
+  };
+
+  var _getName = function(nameEl) {
+    var names = [];
+
+    var surnameEl = nameEl.querySelector("surname");
+    var givenNamesEl = nameEl.querySelector("given-names");
+
+    if (givenNamesEl) names.push(givenNamesEl.textContent);
+    if (surnameEl) names.push(surnameEl.textContent);
+
+    return names.join(" ");
+  };
+
+  // TODO: is implemented naively, should be implemented considering the NLM spec
+  this.citation = function(state, ref, citation) {
+    var doc = state.doc;
+    var i;
+
+    var id = ref.getAttribute("id");
+    if (!id) {
+      throw new ImporterError("Expected 'id' in ref.");
+    }
+
+    var articleCitation = {
+      id: id,
+      type: "article_citation",
+      title: "",
+      label: "",
+      authors: [],
+      doi: "",
+      source: "",
+      volume: "",
+      fpage: "",
+      lpage: "",
+      citation_urls: []
+    };
+
+    // TODO: we should consider to have a more structured citation type
+    // and let the view decide how to render it instead of blobbing everything here.
+    var personGroup = citation.querySelector("person-group");
+    var nameElements = personGroup.querySelectorAll("name");
+    for (i = 0; i < nameElements.length; i++) {
+      articleCitation.authors.push(_getName(nameElements[i]));
+    }
+
+    var articleTitle = citation.querySelector("article-title");
+    articleCitation.title = articleTitle.textContent;
+
+    var source = citation.querySelector("source");
+    if (source) articleCitation.source = source.textContent;
+
+    var volume = citation.querySelector("volume");
+    if (volume) articleCitation.volume = volume.textContent;
+
+    var fpage = citation.querySelector("fpage");
+    if (fpage) articleCitation.fpage = fpage.textContent;
+
+    var lpage = citation.querySelector("lpage");
+    if (lpage) articleCitation.lpage = lpage.textContent;
+
+    var year = citation.querySelector("year");
+    if (year) articleCitation.year = year.textContent;
+
+    // Note: the label is child of 'ref'
+    var label = ref.querySelector("label");
+    if(label) articleCitation.label = label.textContent;
+
+    var pubIds = citation.querySelectorAll("pub-id");
+    for (i = 0; i < pubIds.length; i++) {
+      if(pubIds[i].getAttribute("pub-id-type") === "doi") {
+        articleCitation.doi = pubIds[i].textContent;
+        break;
+      }
+    }
+
+    doc.create(articleCitation);
+    doc.show("citations", id);
+  };
+
 };
 
 LensImporter.Prototype.prototype = NLMImporter.prototype;
