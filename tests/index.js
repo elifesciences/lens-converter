@@ -7,4 +7,5 @@
 
 if (global.window) {
   require("./elife_import_test");
+  require("./landes_import_test");
 }
