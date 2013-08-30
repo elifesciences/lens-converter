@@ -161,8 +161,10 @@ LensImporter.Prototype = function() {
 
       if (type === "mixed-citation" || type === "element-citation") {
         this.citation(state, ref, child);
+      } else if (type === "label") {
+        // ignoring it here...
       } else {
-        console.log("Not supported in 'ref': ", type);
+        console.error("Not supported in 'ref': ", type);
       }
     }
   };
@@ -189,7 +191,7 @@ LensImporter.Prototype = function() {
       throw new ImporterError("Expected 'id' in ref.");
     }
 
-    var articleCitation = {
+    var citationNode = {
       id: id,
       type: "article_citation",
       title: "N/A",
@@ -206,46 +208,77 @@ LensImporter.Prototype = function() {
     // TODO: we should consider to have a more structured citation type
     // and let the view decide how to render it instead of blobbing everything here.
     var personGroup = citation.querySelector("person-group");
-    var nameElements = personGroup.querySelectorAll("name");
-    for (i = 0; i < nameElements.length; i++) {
-      articleCitation.authors.push(_getName(nameElements[i]));
-    }
 
-    var articleTitle = citation.querySelector("article-title");
-    if (articleTitle) {
-      articleCitation.title = articleTitle.textContent;
-    } else {
-      console.error("FIXME: this citation has no title", citation);
-    }
+    // HACK: we try to create a 'articleCitation' when there is structured
+    // content (ATM, when personGroup is present)
+    // Otherwise we create a mixed-citation taking the plain text content of the element
+    if (personGroup) {
 
-    var source = citation.querySelector("source");
-    if (source) articleCitation.source = source.textContent;
+      citationNode = {
+        id: id,
+        type: "article_citation",
+        title: "N/A",
+        label: "",
+        authors: [],
+        doi: "",
+        source: "",
+        volume: "",
+        fpage: "",
+        lpage: "",
+        citation_urls: []
+      };
 
-    var volume = citation.querySelector("volume");
-    if (volume) articleCitation.volume = volume.textContent;
 
-    var fpage = citation.querySelector("fpage");
-    if (fpage) articleCitation.fpage = fpage.textContent;
-
-    var lpage = citation.querySelector("lpage");
-    if (lpage) articleCitation.lpage = lpage.textContent;
-
-    var year = citation.querySelector("year");
-    if (year) articleCitation.year = year.textContent;
-
-    // Note: the label is child of 'ref'
-    var label = ref.querySelector("label");
-    if(label) articleCitation.label = label.textContent;
-
-    var pubIds = citation.querySelectorAll("pub-id");
-    for (i = 0; i < pubIds.length; i++) {
-      if(pubIds[i].getAttribute("pub-id-type") === "doi") {
-        articleCitation.doi = pubIds[i].textContent;
-        break;
+      var nameElements = personGroup.querySelectorAll("name");
+      for (i = 0; i < nameElements.length; i++) {
+        citationNode.authors.push(_getName(nameElements[i]));
       }
+
+      var articleTitle = citation.querySelector("article-title");
+      if (articleTitle) {
+        citationNode.title = articleTitle.textContent;
+      } else {
+        console.error("FIXME: this citation has no title", citation);
+      }
+
+      var source = citation.querySelector("source");
+      if (source) citationNode.source = source.textContent;
+
+      var volume = citation.querySelector("volume");
+      if (volume) citationNode.volume = volume.textContent;
+
+      var fpage = citation.querySelector("fpage");
+      if (fpage) citationNode.fpage = fpage.textContent;
+
+      var lpage = citation.querySelector("lpage");
+      if (lpage) citationNode.lpage = lpage.textContent;
+
+      var year = citation.querySelector("year");
+      if (year) citationNode.year = year.textContent;
+
+      // Note: the label is child of 'ref'
+      var label = ref.querySelector("label");
+      if(label) citationNode.label = label.textContent;
+
+      var pubIds = citation.querySelectorAll("pub-id");
+      for (i = 0; i < pubIds.length; i++) {
+        if(pubIds[i].getAttribute("pub-id-type") === "doi") {
+          citationNode.doi = pubIds[i].textContent;
+          break;
+        }
+      }
+
+    } else {
+      console.error("FIXME: there is one of those 'mixed-citation' without any structure.", citation);
+      citationNode = {
+        id: id,
+        type: "mixed_citation",
+        citation: citation.textContent,
+        doi: ""
+      };
     }
 
-    doc.create(articleCitation);
+    doc.create(citationNode);
     doc.show("citations", id);
   };
 
