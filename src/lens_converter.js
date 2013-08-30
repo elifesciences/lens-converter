@@ -192,7 +192,7 @@ LensImporter.Prototype = function() {
     var articleCitation = {
       id: id,
       type: "article_citation",
-      title: "",
+      title: "N/A",
       label: "",
       authors: [],
       doi: "",
@@ -212,7 +212,11 @@ LensImporter.Prototype = function() {
     }
 
     var articleTitle = citation.querySelector("article-title");
-    articleCitation.title = articleTitle.textContent;
+    if (articleTitle) {
+      articleCitation.title = articleTitle.textContent;
+    } else {
+      console.error("FIXME: this citation has no title", citation);
+    }
 
     var source = citation.querySelector("source");
     if (source) articleCitation.source = source.textContent;
