@@ -10,6 +10,8 @@ var LensImporter = function() {
 
 LensImporter.Prototype = function() {
 
+  var __super__ = NLMImporter.prototype;
+
   // Overridden to create a Lens Article instance
   this.createDocument = function() {
     var Article = require("lens-article");
@@ -31,6 +33,25 @@ LensImporter.Prototype = function() {
       doc.show(view, n.id);
     });
   };
+
+  this.front = function(state, front) {
+    __super__.front.call(this, state, front);
+
+    var doc = state.doc;
+    var docNode = doc.get("document");
+    var cover = {
+      id: "cover",
+      type: "cover",
+      title: docNode.title,
+      authors: docNode.authors,
+      abstract: docNode.abstract
+    };
+    doc.create(cover);
+    doc.show("content", cover.id);
+  };
+
+  // Annotations
+  // --------
 
   var _annotationTypes = {
     "bold": "strong",
