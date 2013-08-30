@@ -27,6 +27,12 @@ LensImporter.Prototype = function() {
     return names.join(" ");
   };
 
+  var _toHtml = function(el) {
+    var tmp = document.createElement("DIV");
+    tmp.appendChild(el.cloneNode(true));
+    return tmp.innerHTML;
+  };
+
   // Overridden NLMImporter API
   // --------
 
@@ -310,14 +316,56 @@ LensImporter.Prototype = function() {
 
     // Note: using a DOM div element to create HTML
     var table = tableWrap.querySelector("table");
-    var tmp = document.createElement("DIV");
-    tmp.appendChild(table.cloneNode(true));
-    tableNode.content = tmp.innerHTML;
+    tableNode.content = _toHtml(table);
 
     this.addFigureThingies(state, tableNode, tableWrap);
 
     doc.create(tableNode);
     return tableNode;
+  };
+
+  this.formula = function(state, dispFormula) {
+    var doc = state.doc;
+
+    var id = dispFormula.getAttribute("id") || state.nextId("formula");
+    var formulaNode = {
+      id: id,
+      type: "formula",
+      label: "",
+      data: "",
+      format: ""
+    };
+
+    var label = dispFormula.querySelector("label");
+    if (label) formulaNode.label = label.textContent;
+
+    var children = dispFormula.children;
+
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      var type = this.getNodeType(child);
+
+      if (type === "mml:math") {
+        // TODO: is it really important to unwrap the mml:row?
+        // why not just take the MathML directly?
+        // Note: somehow it is not accepted to querySelect with "mml:row"
+        var mmlRow = child.firstChild;
+        formulaNode.format = "mathml";
+        formulaNode.data = _toHtml(mmlRow);
+      }
+      else if (type === "tex-math") {
+        formulaNode.format = "latex";
+        formulaNode.data = child.textContent;
+      }
+    }
+
+    if (formulaNode.format === "") {
+      console.error("This formula is not yet supported", dispFormula);
+      return null;
+    } else {
+      doc.create(formulaNode);
+      return formulaNode;
+    }
   };
 
   // Citations
