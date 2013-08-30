@@ -119,6 +119,28 @@ LensImporter.Prototype = function() {
     return nodes[0];
   };
 
+  // Adds label, title and caption.
+  // This method is reused among the figure like elements such as
+  // 'image', 'table', and 'video'
+  this.addFigureThingies = function(state, node, element) {
+    // Caption: is a paragraph
+    var caption = element.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      node.caption = captionNode.id;
+    }
+
+    var label = element.querySelector("label");
+    if (label) {
+      node.label = label.textContent;
+    }
+
+    var title = element.querySelector("title");
+    if (title) {
+      node.title = title.textContent;
+    }
+  };
+
   this.figure = function(state, figure) {
     var doc = state.doc;
 
@@ -133,35 +155,16 @@ LensImporter.Prototype = function() {
     var id = figure.getAttribute("id") || state.nextId(imageNode.type);
     imageNode.id = id;
 
-    // Caption: is a paragraph
-    var caption = figure.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      imageNode.caption = captionNode.id;
-    }
+    this.addFigureThingies(state, imageNode, figure);
 
     var graphic = figure.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
     imageNode.url = url;
     imageNode.large_url = url;
 
-    var label = figure.querySelector("label");
-    if (label) {
-      imageNode.label = label.textContent;
-    }
-
-    var title = figure.querySelector("title");
-    if (title) {
-      imageNode.title = title.textContent;
-    }
-
     doc.create(imageNode);
     return imageNode;
   };
-
-
-  // Media
-  // --------
 
   this.media = function(state, media) {
     var mimetype = media.getAttribute("mimetype");
@@ -195,25 +198,39 @@ LensImporter.Prototype = function() {
       videoNode.url = url;
     }
 
-    var caption = video.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      videoNode.caption = captionNode.id;
-    }
-
-    var label = video.querySelector("label");
-    if (label) {
-      videoNode.label = label.textContent;
-    }
-
-    var title = video.querySelector("title");
-    if (title) {
-      videoNode.title = title.textContent;
-    }
+    this.addFigureThingies(state, videoNode, video);
 
     doc.create(videoNode);
 
     return videoNode;
+  };
+
+  this.tableWrap = function(state, tableWrap) {
+    var doc = state.doc;
+
+    var id = tableWrap.getAttribute("id") || state.nextId("table");
+    var tableNode = {
+      id: id,
+      type: "table",
+      title: "",
+      label: "",
+      content: "",
+      caption: null,
+      // Not supported yet ... need examples
+      footers: [],
+      doi: ""
+    };
+
+    // Note: using a DOM div element to create HTML
+    var table = tableWrap.querySelector("table");
+    var tmp = document.createElement("DIV");
+    tmp.appendChild(table.cloneNode(true));
+    tableNode.content = tmp.innerHTML;
+
+    this.addFigureThingies(state, tableNode, tableWrap);
+
+    doc.create(tableNode);
+    return tableNode;
   };
 
   // Citations
