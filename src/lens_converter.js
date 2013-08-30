@@ -107,6 +107,18 @@ LensImporter.Prototype = function() {
     state.annotations.push(anno);
   };
 
+  // Figures
+  // --------
+
+  this.caption = function(state, caption) {
+    var p = caption.querySelector("p");
+    var nodes = this.paragraph(state, p);
+    if (nodes.length > 1) {
+      throw new ImporterError("Ooops. Not ready for that...");
+    }
+    return nodes[0];
+  };
+
   this.figure = function(state, figure) {
     var doc = state.doc;
 
@@ -124,12 +136,8 @@ LensImporter.Prototype = function() {
     // Caption: is a paragraph
     var caption = figure.querySelector("caption");
     if (caption) {
-      var p = caption.querySelector("p");
-      var nodes = this.paragraph(state, p);
-      if (nodes.length > 1) {
-        throw new ImporterError("Ooops. Not ready for that...");
-      }
-      imageNode.caption = nodes[0].id;
+      var captionNode = this.caption(state, caption);
+      imageNode.caption = captionNode.id;
     }
 
     var graphic = figure.querySelector("graphic");
@@ -150,6 +158,66 @@ LensImporter.Prototype = function() {
     doc.create(imageNode);
     return imageNode;
   };
+
+
+  // Media
+  // --------
+
+  this.media = function(state, media) {
+    var mimetype = media.getAttribute("mimetype");
+    if (mimetype === "video") {
+      return this.video(state, media);
+    } else {
+      throw new ImporterError("Media type not supported yet: " + mimetype);
+    }
+  };
+
+  this.video = function(state, video) {
+    var doc = state.doc;
+
+    var id = video.getAttribute("id") || state.nextId("video");
+    var videoNode = {
+      id: id,
+      type: "video",
+      label: "",
+      title: "",
+      url: "",
+      caption: null,
+      // TODO: these are not used yet... need examples
+      doi: "",
+      url_web: "",
+      url_ogv: "",
+      poster: ""
+    };
+
+    var url = video.getAttribute("xlink:href");
+    if (url) {
+      videoNode.url = url;
+    }
+
+    var caption = video.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      videoNode.caption = captionNode.id;
+    }
+
+    var label = video.querySelector("label");
+    if (label) {
+      videoNode.label = label.textContent;
+    }
+
+    var title = video.querySelector("title");
+    if (title) {
+      videoNode.title = title.textContent;
+    }
+
+    doc.create(videoNode);
+
+    return videoNode;
+  };
+
+  // Citations
+  // ---------
 
   this.refList = function(state, refList) {
     var refs = refList.querySelectorAll("ref");
