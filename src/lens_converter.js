@@ -12,6 +12,24 @@ LensImporter.Prototype = function() {
 
   var __super__ = NLMImporter.prototype;
 
+  // Helpers
+  // --------
+
+  var _getName = function(nameEl) {
+    var names = [];
+
+    var surnameEl = nameEl.querySelector("surname");
+    var givenNamesEl = nameEl.querySelector("given-names");
+
+    if (givenNamesEl) names.push(givenNamesEl.textContent);
+    if (surnameEl) names.push(surnameEl.textContent);
+
+    return names.join(" ");
+  };
+
+  // Overridden NLMImporter API
+  // --------
+
   // Overridden to create a Lens Article instance
   this.createDocument = function() {
     var Article = require("lens-article");
@@ -48,6 +66,75 @@ LensImporter.Prototype = function() {
     };
     doc.create(cover);
     doc.show("content", cover.id);
+  };
+
+  // Note: Substance.Article supports only one author.
+  // We use the first author found in the contribGroup for the 'creator' property.
+  this.contribGroup = function(state, contribGroup) {
+    var i;
+    var affiliations = contribGroup.querySelectorAll("aff");
+    for (i = 0; i < affiliations.length; i++) {
+      this.affiliation(state, affiliations[i]);
+    }
+
+    var contribs = contribGroup.querySelectorAll("contrib");
+    for (i = 0; i < contribs.length; i++) {
+      this.contributor(state, contribs[i]);
+    }
+  };
+
+  this.affiliation = function(state, aff) {
+    var doc = state.doc;
+
+    //TODO: this needs a proper specification in Lens.Article
+    var id = aff.getAttribute("id") || state.nextId("institution");
+    var institutionNode = {
+      id: id,
+      type: "institution",
+    };
+
+    // TODO: fill the node
+    // var label = aff.querySelector("label");
+    // if (label) institutionNode.label = label.textContent;
+
+    // var name = aff.querySelector("institution");
+    // if (name) institutionNode.name = name.textContent;
+
+    doc.create(institutionNode);
+  };
+
+  this.contributor = function(state, contrib) {
+    var doc = state.doc;
+
+    var id = contrib.getAttribute("id") || state.nextId("person");
+    var personNode = {
+      id: id,
+      type: "person",
+      name: "",
+      affiliations: [],
+      // Not yet supported... need examples
+      image: "",
+      emails: [],
+      contribution: ""
+    };
+
+    var nameEl = contrib.querySelector("name");
+    personNode.name = _getName(nameEl);
+
+    // extract affiliations stored as xrefs
+    var xrefs = contrib.querySelectorAll("xref");
+    for (var i = 0; i < xrefs.length; i++) {
+      var xref = xrefs[i];
+      if (xref.getAttribute("ref-type") === "aff") {
+        personNode.affiliations.push(xref.getAttribute("rid"));
+      }
+    }
+
+    if (contrib.getAttribute("contrib-type") === "author") {
+      doc.nodes.document.authors.push(id);
+    }
+
+    doc.create(personNode);
   };
 
   // Annotations
@@ -155,12 +242,12 @@ LensImporter.Prototype = function() {
     var id = figure.getAttribute("id") || state.nextId(imageNode.type);
     imageNode.id = id;
 
-    this.addFigureThingies(state, imageNode, figure);
-
     var graphic = figure.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
     imageNode.url = url;
     imageNode.large_url = url;
+
+    this.addFigureThingies(state, imageNode, figure);
 
     doc.create(imageNode);
     return imageNode;
@@ -258,18 +345,6 @@ LensImporter.Prototype = function() {
         console.error("Not supported in 'ref': ", type);
       }
     }
-  };
-
-  var _getName = function(nameEl) {
-    var names = [];
-
-    var surnameEl = nameEl.querySelector("surname");
-    var givenNamesEl = nameEl.querySelector("given-names");
-
-    if (givenNamesEl) names.push(givenNamesEl.textContent);
-    if (surnameEl) names.push(surnameEl.textContent);
-
-    return names.join(" ");
   };
 
   // TODO: is implemented naively, should be implemented considering the NLM spec
