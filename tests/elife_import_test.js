@@ -39,11 +39,11 @@ var NLMImporterTest = function () {
     // Note: every test is split up into two steps Import and Check
     // to keep the assertion checks outside the asynchronous call to load the data
 
-    "Import: Article with Front only", function(cb) {
+    "Import: Article '00311.xml'", function(cb) {
       this.importFixture("./data/00311.xml", cb);
     },
 
-    "Check: Document metadat", function() {
+    "Check: Document's Meta Data", function() {
       assert.isEqual("00311", this.doc.id);
       assert.isEqual('Modelling dynamics in protein crystal structures by ensemble refinement', this.doc.title);
     },

@@ -40,11 +40,11 @@ var NLMImporterTest = function () {
     // Note: every test is split up into two steps Import and Check
     // to keep the assertion checks outside the asynchronous call to load the data
 
-    "Import: Article with Front only", function(cb) {
+    "Import: Article '2013CC4897R.xml'", function(cb) {
       this.importFixture("./data/2013CC4897R.xml", cb);
     },
 
-    "Check: Document metadat", function() {
+    "Check: Document's Meta-Data", function() {
       assert.isEqual("2013CC4897R", this.doc.id);
       assert.isEqual('In vivo functional studies of tumor-specific retrogene NanogP8 in transgenic animals', this.doc.title);
     },
