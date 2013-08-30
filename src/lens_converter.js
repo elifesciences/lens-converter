@@ -60,6 +60,7 @@ LensImporter.Prototype = function() {
     "sub": "subscript",
     "sup": "superscript",
     "underline": "underline",
+    "ext-link": "link",
     "xref": ""
   };
 
@@ -91,6 +92,11 @@ LensImporter.Prototype = function() {
     // Common annotations (e.g., emphasis)
     else if (_annotationTypes[type] !== undefined) {
       anno.type = _annotationTypes[type];
+
+      if (type === "ext-link") {
+        anno.url = el.getAttribute("xlink:href");
+      }
+
     }
     else {
       console.log("Ignoring annotation: ", type, el);
