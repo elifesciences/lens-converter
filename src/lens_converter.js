@@ -205,6 +205,8 @@ LensImporter.Prototype = function() {
 
   this.caption = function(state, caption) {
     var p = caption.querySelector("p");
+    if (!p) return null;
+
     var nodes = this.paragraph(state, p);
     if (nodes.length > 1) {
       throw new ImporterError("Ooops. Not ready for that...");
@@ -220,7 +222,7 @@ LensImporter.Prototype = function() {
     var caption = element.querySelector("caption");
     if (caption) {
       var captionNode = this.caption(state, caption);
-      node.caption = captionNode.id;
+      if (captionNode) node.caption = captionNode.id;
     }
 
     var label = element.querySelector("label");
