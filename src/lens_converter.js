@@ -260,8 +260,9 @@ LensImporter.Prototype = function() {
     var id = figure.getAttribute("id") || state.nextId(imageNode.type);
     imageNode.id = id;
     
-    imageNode.url = config.resolveFigureURL(state, figure);
-    imageNode.large_url = config.resolveFigureURL(state, figure);
+    var urls = config.resolveFigureURLs(state, figure);
+    imageNode.url = urls.url;
+    imageNode.large_url = urls.large_url;
 
     this.addFigureThingies(state, imageNode, figure);
 
