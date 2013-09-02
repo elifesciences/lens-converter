@@ -5,7 +5,20 @@ var Converter = require("substance-converter");
 var ImporterError = Converter.ImporterError;
 var NLMImporter = Converter.NLMImporter;
 
-var LensImporter = function() {
+var ElifeConfiguration = require("./configurations/elife");
+
+
+
+// Create config object
+// --------
+// 
+// TODO: Config object should be dynamically created based on
+// what config should be used for a particular file
+
+var config = new ElifeConfiguration();
+
+var LensImporter = function(options) {
+  this.options;
 };
 
 LensImporter.Prototype = function() {
@@ -32,9 +45,6 @@ LensImporter.Prototype = function() {
     tmp.appendChild(el.cloneNode(true));
     return tmp.innerHTML;
   };
-
-  // Overridden NLMImporter API
-  // --------
 
   // Overridden to create a Lens Article instance
   this.createDocument = function() {
@@ -249,17 +259,16 @@ LensImporter.Prototype = function() {
     };
     var id = figure.getAttribute("id") || state.nextId(imageNode.type);
     imageNode.id = id;
-
-    var graphic = figure.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-    imageNode.url = url;
-    imageNode.large_url = url;
+    
+    imageNode.url = config.resolveFigureURL(state, figure);
+    imageNode.large_url = config.resolveFigureURL(state, figure);
 
     this.addFigureThingies(state, imageNode, figure);
 
     doc.create(imageNode);
     return imageNode;
   };
+
 
   this.media = function(state, media) {
     var mimetype = media.getAttribute("mimetype");
