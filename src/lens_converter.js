@@ -5,17 +5,12 @@ var Converter = require("substance-converter");
 var ImporterError = Converter.ImporterError;
 var NLMImporter = Converter.NLMImporter;
 
-var ElifeConfiguration = require("./configurations/elife");
-
-
-
-// Create config object
+// Available configurations
 // --------
-// 
-// TODO: Config object should be dynamically created based on
-// what config should be used for a particular file
 
-var config = new ElifeConfiguration();
+var ElifeConfiguration = require("./configurations/elife");
+var LandesConfiguration = require("./configurations/landes");
+
 
 var LensImporter = function(options) {
   this.options;
@@ -246,6 +241,20 @@ LensImporter.Prototype = function() {
     }
   };
 
+  this.document = function(state, xmlDoc) {
+
+    // Hot patch state object and add configuration object
+    var publisherName = state.xmlDoc.querySelector("publisher-name").textContent;
+    if (publisherName === "Landes Bioscience") {
+      state.config = new LandesConfiguration();
+    } else {
+      state.config = new ElifeConfiguration();
+    }
+
+    return __super__.document.call(this, state, xmlDoc);
+  };
+
+
   this.figure = function(state, figure) {
     var doc = state.doc;
 
@@ -260,7 +269,8 @@ LensImporter.Prototype = function() {
     var id = figure.getAttribute("id") || state.nextId(imageNode.type);
     imageNode.id = id;
     
-    var urls = config.resolveFigureURLs(state, figure);
+    // Delegate to configuration method
+    var urls = state.config.resolveFigureURLs(state, figure);
     imageNode.url = urls.url;
     imageNode.large_url = urls.large_url;
 
