@@ -1,3 +1,5 @@
+var DefaultConfiguration = require('./default');
+
 var PLOSConfiguration = function() {
 
 };
@@ -29,6 +31,9 @@ PLOSConfiguration.Prototype = function() {
   };
 };
 
+
+PLOSConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
 PLOSConfiguration.prototype = new PLOSConfiguration.Prototype();
+PLOSConfiguration.prototype.constructor = PLOSConfiguration;
 
 module.exports = PLOSConfiguration;

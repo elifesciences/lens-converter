@@ -1,3 +1,6 @@
+var DefaultConfiguration = require('./default');
+
+
 var LandesConfiguration = function() {
 
 };
@@ -36,13 +39,20 @@ LandesConfiguration.Prototype = function() {
       large_url: url
     };
   };
-  
 
   this.resolveFileURL = function(state, supplement) {
     return "http://mickey.com/mouse.pdf"
   };
+
+  this.addFigureThingies = function(state, figure, element) {
+    // DefaultConfiguration.prototype.addFigureThingies.call(this, state, figure, element);
+    figure.label = "Figure";
+  };
 };
 
+
+LandesConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
 LandesConfiguration.prototype = new LandesConfiguration.Prototype();
+LandesConfiguration.prototype.constructor = LandesConfiguration;
 
 module.exports = LandesConfiguration;

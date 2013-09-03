@@ -1,7 +1,10 @@
+var DefaultConfiguration = require('./default');
+
 
 var ElifeConfiguration = function() {
 
 };
+
 
 ElifeConfiguration.Prototype = function() {
 
@@ -26,7 +29,6 @@ ElifeConfiguration.Prototype = function() {
       ".svg"
     ].join('');
 
-
     return {
       url: url,
       large_url: url
@@ -38,6 +40,8 @@ ElifeConfiguration.Prototype = function() {
   };
 };
 
+ElifeConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
 ElifeConfiguration.prototype = new ElifeConfiguration.Prototype();
+ElifeConfiguration.prototype.constructor = ElifeConfiguration;
 
 module.exports = ElifeConfiguration;

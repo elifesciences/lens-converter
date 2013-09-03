@@ -280,22 +280,25 @@ LensImporter.Prototype = function() {
   // This method is reused among the figure like elements such as
   // 'image', 'table', and 'video'
   this.addFigureThingies = function(state, node, element) {
+    // Delegate to configuration
+    state.config.addFigureThingies(state, node, element);
+
     // Caption: is a paragraph
-    var caption = element.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) node.caption = captionNode.id;
-    }
+    // var caption = element.querySelector("caption");
+    // if (caption) {
+    //   var captionNode = this.caption(state, caption);
+    //   if (captionNode) node.caption = captionNode.id;
+    // }
 
-    var label = element.querySelector("label");
-    if (label) {
-      node.label = label.textContent;
-    }
+    // var label = element.querySelector("label");
+    // if (label) {
+    //   node.label = label.textContent;
+    // }
 
-    var title = element.querySelector("title");
-    if (title) {
-      node.title = title.textContent;
-    }
+    // var title = element.querySelector("title");
+    // if (title) {
+    //   node.title = title.textContent;
+    // }
   };
 
   this.document = function(state, xmlDoc) {
