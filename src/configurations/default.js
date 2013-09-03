@@ -19,6 +19,9 @@ DefaultConfiguration.Prototype = function() {
     return url;
   };
 
+  this.resolveFileURL = function(state, supplement) {
+    return "http://mickey.com/mouse.pdf"
+  };
 };
 
 DefaultConfiguration.prototype = new DefaultConfiguration.Prototype();

@@ -179,7 +179,7 @@ LensImporter.Prototype = function() {
       var targetId = el.getAttribute("rid");
       if (refType === "bibr") {
         anno.type = "citation_reference";
-      } else if (refType === "fig" || refType === "table") {
+      } else if (refType === "fig" || refType === "table" || "supplementary-material") {
         anno.type = "figure_reference";
       }
       // 'supplementary-material', disp-formula
@@ -206,6 +206,60 @@ LensImporter.Prototype = function() {
 
     state.annotations.push(anno);
   };
+
+
+  // #### Front.ArticleMeta
+  //
+
+  this.articleMeta = function(state, articleMeta) {
+    return __super__.articleMeta.call(this, state, articleMeta);
+
+    // <supplementary-material> Supplemental Material, zero or more
+    var supplements = articleMeta.querySelectorAll("supplementary-material");
+    this.supplements(state, supplements);
+
+    // Not supported yet:
+    // <trans-abstract> Translated Abstract, zero or more
+    // <kwd-group> Keyword Group, zero or more
+    // <funding-group> Funding Group, zero or more
+    // <conference> Conference Information, zero or more
+    // <counts> Counts, zero or one
+    // <custom-meta-group> Custom Metadata Group, zero or one
+  };
+
+
+  // Supplements
+  // --------
+
+  this.supplements = function(state, supplements) {
+    var doc = state.doc;
+
+
+    _.each(supplements, function(supplement) {
+
+      // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
+      //   <label>Additional material</label>
+      //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
+      // </supplementary-material>
+
+      var id = supplement.getAttribute("id") || state.nextId("file");
+      var name = supplement.querySelector("label").textContent;
+      var url = supplement.getAttribute('xlink:href');
+
+      var fileNode = {
+        "id": id,
+        "type": "file",
+        "name": name,
+        "size": "??",
+        "extension": ".???",
+        "url": state.config.resolveFileURL() // See configurations
+      };
+      
+      doc.create(fileNode);
+      doc.show("figures", id, -1);
+    });
+  };
+
 
   // Figures
   // --------
@@ -244,7 +298,6 @@ LensImporter.Prototype = function() {
     }
   };
 
-
   this.document = function(state, xmlDoc) {
 
     // Hot patch state object and add configuration object
@@ -274,6 +327,7 @@ LensImporter.Prototype = function() {
       "large_url": "",
       "caption": null
     };
+
     var id = figure.getAttribute("id") || state.nextId(imageNode.type);
     imageNode.id = id;
     

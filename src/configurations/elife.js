@@ -32,6 +32,10 @@ ElifeConfiguration.Prototype = function() {
       large_url: url
     };
   };
+
+  this.resolveFileURL = function(state, supplement) {
+    return "http://mickey.com/mouse.pdf"
+  };
 };
 
 ElifeConfiguration.prototype = new ElifeConfiguration.Prototype();

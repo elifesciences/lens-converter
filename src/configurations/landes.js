@@ -15,16 +15,18 @@ LandesConfiguration.Prototype = function() {
 
     // TODO: use journalId directly encoded in the xml doc.
     // var journalId = document.querySelector('journal-id').getAttribute('journal-id-type');
-
+    var publisherId = state.xmlDoc.querySelector('journal-id').textContent;
     var journalTitle = state.xmlDoc.querySelector('journal-title').textContent;
 
     var mappings = {
-      "Cell Cycle": "cc"
+      "CC": "cc",
+      "INTV": "intravital",
+      "CIB": "cib"
     };
 
     var url = [
       "https://www.landesbioscience.com/article_figure/journals/",
-      "cc", // mappings[journalTitle]
+      mappings[publisherId],
       "/",
       url,
     ].join('');
@@ -33,6 +35,11 @@ LandesConfiguration.Prototype = function() {
       url: url,
       large_url: url
     };
+  };
+  
+
+  this.resolveFileURL = function(state, supplement) {
+    return "http://mickey.com/mouse.pdf"
   };
 };
 
