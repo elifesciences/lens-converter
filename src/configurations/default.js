@@ -28,12 +28,12 @@ DefaultConfiguration.Prototype = function() {
   // 
   // Can be overriden by specific configurations
 
-  this.addFigureThingies = function(state, figure, element) {
-      
+  this.addFigureThingies = function(converter, state, figure, element) {
+
     // Caption: is a paragraph
     var caption = element.querySelector("caption");
     if (caption) {
-      var captionNode = this.caption(state, caption);
+      var captionNode = converter.caption(state, caption);
       if (captionNode) figure.caption = captionNode.id;
     }
 

@@ -7,6 +7,8 @@ var LandesConfiguration = function() {
 
 LandesConfiguration.Prototype = function() {
 
+  var __super__ = DefaultConfiguration.prototype;
+
   // Resolve figure url
   // --------
   // 
@@ -40,12 +42,18 @@ LandesConfiguration.Prototype = function() {
     };
   };
 
+  // Called when files (supplements) are constructed
+  // -------
+
   this.resolveFileURL = function(state, supplement) {
     return "http://mickey.com/mouse.pdf"
   };
 
-  this.addFigureThingies = function(state, figure, element) {
-    // DefaultConfiguration.prototype.addFigureThingies.call(this, state, figure, element);
+  // Use custom magic for figure labels.
+  // -------
+
+  this.addFigureThingies = function(converter, state, figure, element) {
+    __super__.addFigureThingies.call(this, converter, state, figure, element);
     figure.label = "Figure";
   };
 };
