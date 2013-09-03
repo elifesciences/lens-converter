@@ -212,28 +212,19 @@ LensImporter.Prototype = function() {
   //
 
   this.articleMeta = function(state, articleMeta) {
-    return __super__.articleMeta.call(this, state, articleMeta);
+
+    __super__.articleMeta.call(this, state, articleMeta);
 
     // <supplementary-material> Supplemental Material, zero or more
     var supplements = articleMeta.querySelectorAll("supplementary-material");
     this.supplements(state, supplements);
-
-    // Not supported yet:
-    // <trans-abstract> Translated Abstract, zero or more
-    // <kwd-group> Keyword Group, zero or more
-    // <funding-group> Funding Group, zero or more
-    // <conference> Conference Information, zero or more
-    // <counts> Counts, zero or one
-    // <custom-meta-group> Custom Metadata Group, zero or one
   };
-
 
   // Supplements
   // --------
 
   this.supplements = function(state, supplements) {
     var doc = state.doc;
-
 
     _.each(supplements, function(supplement) {
 
