@@ -10,6 +10,8 @@ var NLMImporter = Converter.NLMImporter;
 
 var ElifeConfiguration = require("./configurations/elife");
 var LandesConfiguration = require("./configurations/landes");
+var DefaultConfiguration = require("./configurations/default");
+var PLOSConfiguration = require("./configurations/plos");
 
 
 var LensImporter = function(options) {
@@ -214,7 +216,8 @@ LensImporter.Prototype = function() {
 
     var nodes = this.paragraph(state, p);
     if (nodes.length > 1) {
-      throw new ImporterError("Ooops. Not ready for that...");
+      // throw new ImporterError("Ooops. Not ready for that...");
+      console.error("Ooops. Not ready for multiple captions...");
     }
     return nodes[0];
   };
@@ -241,14 +244,19 @@ LensImporter.Prototype = function() {
     }
   };
 
+
   this.document = function(state, xmlDoc) {
 
     // Hot patch state object and add configuration object
     var publisherName = state.xmlDoc.querySelector("publisher-name").textContent;
     if (publisherName === "Landes Bioscience") {
       state.config = new LandesConfiguration();
-    } else {
+    } else if (publisherName === "eLife Sciences Publications, Ltd") {
       state.config = new ElifeConfiguration();
+    } else if (publisherName === "Public Library of Science") {
+      state.config = new PLOSConfiguration();
+    } else {
+      state.config = new DefaultConfiguration();
     }
 
     return __super__.document.call(this, state, xmlDoc);
