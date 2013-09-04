@@ -211,20 +211,32 @@ LensImporter.Prototype = function() {
   // #### Front.ArticleMeta
   //
 
-  this.articleMeta = function(state, articleMeta) {
+ this.articleMeta = function(state, articleMeta) {
 
     __super__.articleMeta.call(this, state, articleMeta);
 
     // <supplementary-material> Supplemental Material, zero or more
     var supplements = articleMeta.querySelectorAll("supplementary-material");
     this.supplements(state, supplements);
-  };
+  }; 
+
+  // Article.Back
+  // --------
+
+  this.back = function(state, back) {
+    __super__.back.call(this, state, back);
+
+    //Supplemental Material, zero or more
+    var supplements = back.querySelectorAll("supplementary-material");
+    this.supplements(state, supplements);
+  };            
 
   // Supplements
   // --------
 
   this.supplements = function(state, supplements) {
     var doc = state.doc;
+    var that = this;
 
     _.each(supplements, function(supplement) {
 
@@ -233,21 +245,39 @@ LensImporter.Prototype = function() {
       //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
       // </supplementary-material>
 
-      var id = supplement.getAttribute("id") || state.nextId("file");
-      var name = supplement.querySelector("label").textContent;
-      var url = supplement.getAttribute('xlink:href');
+      //get supplement info
+      var id = supplement.getAttribute("id") || state.nextId("supplement");
+      var label = supplement.querySelector("label").textContent;
 
-      var fileNode = {
-        "id": id,
-        "type": "file",
-        "name": name,
-        "size": "??",
-        "extension": ".???",
-        "url": state.config.resolveFileURL() // See configurations
-      };
+      // get file info
+      var url = supplement.getAttribute('xlink:href') || supplement.querySelector("media, graphic").getAttribute('xlink:href');
+      url = state.config.resolveFileURL(state, supplement); // See configurations
+      var doi = supplement.querySelector("object-id[pub-id-type='doi']");
+      doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
       
+      //create file node
+      var fileNode = {
+        "id": state.nextId("file"),
+        "type": "file",
+        "name": label,
+        "description": "",
+        "url": url,
+        "doi": doi
+      };
       doc.create(fileNode);
-      doc.show("figures", id, -1);
+      var files = [];
+      files.push(fileNode.id);
+
+      //create supplement node using file ids
+      var supplementNode = {
+        "id": id,
+        "type": "supplement",
+        "label": label,
+        "files": files
+      }
+      that.addFigureThingies(state, supplementNode, supplement);  
+      doc.create(supplementNode);
+      doc.show("figures", id);
     });
   };
 
@@ -338,7 +368,9 @@ LensImporter.Prototype = function() {
       type: "video",
       label: "",
       title: "",
-      url: "",
+      /*url: "",
+      url_ogv: "",
+      url_webm: "",*/
       caption: null,
       // TODO: these are not used yet... need examples
       doi: "",
@@ -347,11 +379,11 @@ LensImporter.Prototype = function() {
       poster: ""
     };
 
-    var url = video.getAttribute("xlink:href");
-    if (url) {
-      videoNode.url = url;
-    }
+    // Delegate to configuration method
+    var urls = state.config.resolveVideoURLs(state, video);
+    for (var k in urls) { videoNode[k] = urls[k]; }
 
+    console.log(videoNode);
     this.addFigureThingies(state, videoNode, video);
 
     doc.create(videoNode);
@@ -535,13 +567,9 @@ LensImporter.Prototype = function() {
       var label = ref.querySelector("label");
       if(label) citationNode.label = label.textContent;
 
-      var pubIds = citation.querySelectorAll("pub-id");
-      for (i = 0; i < pubIds.length; i++) {
-        if(pubIds[i].getAttribute("pub-id-type") === "doi") {
-          citationNode.doi = pubIds[i].textContent;
-          break;
-        }
-      }
+      var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
+      if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;       
+      
 
     } else {
       console.error("FIXME: there is one of those 'mixed-citation' without any structure.", citation);

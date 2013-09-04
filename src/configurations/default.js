@@ -19,6 +19,10 @@ DefaultConfiguration.Prototype = function() {
     return url;
   };
 
+  this.resolveVideoURLs = function(state, supplement) {
+    return {url:"http://mickey.com/mouse.pdf"};
+  };
+
   this.resolveFileURL = function(state, supplement) {
     return "http://mickey.com/mouse.pdf"
   };

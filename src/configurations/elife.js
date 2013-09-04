@@ -35,6 +35,17 @@ ElifeConfiguration.Prototype = function() {
     };
   };
 
+ this.resolveVideoURLs = function(state, video) {
+   var node = video.querySelector("media") || video;
+   var name = (node.getAttribute("xlink:href")).replace(/\.[^\.]+$/g, '');
+   var result = [];
+   result.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
+   result.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
+   //result.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
+   result.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
+   return result;
+  };      
+
   this.resolveFileURL = function(state, supplement) {
     return "http://mickey.com/mouse.pdf"
   };
