@@ -408,12 +408,12 @@ LensImporter.Prototype = function() {
       // I would expect it to return just one paragraph node. 
       var nodes = this.paragraph(state, p);
       if (nodes.length > 1) {
-        throw new ImporterError("Ooops. Not ready for that...");
-        // console.error("Ooops. Not ready for multiple captions...");
-      } else {
-        var paragraphNode = nodes[0];
-        children.push(paragraphNode.id);
+        // throw new ImporterError("Ooops. Not ready for that...");
+        console.error("Ooops. Not ready for multiple nodes... only using the first one.");
       }
+
+      var paragraphNode = nodes[0];
+      children.push(paragraphNode.id);
     }, this);
 
     captionNode.children = children;
