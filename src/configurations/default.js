@@ -13,13 +13,13 @@ DefaultConfiguration.Prototype = function() {
 
   this.resolveFigureURLs = function(state, figure) {
 
-    // var graphic = figure.querySelector("graphic");
-    // var url = graphic.getAttribute("xlink:href");
+    var graphic = figure.querySelector("graphic");
+    var url = graphic.getAttribute("xlink:href");
     // return url;
 
     return {
-      url: "http://mickey.com/mouse.png",
-      large_url: "http://mickey.com/mouse.png",
+      url: url,
+      large_url: url,
     };
   };
 
@@ -38,25 +38,25 @@ DefaultConfiguration.Prototype = function() {
   // 
   // Can be overriden by specific configurations
 
-  this.addFigureThingies = function(converter, state, figure, element) {
+  // this.addFigureThingies = function(converter, state, figure, element) {
 
-    // Caption: is a paragraph
-    var caption = element.querySelector("caption");
-    if (caption) {
-      var captionNode = converter.caption(state, caption);
-      if (captionNode) figure.caption = captionNode.id;
-    }
+  //   // Caption: is a paragraph
+  //   var caption = element.querySelector("caption");
+  //   if (caption) {
+  //     var captionNode = converter.caption(state, caption);
+  //     if (captionNode) figure.caption = captionNode.id;
+  //   }
 
-    var label = element.querySelector("label");
-    if (label) {
-      figure.label = label.textContent;
-    }
+  //   var label = element.querySelector("label");
+  //   if (label) {
+  //     figure.label = label.textContent;
+  //   }
 
-    var title = element.querySelector("title");
-    if (title) {
-      figure.title = title.textContent;
-    }
-  };
+  //   var title = element.querySelector("title");
+  //   if (title) {
+  //     figure.title = title.textContent;
+  //   }
+  // };
 
 };
 

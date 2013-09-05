@@ -54,6 +54,18 @@ var NLMImporterTest = function () {
       assert.isTrue(figuresView.getNodes().length > 0);
     },
 
+    "Check: Check figure structure", function() {
+      var figure = this.doc.get('fig1');
+
+      // Is of type figure
+
+      // Has a caption of multiple paragraphs
+
+      // 
+      // var figuresView = this.doc.get('figures');
+      // assert.isTrue(figuresView.getNodes().length > 0);
+    },
+
     // "Check: Every figure must have a label", function() {
     //   var figuresView = this.doc.get('figures');
     //   assert.isTrue(figuresView.getNodes().length > 0);

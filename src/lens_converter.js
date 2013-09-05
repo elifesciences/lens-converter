@@ -51,7 +51,8 @@ LensImporter.Prototype = function() {
   };
 
   var _viewMapping = {
-    "image": "figures",
+    // "image": "figures",
+    "figure": "figures",
     "table": "figures",
     "video": "figures"
   };
@@ -294,27 +295,13 @@ LensImporter.Prototype = function() {
         "label": label,
         "files": files
       }
-      that.addFigureThingies(state, supplementNode, supplement);  
+      // that.addFigureThingies(state, supplementNode, supplement);  
       doc.create(supplementNode);
       doc.show("figures", id);
     });
   };
 
 
-  // Figures
-  // --------
-
-  this.caption = function(state, caption) {
-    var p = caption.querySelector("p");
-    if (!p) return null;
-
-    var nodes = this.paragraph(state, p);
-    if (nodes.length > 1) {
-      // throw new ImporterError("Ooops. Not ready for that...");
-      console.error("Ooops. Not ready for multiple captions...");
-    }
-    return nodes[0];
-  };
 
   // Adds label, title and caption.
   // This method is reused among the figure like elements such as
@@ -342,30 +329,97 @@ LensImporter.Prototype = function() {
   };
 
 
+
   this.figure = function(state, figure) {
     var doc = state.doc;
 
-    var imageNode = {
-      type: "image",
+    // Top level figure node
+    var figureNode = {
+      type: "figure",
       "label": "",
-      "title": "",
-      "url": "",
-      "large_url": "",
+      // "title": "",
+      "image": null,
+      "large_image": null,
       "caption": null
     };
 
-    var id = figure.getAttribute("id") || state.nextId(imageNode.type);
-    imageNode.id = id;
+    var figureId = figure.getAttribute("id") || state.nextId(figureNode.type);
+    figureNode.id = figureId;
     
-    // Delegate to configuration method
     var urls = state.config.resolveFigureURLs(state, figure);
-    imageNode.url = urls.url;
-    imageNode.large_url = urls.large_url;
+    var imageNode = {
+      "type": "image",
+      "url": urls.url
+    };
 
-    this.addFigureThingies(state, imageNode, figure);
+    var imageId = "image_"+figureId;
+    imageNode.id = imageId;
+
+    // Add image reference to figure node
+    figureNode.image = imageId;
 
     doc.create(imageNode);
-    return imageNode;
+
+
+    // Add a caption if available
+    var caption = figure.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) figureNode.caption = captionNode.id;
+    }
+
+    doc.create(figureNode);
+    console.log('LE DOC', doc.toJSON());
+
+    // console.log('CONFIG used', state.config);
+
+    // Delegate to configuration method
+    
+    // imageNode.url = urls.url;
+    // imageNode.large_url = urls.large_url;
+
+    // this.addFigureThingies(state, imageNode, figure);
+    
+    return figureNode;
+  };
+
+  // Used by Figure, Table, Video, Supplement types.
+  // --------
+
+  this.caption = function(state, caption) {
+    var doc = state.doc;
+    var title = caption.querySelector("title");
+    var paragraphs = caption.querySelectorAll("p");
+
+    // console.log('p.length', p.length);
+
+    if (paragraphs.length === 0) return null;
+
+    var captionNode = {
+      "id": caption.getAttribute("id") || state.nextId("caption"),
+      "type": "caption",
+      "title": title ? title.textContent : null,
+      "children": []
+    };
+
+    var children = [];
+    _.each(paragraphs, function(p) {
+      // Oliver: Explain, why we need NLMImporter.paragraph to return an array nodes?
+      // I would expect it to return just one paragraph node. 
+      var nodes = this.paragraph(state, p);
+      if (nodes.length > 1) {
+        throw new ImporterError("Ooops. Not ready for that...");
+        // console.error("Ooops. Not ready for multiple captions...");
+      } else {
+        var paragraphNode = nodes[0];
+        children.push(paragraphNode.id);
+      }
+    }, this);
+
+    captionNode.children = children;
+    doc.create(captionNode);
+
+    return captionNode;
   };
 
 
@@ -374,7 +428,8 @@ LensImporter.Prototype = function() {
     if (mimetype === "video") {
       return this.video(state, media);
     } else {
-      throw new ImporterError("Media type not supported yet: " + mimetype);
+      console.error("Media type not supported yet: " + mimetype);
+      // throw new ImporterError("Media type not supported yet: " + mimetype);
     }
   };
 
@@ -403,7 +458,7 @@ LensImporter.Prototype = function() {
     for (var k in urls) { videoNode[k] = urls[k]; }
 
     console.log(videoNode);
-    this.addFigureThingies(state, videoNode, video);
+    // this.addFigureThingies(state, videoNode, video);
 
     doc.create(videoNode);
 
@@ -430,7 +485,7 @@ LensImporter.Prototype = function() {
     var table = tableWrap.querySelector("table");
     tableNode.content = _toHtml(table);
 
-    this.addFigureThingies(state, tableNode, tableWrap);
+    // this.addFigureThingies(state, tableNode, tableWrap);
 
     doc.create(tableNode);
     return tableNode;

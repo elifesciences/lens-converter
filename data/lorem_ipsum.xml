@@ -22,8 +22,8 @@
       </publisher>
     </journal-meta>
     <article-meta>
-      <article-id pub-id-type="publisher-id">00299</article-id>
-      <article-id pub-id-type="doi">10.7554/lorem.00299</article-id>
+      <article-id pub-id-type="publisher-id">lorem_ipsum</article-id>
+      <article-id pub-id-type="doi">10.7554/lorem.ipsum</article-id>
       <title-group>
         <article-title>Lorem Ipsum</article-title>
       </title-group>
@@ -60,7 +60,7 @@
                 <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.003">http://dx.doi.org/10.7554/eLife.00299.003</ext-link>
               </p>
             </caption>
-            <graphic xlink:href="elife00299f001" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+            <graphic xlink:href="http://camanocommunity.net/wp-content/uploads/2012/11/calico.jpg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
           </fig>
         </p>
       </sec>
