@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article SYSTEM "journalpub-oasis3.dtd">
+
+<!-- 
+ Lorem Ipsum Document for automated testing of the converter
+ 
+ Goal: Has every possible combination of tags our converter supports
+ If there's a new edge case we want to cover it has to be formalized here, and a test needs to be added.
+-->
+
+<article xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:oasis="http://docs.oasis-open.org/ns/oasis-exchange/table" article-type="research-article" dtd-version="3.0" xml:lang="EN">
+  <front>
+    <journal-meta>
+      <journal-id journal-id-type="nlm-ta">elife</journal-id>
+
+      <journal-title-group>
+        <journal-title>Lorem</journal-title>
+      </journal-title-group>
+      <issn pub-type="epub">2050-084X</issn>
+      <publisher>
+        <publisher-name>Lorem Sciences Publications, Ltd</publisher-name>
+      </publisher>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="publisher-id">00299</article-id>
+      <article-id pub-id-type="doi">10.7554/lorem.00299</article-id>
+      <title-group>
+        <article-title>Lorem Ipsum</article-title>
+      </title-group>
+      <pub-date pub-type="epub">
+        <day>16</day>
+        <month>07</month>
+        <year>2013</year>
+      </pub-date>
+
+      <!-- LB stores supplemental material nodes within article-meta -->
+      <supplementary-material id="SUP1" xlink:href="2013CC4897R-Sup.pdf">
+        <label>Additional material</label>
+        <media xlink:href="2013CC4897R-Sup.pdf"/>
+      </supplementary-material>
+      
+    </article-meta>
+  </front>
+  <body>
+    <sec id="s2" sec-type="results">
+      <title>Results</title>
+      <sec id="s2-1">
+        <title>Section title level 2</title>
+        <p>Lorem <italic>ipsum</italic> dolor sit amet, consectetur <xref ref-type="fig" rid="fig1">Figure 1</xref> adipiscing elit. Cras vel accumsan lectus, id hendrerit magna. Donec vehicula dui quis ipsum tempor tincidunt. Quisque adipiscing, nibh at pulvinar feugiat, odio lectus eleifend <ext-link ext-link-type="uri" xlink:href="http://example.com/x.pdf" xmlns:xlink="http://www.w3.org/1999/xlink">felis</ext-link>. 
+        </p>
+        <p>Also see <xref ref-type="supplementary-material" rid="SD1-data">Supplementary file 1</xref>.
+          <fig id="fig1" position="float">
+            <object-id pub-id-type="doi">10.7554/eLife.00299.003</object-id>
+            <label>Figure 1.</label>
+            <caption>
+              <title>Multiple genes show both a transcriptional response to the vaccine and evidence of genetic regulation of gene expression (cis-acting eQTL) in both cohorts.</title>
+              <p><bold>Manhattan</bold> plots of the genotype-expression—log10 p-values across the genome for the discovery (inner circle) and validation (outer circle) cohorts. Each dot represents a SNP-transcript pair. Red dots indicate SNP-transcript pairs for which there is evidence of significant genotype-expression association (genotype p&lt;5 × 10<sup>−8</sup>) and evidence of a transcriptional response to the vaccine (day effect p&lt;0.05). The 78 genes that showed both properties in the two cohorts are shown in the outer margin.</p>
+              <p>
+                <bold>DOI:</bold>
+                <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.003">http://dx.doi.org/10.7554/eLife.00299.003</ext-link>
+              </p>
+            </caption>
+            <graphic xlink:href="elife00299f001" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+          </fig>
+        </p>
+      </sec>
+    </sec>
+  </body>
+  <back>
+    <sec sec-type="supplementary-material">
+      <title>Additional files</title>
+      <supplementary-material id="SD1-data">
+        <object-id pub-id-type="doi">10.7554/eLife.00299.013</object-id>
+        <label>Supplementary file 1.</label>
+        <caption>
+          <title>Compilation of the tables and figures (XLS).</title>
+          <p>This is a static version of the 
+            <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink">
+              Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
+          <p>
+            <bold>DOI:</bold>
+            <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link>
+          </p>
+        </caption>
+        <!-- We provide two media entries here, since the NLM spec allows multiple media entries -->
+        <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
+        <media mime-subtype="docx" mimetype="application" xlink:href="elife00299s001.docx"/>
+      </supplementary-material>
+    </sec>
+    <ref-list>
+      <title>References</title>
+    </ref-list>
+  </back>
+</article>

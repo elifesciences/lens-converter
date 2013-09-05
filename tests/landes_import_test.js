@@ -41,7 +41,7 @@ var NLMImporterTest = function () {
     // to keep the assertion checks outside the asynchronous call to load the data
 
     "Import: Article '2013CC4897R.xml'", function(cb) {
-      this.importFixture("./data/2013CC4897R.xml", cb);
+      this.importFixture("../data/2013CC4897R.xml", cb);
     },
 
     "Check: Document's Meta-Data", function() {

@@ -6,6 +6,7 @@
 // the NLM importer is only available in the browser
 
 if (global.window) {
-  require("./elife_import_test");
-  require("./landes_import_test");
+  require("./converter_test");
+  // require("./elife_import_test");
+  // require("./landes_import_test");
 }

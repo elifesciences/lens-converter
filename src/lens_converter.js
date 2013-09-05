@@ -234,6 +234,24 @@ LensImporter.Prototype = function() {
   // Supplements
   // --------
 
+  // eLife Example
+  // 
+  // <supplementary-material id="SD1-data">
+  //   <object-id pub-id-type="doi">10.7554/eLife.00299.013</object-id>
+  //   <label>Supplementary file 1.</label>
+  //   <caption>
+  //     <title>Compilation of the tables and figures (XLS).</title>
+  //     <p>This is a static version of the 
+  //       <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink">
+  //         Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
+  //     <p>
+  //       <bold>DOI:</bold>
+  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link>
+  //     </p>
+  //   </caption>
+  //   <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
+  // </supplementary-material>
+
   this.supplements = function(state, supplements) {
     var doc = state.doc;
     var that = this;
@@ -264,6 +282,7 @@ LensImporter.Prototype = function() {
         "url": url,
         "doi": doi
       };
+
       doc.create(fileNode);
       var files = [];
       files.push(fileNode.id);

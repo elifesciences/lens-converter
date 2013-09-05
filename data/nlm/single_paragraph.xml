@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE article SYSTEM "journalpub-oasis3.dtd">
+<article xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:oasis="http://docs.oasis-open.org/ns/oasis-exchange/table" article-type="research-article" dtd-version="3.0" xml:lang="EN">
+<?release-delay 0|0 ?>
+  <front>
+    <article-meta>
+      <article-id pub-id-type="substance">single_paragraph</article-id>
+      <title-group>
+        <article-title>This is a Test Article</article-title>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Testa</surname>
+            <given-names>Tine</given-names>
+          </name>
+        </contrib>
+      </contrib-group>
+      <pub-date pub-type="substance">
+        <day>28</day>
+        <month>08</month>
+        <year>2013</year>
+      </pub-date>
+      <abstract>
+        <p>This is a test document having a body with a single paragraph.</p>
+      </abstract>
+    </article-meta>
+  </front>
+  <body>
+    <p>This is a Paragraph.</p>
+  </body>
+</article>

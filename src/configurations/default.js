@@ -11,16 +11,22 @@ DefaultConfiguration.Prototype = function() {
   // By default, figures are expected at the baseURL of the source XML
   // This can be overriden by a configuration
 
-  this.resolveFigureURL = function(state, figure) {
+  this.resolveFigureURLs = function(state, figure) {
 
-    var graphic = figure.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
+    // var graphic = figure.querySelector("graphic");
+    // var url = graphic.getAttribute("xlink:href");
+    // return url;
 
-    return url;
+    return {
+      url: "http://mickey.com/mouse.png",
+      large_url: "http://mickey.com/mouse.png",
+    };
   };
 
   this.resolveVideoURLs = function(state, supplement) {
-    return {url:"http://mickey.com/mouse.pdf"};
+    return {
+      url: "http://mickey.com/mouse.pdf"
+    };
   };
 
   this.resolveFileURL = function(state, supplement) {
