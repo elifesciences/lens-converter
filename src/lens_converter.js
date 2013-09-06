@@ -368,9 +368,19 @@ LensImporter.Prototype = function() {
     var captionNode = {
       "id": caption.getAttribute("id") || state.nextId("caption"),
       "type": "caption",
-      "title": title ? title.textContent : null,
+      "title": "",
       "children": []
     };
+
+    // Titles can be annotated, thus delegate to paragraph
+    if (title) {
+      // Resolve title by delegating to the paragraph
+      var nodes = this.paragraph(state, title);
+      if (nodes.length > 0) {
+        captionNode.title = nodes[0].id
+      }
+    }
+
 
     var children = [];
     _.each(paragraphs, function(p) {
@@ -432,7 +442,6 @@ LensImporter.Prototype = function() {
       poster: ""
     };
 
-
     // Add a caption if available
     var caption = video.querySelector("caption");
     if (caption) {
@@ -448,9 +457,8 @@ LensImporter.Prototype = function() {
 
   this.tableWrap = function(state, tableWrap) {
     var doc = state.doc;
-
     var label = tableWrap.querySelector("label").textContent;
-    
+
     var id = tableWrap.getAttribute("id") || state.nextId("table");
     var tableNode = {
       id: id,
@@ -461,7 +469,7 @@ LensImporter.Prototype = function() {
       caption: null,
       // Not supported yet ... need examples
       footers: [],
-      doi: ""
+      // doi: "" needed?
     };
 
     // Note: using a DOM div element to create HTML
@@ -475,6 +483,7 @@ LensImporter.Prototype = function() {
       if (captionNode) tableNode.caption = captionNode.id;
     }
 
+    state.config.enhanceTable(state, tableNode, tableWrap);
     doc.create(tableNode);
     return tableNode;
   };

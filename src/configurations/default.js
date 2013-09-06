@@ -5,7 +5,12 @@ var DefaultConfiguration = function() {
 
 DefaultConfiguration.Prototype = function() {
 
+
   this.enhanceSupplement = function(state, node, element) {
+    // Noop - override in your configuration
+  };
+
+  this.enhanceTable = function(state, node, element) {
     // Noop - override in your configuration
   };
 
