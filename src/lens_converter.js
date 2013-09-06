@@ -326,12 +326,12 @@ LensImporter.Prototype = function() {
   this.figure = function(state, figure) {
     var doc = state.doc;
 
-    var label = figure.querySelector("label").textContent;
+    var label = figure.querySelector("label");
 
     // Top level figure node
     var figureNode = {
       type: "figure",
-      "label": label,
+      "label": label ? label.textContent : "",
       "url": "http://images.wisegeek.com/young-calico-cat.jpg",
       "caption": null
     };

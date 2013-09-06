@@ -19,7 +19,7 @@ LandesConfiguration.Prototype = function() {
   // 
 
   this.enhanceSupplement = function(state, node, element) {
-    var el = supplement.querySelector("graphic, media") || element;
+    var el = element.querySelector("graphic, media") || element;
     var url = el.getAttribute("xlink:href");
 
     var publisherId = state.xmlDoc.querySelector('journal-id').textContent;
@@ -46,7 +46,7 @@ LandesConfiguration.Prototype = function() {
   // -------
 
   this.enhanceFigure = function(state, node, element) {
-    var graphic = figure.querySelector("graphic");
+    var graphic = element.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
     var publisherId = state.xmlDoc.querySelector('journal-id').textContent;
 
