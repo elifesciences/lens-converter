@@ -11,27 +11,27 @@ DefaultConfiguration.Prototype = function() {
   // By default, figures are expected at the baseURL of the source XML
   // This can be overriden by a configuration
 
-  this.resolveFigureURLs = function(state, figure) {
+  // this.resolveFigureURLs = function(state, figure) {
 
-    var graphic = figure.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-    // return url;
+  //   var graphic = figure.querySelector("graphic");
+  //   var url = graphic.getAttribute("xlink:href");
+  //   // return url;
 
-    return {
-      url: url,
-      large_url: url,
-    };
-  };
+  //   return {
+  //     url: url,
+  //     large_url: url,
+  //   };
+  // };
 
-  this.resolveVideoURLs = function(state, supplement) {
-    return {
-      url: "http://mickey.com/mouse.pdf"
-    };
-  };
+  // this.resolveVideoURLs = function(state, supplement) {
+  //   return {
+  //     url: "http://mickey.com/mouse.pdf"
+  //   };
+  // };
 
-  this.resolveFileURL = function(state, supplement) {
-    return "http://mickey.com/mouse.pdf"
-  };
+  // this.resolveFileURL = function(state, supplement) {
+  //   return "http://mickey.com/mouse.pdf"
+  // };
 
   // Default behavior for figure title, label and caption
   // --------
@@ -57,6 +57,13 @@ DefaultConfiguration.Prototype = function() {
   //     figure.title = title.textContent;
   //   }
   // };
+  this.enhanceVideo = function(state, node, element) {
+
+  };
+
+  this.enhanceFigure = function(state, node, element) {
+    // Noop - override in your configuration
+  };
 
 };
 

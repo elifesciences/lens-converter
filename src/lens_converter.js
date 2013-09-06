@@ -227,7 +227,7 @@ LensImporter.Prototype = function() {
   this.back = function(state, back) {
     __super__.back.call(this, state, back);
 
-    //Supplemental Material, zero or more
+    // <supplementary-material>, zero or more
     var supplements = back.querySelectorAll("supplementary-material");
     this.supplements(state, supplements);
   };            
@@ -252,6 +252,13 @@ LensImporter.Prototype = function() {
   //   </caption>
   //   <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
   // </supplementary-material>
+  // 
+  // LB Example
+  // 
+  // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
+  //   <label>Additional material</label>
+  //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
+  // </supplementary-material>
 
   this.supplements = function(state, supplements) {
     var doc = state.doc;
@@ -259,61 +266,61 @@ LensImporter.Prototype = function() {
 
     _.each(supplements, function(supplement) {
 
-      // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
-      //   <label>Additional material</label>
-      //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
-      // </supplementary-material>
+
 
       //get supplement info
       var id = supplement.getAttribute("id") || state.nextId("supplement");
       var label = supplement.querySelector("label").textContent;
 
       // get file info
-      var url = supplement.getAttribute('xlink:href') || supplement.querySelector("media, graphic").getAttribute('xlink:href');
-      url = state.config.resolveFileURL(state, supplement); // See configurations
+      // var url = supplement.getAttribute('xlink:href') || supplement.querySelector("media, graphic").getAttribute('xlink:href');
+      // url = state.config.resolveFileURL(state, supplement); // See configurations
+
+      var url = "meeh.com";
+
       var doi = supplement.querySelector("object-id[pub-id-type='doi']");
       doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
       
       //create file node
-      var fileNode = {
-        "id": state.nextId("file"),
-        "type": "file",
-        "name": label,
-        "description": "",
-        "url": url,
-        "doi": doi
-      };
-
-      doc.create(fileNode);
-      var files = [];
-      files.push(fileNode.id);
+      // var fileNode = {
+      //   "id": state.nextId("file"),
+      //   "type": "file",
+      //   "name": label,
+      //   "description": "",
+      //   "url": url,
+      //   "doi": doi
+      // };
+      // doc.create(fileNode);
+      // var files = [];
+      // files.push(fileNode.id);
 
       //create supplement node using file ids
       var supplementNode = {
         "id": id,
         "type": "supplement",
         "label": label,
-        "files": files
+        "url": url,
+        "caption": null
+      };
+
+      // Add a caption if available
+      var caption = supplement.querySelector("caption");
+      if (caption) {
+        var captionNode = this.caption(state, caption);
+        if (captionNode) supplementNode.caption = captionNode.id;
       }
+
       // that.addFigureThingies(state, supplementNode, supplement);  
       doc.create(supplementNode);
       doc.show("figures", id);
-    });
+    }, this);
   };
 
-
-
-  // Adds label, title and caption.
-  // This method is reused among the figure like elements such as
-  // 'image', 'table', and 'video'
-  this.addFigureThingies = function(state, node, element) {
-    // Delegate to configuration
-    state.config.addFigureThingies(this, state, node, element);
-  };
+  // Hot patch state object and add configuration object
+  // --------
+  // 
 
   this.document = function(state, xmlDoc) {
-
-    // Hot patch state object and add configuration object
     var publisherName = state.xmlDoc.querySelector("publisher-name").textContent;
     if (publisherName === "Landes Bioscience") {
       state.config = new LandesConfiguration();
@@ -324,11 +331,12 @@ LensImporter.Prototype = function() {
     } else {
       state.config = new DefaultConfiguration();
     }
-
     return __super__.document.call(this, state, xmlDoc);
   };
 
-
+  // Handle <fig> element
+  // --------
+  // 
 
   this.figure = function(state, figure) {
     var doc = state.doc;
@@ -340,26 +348,12 @@ LensImporter.Prototype = function() {
       type: "figure",
       "label": label,
       "url": "http://images.wisegeek.com/young-calico-cat.jpg",
-      // "image": null,
-      // "large_image": null,
       "caption": null
     };
 
     var figureId = figure.getAttribute("id") || state.nextId(figureNode.type);
     figureNode.id = figureId;
     
-    // var urls = state.config.resolveFigureURLs(state, figure);
-    // var imageNode = {
-    //   "type": "image",
-    //   "url": urls.url
-    // };
-    // var imageId = "image_"+figureId;
-    // imageNode.id = imageId;
-
-    // Add image reference to figure node
-    // figureNode.image = imageId;
-    // doc.create(imageNode);
-
     // Add a caption if available
     var caption = figure.querySelector("caption");
     if (caption) {
@@ -367,22 +361,11 @@ LensImporter.Prototype = function() {
       if (captionNode) figureNode.caption = captionNode.id;
     }
 
+    // Lets the configuration patch the figure node properties
+    state.config.enhanceFigure(state, figureNode, figure);
     doc.create(figureNode);
 
-    // console.log('LE DOC', doc.toJSON());
-    // console.log('CONFIG used', state.config);
-    // Delegate to configuration method
-    // imageNode.url = urls.url;
-    // imageNode.large_url = urls.large_url;
-    // this.addFigureThingies(state, imageNode, figure);
-    // return state.config.enhanceFigure(figureNode);
-
     return figureNode;
-  };
-
-  this.graphic = function() {
-
-    // return state.config.enhanceFigure(figureNode);
   };
 
   // Used by Figure, Table, Video, Supplement types.
@@ -470,8 +453,8 @@ LensImporter.Prototype = function() {
     };
 
     // Delegate to configuration method
-    var urls = state.config.resolveVideoURLs(state, video);
-    for (var k in urls) { videoNode[k] = urls[k]; }
+    // var urls = state.config.resolveVideoURLs(state, video);
+    // for (var k in urls) { videoNode[k] = urls[k]; }
 
     console.log(videoNode);
     // this.addFigureThingies(state, videoNode, video);
