@@ -337,7 +337,6 @@ LensImporter.Prototype = function() {
     var figureNode = {
       type: "figure",
       "label": "",
-      // "title": "",
       "image": null,
       "large_image": null,
       "caption": null
@@ -360,7 +359,6 @@ LensImporter.Prototype = function() {
 
     doc.create(imageNode);
 
-
     // Add a caption if available
     var caption = figure.querySelector("caption");
     if (caption) {
@@ -369,15 +367,12 @@ LensImporter.Prototype = function() {
     }
 
     doc.create(figureNode);
-    console.log('LE DOC', doc.toJSON());
 
+    // console.log('LE DOC', doc.toJSON());
     // console.log('CONFIG used', state.config);
-
     // Delegate to configuration method
-    
     // imageNode.url = urls.url;
     // imageNode.large_url = urls.large_url;
-
     // this.addFigureThingies(state, imageNode, figure);
     
     return figureNode;
@@ -432,6 +427,20 @@ LensImporter.Prototype = function() {
       // throw new ImporterError("Media type not supported yet: " + mimetype);
     }
   };
+
+
+  // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
+  //   <object-id pub-id-type="doi">
+  //     10.7554/eLife.00005.013</object-id>
+  //   <label>Movie 1.</label>
+  //   <caption>
+  //     <title>Movement of GFP tag.</title>
+  //     <p>
+  //       <bold>DOI:</bold>
+  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link>
+  //     </p>
+  //   </caption>
+  // </media>
 
   this.video = function(state, video) {
     var doc = state.doc;

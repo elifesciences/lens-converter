@@ -49,22 +49,22 @@ var NLMImporterTest = function () {
     //   assert.isEqual('In vivo functional studies of tumor-specific retrogene NanogP8 in transgenic animals', this.doc.title);
     // },
 
-    "Check: Should have some figures", function() {
-      var figuresView = this.doc.get('figures');
-      assert.isTrue(figuresView.getNodes().length > 0);
-    },
+    // "Check: Should have some figures", function() {
+    //   var figuresView = this.doc.get('figures');
+    //   assert.isTrue(figuresView.getNodes().length > 0);
+    // },
 
-    "Check: Check figure structure", function() {
-      var figure = this.doc.get('fig1');
+    // "Check: Check figure structure", function() {
+    //   var figure = this.doc.get('fig1');
 
-      // Is of type figure
+    //   // Is of type figure
 
-      // Has a caption of multiple paragraphs
+    //   // Has a caption of multiple paragraphs
 
-      // 
-      // var figuresView = this.doc.get('figures');
-      // assert.isTrue(figuresView.getNodes().length > 0);
-    },
+    //   // 
+    //   // var figuresView = this.doc.get('figures');
+    //   // assert.isTrue(figuresView.getNodes().length > 0);
+    // },
 
     // "Check: Every figure must have a label", function() {
     //   var figuresView = this.doc.get('figures');
