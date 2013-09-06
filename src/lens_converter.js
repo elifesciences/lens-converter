@@ -333,31 +333,32 @@ LensImporter.Prototype = function() {
   this.figure = function(state, figure) {
     var doc = state.doc;
 
+    var label = figure.querySelector("label").textContent;
+
     // Top level figure node
     var figureNode = {
       type: "figure",
-      "label": "",
-      "image": null,
-      "large_image": null,
+      "label": label,
+      "url": "http://images.wisegeek.com/young-calico-cat.jpg",
+      // "image": null,
+      // "large_image": null,
       "caption": null
     };
 
     var figureId = figure.getAttribute("id") || state.nextId(figureNode.type);
     figureNode.id = figureId;
     
-    var urls = state.config.resolveFigureURLs(state, figure);
-    var imageNode = {
-      "type": "image",
-      "url": urls.url
-    };
-
-    var imageId = "image_"+figureId;
-    imageNode.id = imageId;
+    // var urls = state.config.resolveFigureURLs(state, figure);
+    // var imageNode = {
+    //   "type": "image",
+    //   "url": urls.url
+    // };
+    // var imageId = "image_"+figureId;
+    // imageNode.id = imageId;
 
     // Add image reference to figure node
-    figureNode.image = imageId;
-
-    doc.create(imageNode);
+    // figureNode.image = imageId;
+    // doc.create(imageNode);
 
     // Add a caption if available
     var caption = figure.querySelector("caption");
@@ -374,8 +375,14 @@ LensImporter.Prototype = function() {
     // imageNode.url = urls.url;
     // imageNode.large_url = urls.large_url;
     // this.addFigureThingies(state, imageNode, figure);
-    
+    // return state.config.enhanceFigure(figureNode);
+
     return figureNode;
+  };
+
+  this.graphic = function() {
+
+    // return state.config.enhanceFigure(figureNode);
   };
 
   // Used by Figure, Table, Video, Supplement types.
