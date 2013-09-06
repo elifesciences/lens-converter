@@ -12,7 +12,8 @@ ElifeConfiguration.Prototype = function() {
   // 
 
   this.enhanceFigure = function(state, node, element) {
-    var graphic = figure.querySelector("graphic");
+    var graphic = element.querySelector("graphic");
+    
     var url = graphic.getAttribute("xlink:href");
 
     // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
@@ -34,7 +35,7 @@ ElifeConfiguration.Prototype = function() {
 
     node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
     node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
-    //result.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
+    result.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
     node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
     return result;
   };

@@ -283,7 +283,7 @@ LensImporter.Prototype = function() {
     }
     
     // Let config enhance the node
-    state.config.enhanceFigure(state, supplementNode, supplement);
+    state.config.enhanceSupplement(state, supplementNode, supplement);
 
     doc.create(supplementNode);
     doc.show("figures", id);
@@ -381,9 +381,10 @@ LensImporter.Prototype = function() {
         // throw new ImporterError("Ooops. Not ready for that...");
         console.error("Ooops. Not ready for multiple nodes... only using the first one.");
       }
-
-      var paragraphNode = nodes[0];
-      children.push(paragraphNode.id);
+      if (nodes.length > 0) {
+        var paragraphNode = nodes[0];
+        children.push(paragraphNode.id);
+      }
     }, this);
 
     captionNode.children = children;
@@ -419,11 +420,13 @@ LensImporter.Prototype = function() {
   this.video = function(state, video) {
     var doc = state.doc;
 
+    var label = video.querySelector("label").textContent;
+
     var id = video.getAttribute("id") || state.nextId("video");
     var videoNode = {
       id: id,
       type: "video",
-      label: "",
+      label: label,
       title: "",
       caption: null,
       poster: ""
@@ -446,12 +449,14 @@ LensImporter.Prototype = function() {
   this.tableWrap = function(state, tableWrap) {
     var doc = state.doc;
 
+    var label = tableWrap.querySelector("label").textContent;
+    
     var id = tableWrap.getAttribute("id") || state.nextId("table");
     var tableNode = {
       id: id,
       type: "table",
       title: "",
-      label: "",
+      label: label,
       content: "",
       caption: null,
       // Not supported yet ... need examples
