@@ -9,8 +9,8 @@ PLOSConfiguration.Prototype = function() {
   // Resolve figure urls
   // --------
   // 
-  this.resolveFigureURLs = function(state, figure) {
 
+  this.enhanceFigure = function(state, node, element) {
     var graphic = figure.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
 
@@ -20,14 +20,15 @@ PLOSConfiguration.Prototype = function() {
       "&representation=PNG_M"
     ].join('');
 
-    return {
-      url: url,
-      large_url: url
-    };
+    node.url = url;
   };
 
-  this.resolveFileURL = function(state, supplement) {
-    return "http://mickey.com/mouse.pdf"
+  // Assign video url
+  // --------
+  // 
+
+  this.enhanceVideo = function(state, node, element) {
+    node.url = "http://mickey.com/mouse.mp4";
   };
 };
 

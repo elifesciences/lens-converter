@@ -5,22 +5,17 @@ var ElifeConfiguration = function() {
 
 };
 
-
 ElifeConfiguration.Prototype = function() {
 
-  // Resolve figure url
+  // Resolves figure url
   // --------
   // 
-  // By default, figures are expected at the baseURL of the source XML
-  // This can be overriden by a configuration
 
-  this.resolveFigureURLs = function(state, figure) {
+  this.enhanceFigure = function(state, node, element) {
     var graphic = figure.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
 
     // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
-    // Where are the images with that layout?
-    
     url = [
       "http://cdn.elifesciences.org/elife-articles/",
       state.doc.id,
@@ -29,25 +24,19 @@ ElifeConfiguration.Prototype = function() {
       ".svg"
     ].join('');
 
-    return {
-      url: url,
-      large_url: url
-    };
+    node.url = url;
   };
 
- this.resolveVideoURLs = function(state, video) {
-   var node = video.querySelector("media") || video;
-   var name = (node.getAttribute("xlink:href")).replace(/\.[^\.]+$/g, '');
-   var result = [];
-   result.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
-   result.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
-   //result.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
-   result.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
-   return result;
-  };      
+  this.enhanceVideo = function(state, node, element) {
+    var el = element.querySelector("media") || element;
+    var name = (el.getAttribute("xlink:href")).replace(/\.[^\.]+$/g, '');
+    var result = [];
 
-  this.resolveFileURL = function(state, supplement) {
-    return "http://mickey.com/mouse.pdf"
+    node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
+    node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
+    //result.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
+    node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
+    return result;
   };
 };
 

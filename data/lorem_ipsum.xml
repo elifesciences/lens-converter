@@ -67,10 +67,7 @@
             <label>Movie 1.</label>
             <caption>
               <title>Movement of GFP tag.</title>
-              <p>
-                <bold>DOI:</bold>
-                <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link>
-              </p>
+              <p><bold>DOI:</bold><ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link></p>
             </caption>
           </media>
 
@@ -81,20 +78,14 @@
             <caption>
               <title>3D reconstruction of the human PRC2-AEBP2 complex.</title>
               <p>Docking of crystal structure for EED and RbAp48 WD40s (PDB: 2QXV; 2YB8) are indicated respectively in green and red. Docking of crystal structures of homologue SANT, SET and Zn finger domains (PDB: 3HM5, 3H6L and 2VY5) are shown in blue and purple.</p>
+              <p><bold>DOI:</bold><ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.016">http://dx.doi.org/10.7554/eLife.00005.016</ext-link></p>
               <p>
-                <bold>DOI:</bold>
-                <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.016">http://dx.doi.org/10.7554/eLife.00005.016</ext-link>
-              </p>
-              <p>
-                <supplementary-material id="SD1-data">
+                <supplementary-material id="movie2_source_code">
                   <object-id pub-id-type="doi">10.7554/eLife.00005.017</object-id>
                   <label>Movie 2—source code 1.</label>
                   <caption>
                     <p>Overall architecture of the PRC2 complex.</p>
-                    <p>
-                      <bold>DOI:</bold>
-                      <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.017">http://dx.doi.org/10.7554/eLife.00005.017</ext-link>
-                    </p>
+                    <p><bold>DOI:</bold><ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.017">http://dx.doi.org/10.7554/eLife.00005.017</ext-link></p>
                   </caption>
                   <media mime-subtype="wrl" mimetype="application" xlink:href="elife00005s001.wrl"/>
                 </supplementary-material>
@@ -121,7 +112,9 @@
       </sec>
     </sec>
   </body>
+
   <back>
+    <!-- A supplement in the back section -->
     <sec sec-type="supplementary-material">
       <title>Additional files</title>
       <supplementary-material id="SD1-data">
@@ -129,17 +122,11 @@
         <label>Supplementary file 1.</label>
         <caption>
           <title>Compilation of the tables and figures (XLS).</title>
-          <p>This is a static version of the 
-            <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink">
-              Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
-          <p>
-            <bold>DOI:</bold>
-            <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link>
-          </p>
+          <p>This is a static version of the <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink"> Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
+          <p><bold>DOI:</bold><ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link></p>
         </caption>
         <!-- We provide two media entries here, since the NLM spec allows multiple media entries -->
         <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
-        <media mime-subtype="docx" mimetype="application" xlink:href="elife00299s001.docx"/>
       </supplementary-material>
     </sec>
     <ref-list>

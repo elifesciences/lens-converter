@@ -52,6 +52,7 @@ LensImporter.Prototype = function() {
 
   var _viewMapping = {
     // "image": "figures",
+    "supplement": "figures",
     "figure": "figures",
     "table": "figures",
     "video": "figures"
@@ -208,34 +209,26 @@ LensImporter.Prototype = function() {
     state.annotations.push(anno);
   };
 
+  // Article.ArticleMeta
+  // --------
 
-  // #### Front.ArticleMeta
-  //
+  // this.articleMeta = function(state, articleMeta) {
+  //   __super__.articleMeta.call(this, state, articleMeta);
+  // }; 
 
- this.articleMeta = function(state, articleMeta) {
-
-    __super__.articleMeta.call(this, state, articleMeta);
-
-    // <supplementary-material> Supplemental Material, zero or more
-    var supplements = articleMeta.querySelectorAll("supplementary-material");
-    this.supplements(state, supplements);
-  }; 
 
   // Article.Back
   // --------
 
-  this.back = function(state, back) {
-    __super__.back.call(this, state, back);
+  // this.back = function(state, back) {
+  //   __super__.back.call(this, state, back);
+  // };
 
-    // <supplementary-material>, zero or more
-    var supplements = back.querySelectorAll("supplementary-material");
-    this.supplements(state, supplements);
-  };            
 
-  // Supplements
+  // Handle <supplementary-material> element
   // --------
-
-  // eLife Example
+  // 
+  // eLife Example:
   // 
   // <supplementary-material id="SD1-data">
   //   <object-id pub-id-type="doi">10.7554/eLife.00299.013</object-id>
@@ -253,67 +246,47 @@ LensImporter.Prototype = function() {
   //   <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
   // </supplementary-material>
   // 
-  // LB Example
+  // LB Example:
   // 
   // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
   //   <label>Additional material</label>
   //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
   // </supplementary-material>
 
-  this.supplements = function(state, supplements) {
+  this.supplement = function(state, supplement) {
     var doc = state.doc;
     var that = this;
 
-    _.each(supplements, function(supplement) {
+    //get supplement info
+    var id = supplement.getAttribute("id") || state.nextId("supplement");
+    var label = supplement.querySelector("label").textContent;
 
+    var url = "http://meh.com";
+    var doi = supplement.querySelector("object-id[pub-id-type='doi']");
+    doi = doi ? "http://dx.doi.org/" + doi.textContent : "";    
 
+    //create supplement node using file ids
+    var supplementNode = {
+      "id": id,
+      "type": "supplement",
+      "label": label,
+      "url": url,
+      "caption": null
+    };
 
-      //get supplement info
-      var id = supplement.getAttribute("id") || state.nextId("supplement");
-      var label = supplement.querySelector("label").textContent;
+    // Add a caption if available
+    var caption = supplement.querySelector("caption");
 
-      // get file info
-      // var url = supplement.getAttribute('xlink:href') || supplement.querySelector("media, graphic").getAttribute('xlink:href');
-      // url = state.config.resolveFileURL(state, supplement); // See configurations
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) supplementNode.caption = captionNode.id;
+    }
+    
+    // Let config enhance the node
+    state.config.enhanceFigure(state, supplementNode, supplement);
 
-      var url = "meeh.com";
-
-      var doi = supplement.querySelector("object-id[pub-id-type='doi']");
-      doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
-      
-      //create file node
-      // var fileNode = {
-      //   "id": state.nextId("file"),
-      //   "type": "file",
-      //   "name": label,
-      //   "description": "",
-      //   "url": url,
-      //   "doi": doi
-      // };
-      // doc.create(fileNode);
-      // var files = [];
-      // files.push(fileNode.id);
-
-      //create supplement node using file ids
-      var supplementNode = {
-        "id": id,
-        "type": "supplement",
-        "label": label,
-        "url": url,
-        "caption": null
-      };
-
-      // Add a caption if available
-      var caption = supplement.querySelector("caption");
-      if (caption) {
-        var captionNode = this.caption(state, caption);
-        if (captionNode) supplementNode.caption = captionNode.id;
-      }
-
-      // that.addFigureThingies(state, supplementNode, supplement);  
-      doc.create(supplementNode);
-      doc.show("figures", id);
-    }, this);
+    doc.create(supplementNode);
+    doc.show("figures", id);
   };
 
   // Hot patch state object and add configuration object
@@ -331,7 +304,19 @@ LensImporter.Prototype = function() {
     } else {
       state.config = new DefaultConfiguration();
     }
-    return __super__.document.call(this, state, xmlDoc);
+
+    // Doc without supplements
+    var doc = __super__.document.call(this, state, xmlDoc);
+
+    // <supplementary-material> Supplemental Material, zero or more
+    // Queried globally as a post-processing step
+    var supplements = state.xmlDoc.querySelectorAll("supplementary-material");
+
+    _.each(supplements, function(supplement) {
+      this.supplement(state, supplement);
+    }, this);
+
+    return doc;
   };
 
   // Handle <fig> element
@@ -418,7 +403,6 @@ LensImporter.Prototype = function() {
     }
   };
 
-
   // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
   //   <object-id pub-id-type="doi">
   //     10.7554/eLife.00005.013</object-id>
@@ -441,24 +425,19 @@ LensImporter.Prototype = function() {
       type: "video",
       label: "",
       title: "",
-      /*url: "",
-      url_ogv: "",
-      url_webm: "",*/
       caption: null,
-      // TODO: these are not used yet... need examples
-      doi: "",
-      url_web: "",
-      url_ogv: "",
       poster: ""
     };
 
-    // Delegate to configuration method
-    // var urls = state.config.resolveVideoURLs(state, video);
-    // for (var k in urls) { videoNode[k] = urls[k]; }
 
-    console.log(videoNode);
-    // this.addFigureThingies(state, videoNode, video);
+    // Add a caption if available
+    var caption = video.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) videoNode.caption = captionNode.id;
+    }
 
+    state.config.enhanceVideo(state, videoNode, video);
     doc.create(videoNode);
 
     return videoNode;
@@ -484,11 +463,19 @@ LensImporter.Prototype = function() {
     var table = tableWrap.querySelector("table");
     tableNode.content = _toHtml(table);
 
-    // this.addFigureThingies(state, tableNode, tableWrap);
+    // Add a caption if available
+    var caption = table.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) tableNode.caption = captionNode.id;
+    }
 
     doc.create(tableNode);
     return tableNode;
   };
+
+  // Formula Node Type
+  // --------
 
   this.formula = function(state, dispFormula) {
     var doc = state.doc;
@@ -545,7 +532,6 @@ LensImporter.Prototype = function() {
   };
 
   this.ref = function(state, ref) {
-
     var children = ref.children;
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -608,7 +594,6 @@ LensImporter.Prototype = function() {
         citation_urls: []
       };
 
-
       var nameElements = personGroup.querySelectorAll("name");
       for (i = 0; i < nameElements.length; i++) {
         citationNode.authors.push(_getName(nameElements[i]));
@@ -642,8 +627,6 @@ LensImporter.Prototype = function() {
 
       var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
       if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;       
-      
-
     } else {
       console.error("FIXME: there is one of those 'mixed-citation' without any structure.", citation);
       citationNode = {
