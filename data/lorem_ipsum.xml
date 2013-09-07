@@ -24,9 +24,11 @@
     <article-meta>
       <article-id pub-id-type="publisher-id">lorem_ipsum</article-id>
       <article-id pub-id-type="doi">10.7554/lorem.ipsum</article-id>
+
       <title-group>
         <article-title>Lorem Ipsum</article-title>
       </title-group>
+
       <pub-date pub-type="epub">
         <day>16</day>
         <month>07</month>
@@ -55,7 +57,7 @@
             <caption>
               <title>Multiple genes show both a transcriptional response to the vaccine and evidence of genetic regulation of gene expression (cis-acting eQTL) in both cohorts.</title>
               <p><bold>Manhattan</bold> plots of the genotype-expression—log10 p-values across the genome for the discovery (inner circle) and validation (outer circle) cohorts. Each dot represents a SNP-transcript pair. Red dots indicate SNP-transcript pairs for which there is evidence of significant genotype-expression association (genotype p&lt;5 × 10<sup>−8</sup>) and evidence of a transcriptional response to the vaccine (day effect p&lt;0.05). The 78 genes that showed both properties in the two cohorts are shown in the outer margin.</p>
-              <p><bold>DOI:</bold><ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.003">http://dx.doi.org/10.7554/eLife.00299.003</ext-link></p>
+              <p><bold>DOI:</bold> <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.003">http://dx.doi.org/10.7554/eLife.00299.003</ext-link></p>
             </caption>
             <graphic xlink:href="http://camanocommunity.net/wp-content/uploads/2012/11/calico.jpg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
           </fig>
@@ -67,7 +69,7 @@
             <label>Movie 1.</label>
             <caption>
               <title>Movement of GFP tag.</title>
-              <p><bold>DOI:</bold><ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link></p>
+              <p><bold>DOI:</bold> <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link></p>
             </caption>
           </media>
 
@@ -85,7 +87,7 @@
                   <label>Movie 2—source code 1.</label>
                   <caption>
                     <p>Overall architecture of the PRC2 complex.</p>
-                    <p><bold>DOI:</bold><ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.017">http://dx.doi.org/10.7554/eLife.00005.017</ext-link></p>
+                    <p><bold>DOI:</bold> <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.017">http://dx.doi.org/10.7554/eLife.00005.017</ext-link></p>
                   </caption>
                   <media mime-subtype="wrl" mimetype="application" xlink:href="elife00005s001.wrl"/>
                 </supplementary-material>
@@ -123,7 +125,7 @@
         <caption>
           <title>Compilation of the tables and figures (XLS).</title>
           <p>This is a static version of the <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink"> Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
-          <p><bold>DOI:</bold><ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link></p>
+          <p><bold>DOI:</bold> <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link></p>
         </caption>
         <!-- We provide two media entries here, since the NLM spec allows multiple media entries -->
         <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
