@@ -359,9 +359,11 @@ LensImporter.Prototype = function() {
   this.caption = function(state, caption) {
     var doc = state.doc;
     var title = caption.querySelector("title");
-    var paragraphs = caption.querySelectorAll("p");
 
-    // console.log('p.length', p.length);
+    // Only consider direct children
+    var paragraphs = _.select(caption.querySelectorAll("p"), function(p) {
+      return p.parentNode === caption;
+    });
 
     if (paragraphs.length === 0) return null;
 
