@@ -102,9 +102,9 @@ LensImporter.Prototype = function() {
     var doc = state.doc;
 
     //TODO: this needs a proper specification in Lens.Article
-    var id = aff.getAttribute("id") || state.nextId("institution");
     var institutionNode = {
-      id: id,
+      id: state.nextId("institution"),
+      source_id: aff.getAttribute("id"),
       type: "institution",
     };
 
@@ -121,9 +121,10 @@ LensImporter.Prototype = function() {
   this.contributor = function(state, contrib) {
     var doc = state.doc;
 
-    var id = contrib.getAttribute("id") || state.nextId("person");
+    var id = state.nextId("person");
     var personNode = {
       id: id,
+      source_id: contrib.getAttribute("id"),
       type: "person",
       name: "",
       affiliations: [],
@@ -258,8 +259,7 @@ LensImporter.Prototype = function() {
     var that = this;
 
     //get supplement info
-    var id = supplement.getAttribute("id") || state.nextId("supplement");
-    var label = supplement.querySelector("label").textContent;
+    var label = supplement.querySelector("label");
 
     var url = "http://meh.com";
     var doi = supplement.querySelector("object-id[pub-id-type='doi']");
@@ -267,9 +267,10 @@ LensImporter.Prototype = function() {
 
     //create supplement node using file ids
     var supplementNode = {
-      "id": id,
+      "id": state.nextId("supplement"),
+      "source_id": supplement.getAttribute("id"),
       "type": "supplement",
-      "label": label,
+      "label": label ? label.textContent : "",
       "url": url,
       "caption": null
     };
@@ -284,9 +285,8 @@ LensImporter.Prototype = function() {
     
     // Let config enhance the node
     state.config.enhanceSupplement(state, supplementNode, supplement);
-
     doc.create(supplementNode);
-    doc.show("figures", id);
+    // doc.show("figures", id);
   };
 
   // Hot patch state object and add configuration object
@@ -330,14 +330,13 @@ LensImporter.Prototype = function() {
 
     // Top level figure node
     var figureNode = {
-      type: "figure",
+      "type": "figure",
+      "id": state.nextId("figure"),
+      "source_id": figure.getAttribute("id"),
       "label": label ? label.textContent : "",
       "url": "http://images.wisegeek.com/young-calico-cat.jpg",
       "caption": null
     };
-
-    var figureId = figure.getAttribute("id") || state.nextId(figureNode.type);
-    figureNode.id = figureId;
     
     // Add a caption if available
     var caption = figure.querySelector("caption");
@@ -368,7 +367,8 @@ LensImporter.Prototype = function() {
     if (paragraphs.length === 0) return null;
 
     var captionNode = {
-      "id": caption.getAttribute("id") || state.nextId("caption"),
+      "id": state.nextId("caption"),
+      "source_id": caption.getAttribute("id"),
       "type": "caption",
       "title": "",
       "children": []
@@ -434,14 +434,15 @@ LensImporter.Prototype = function() {
 
     var label = video.querySelector("label").textContent;
 
-    var id = video.getAttribute("id") || state.nextId("video");
+    var id = state.nextId("video");
     var videoNode = {
-      id: id,
-      type: "video",
-      label: label,
-      title: "",
-      caption: null,
-      poster: ""
+      "id": id,
+      "source_id": video.getAttribute("id"),
+      "type": "video",
+      "label": label,
+      "title": "",
+      "caption": null,
+      "poster": ""
     };
 
     // Add a caption if available
@@ -461,14 +462,14 @@ LensImporter.Prototype = function() {
     var doc = state.doc;
     var label = tableWrap.querySelector("label").textContent;
 
-    var id = tableWrap.getAttribute("id") || state.nextId("table");
     var tableNode = {
-      id: id,
-      type: "table",
-      title: "",
-      label: label,
-      content: "",
-      caption: null,
+      "id": state.nextId("table"),
+      "source_id": tableWrap.getAttribute("id"),
+      "type": "table",
+      "title": "",
+      "label": label,
+      "content": "",
+      "caption": null,
       // Not supported yet ... need examples
       footers: [],
       // doi: "" needed?
@@ -479,7 +480,7 @@ LensImporter.Prototype = function() {
     tableNode.content = _toHtml(table);
 
     // Add a caption if available
-    var caption = table.querySelector("caption");
+    var caption = tableWrap.querySelector("caption");
     if (caption) {
       var captionNode = this.caption(state, caption);
       if (captionNode) tableNode.caption = captionNode.id;
@@ -496,9 +497,10 @@ LensImporter.Prototype = function() {
   this.formula = function(state, dispFormula) {
     var doc = state.doc;
 
-    var id = dispFormula.getAttribute("id") || state.nextId("formula");
+
     var formulaNode = {
-      id: id,
+      id: state.nextId("formula"),
+      source_id: dispFormula.getAttribute("id"),
       type: "formula",
       label: "",
       data: "",
@@ -568,23 +570,20 @@ LensImporter.Prototype = function() {
     var doc = state.doc;
     var i;
 
-    var id = ref.getAttribute("id");
-    if (!id) {
-      throw new ImporterError("Expected 'id' in ref.");
-    }
-
+    var id = state.nextId("article_citation");
     var citationNode = {
-      id: id,
-      type: "article_citation",
-      title: "N/A",
-      label: "",
-      authors: [],
-      doi: "",
-      source: "",
-      volume: "",
-      fpage: "",
-      lpage: "",
-      citation_urls: []
+      "id": id,
+      "source_id": ref.getAttribute("id"),
+      "type": "article_citation",
+      "title": "N/A",
+      "label": "",
+      "authors": [],
+      "doi": "",
+      "source": "",
+      "volume": "",
+      "fpage": "",
+      "lpage": "",
+      "citation_urls": []
     };
 
     // TODO: we should consider to have a more structured citation type
