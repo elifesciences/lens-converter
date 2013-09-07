@@ -98,19 +98,70 @@
         <p>
           <list list-type="bullet">
           <list-item>
-            <p>The benefits of geriatric day hospital care have been controversial for many years.</p>
+            <p>List item 1</p>
           </list-item>
           <list-item>
-            <p>This systematic review of 12 randomised trials comparing a variety of day hospitals with a range of alternative services found no overall advantage for day hospital care.</p>
-          </list-item>
-          <list-item>
-            <p>Day hospitals had a possible advantage over no comprehensive care in terms of death or poor outcome, disability, and use of resources.</p>
-          </list-item>
-          <list-item>
-            <p>The costs of day hospital care may be partly offset by a reduced use of hospital beds and institutional care among survivors.</p>
+            <p>List item 2</p>
           </list-item>
           </list>
         </p>
+      </sec>
+      <sec id="s2-2">
+        <title>More Results</title>
+        <p>
+          <table-wrap id="tbl1" position="float">
+            <object-id pub-id-type="doi">
+              10.7554/eLife.00768.006</object-id>
+            <label>Table 1.</label>
+            <caption>
+              <p>Expression in miracidia and sporocysts of schistosome homologs of planarian neoblast-enriched transcripts, measured by RNAseq</p>
+              <p>
+                <bold>DOI:</bold>
+                <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00768.006">http://dx.doi.org/10.7554/eLife.00768.006</ext-link>
+              </p>
+            </caption>
+            <table frame="hsides" rules="groups">
+              <thead>
+                <tr>
+                  <th>Gene name</th>
+                  <th>RPKM (miracidia)</th>
+                  <th>RPKM (sporocysts)</th>
+                  <th>Fold change</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <bold>
+                      <italic>vasa-like</italic>
+                    </bold>
+                    <italic>(vlg,</italic>
+                    <bold>Smp_068440</bold>, 154320, 033710)</td>
+                  <td>20.6/46.1/272.4</td>
+                  <td>98.5/79.2/423.1</td>
+                  <td>4.8/1.7/1.6</td>
+                </tr>
+                <tr>
+                  <td>
+                    <bold>
+                      <italic>polo kinase</italic>
+                    </bold>
+                    <bold>(Smp_009600)</bold>
+                  </td>
+                  <td>43.0</td>
+                  <td>149.5</td>
+                  <td>3.5</td>
+                </tr>
+              </tbody>
+            </table>
+            <table-wrap-foot>
+              <fn>
+                <p>Expression of genes in bold is confirmed in this study with qPCR or FISH.</p>
+              </fn>
+            </table-wrap-foot>
+          </table-wrap>
+        </p>
+        <p>Hi I am a paragraph.</p>
       </sec>
     </sec>
   </body>
