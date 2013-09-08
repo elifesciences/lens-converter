@@ -110,8 +110,7 @@ LensImporter.Prototype = function() {
     if (!articleMeta) {
       throw new ImporterError("Expected element: 'article-meta'");
     }
-    this.articleMeta(state, articleMeta);
-
+    
     var doc = state.doc;
     var docNode = doc.get("document");
     var cover = {
@@ -123,6 +122,8 @@ LensImporter.Prototype = function() {
     };
     doc.create(cover);
     doc.show("content", cover.id);
+
+    this.articleMeta(state, articleMeta);
   };
 
   // Note: Substance.Article supports only one author.
@@ -714,10 +715,11 @@ LensImporter.Prototype = function() {
     this.pubDates(state, pubDates);
 
     // <abstract> Abstract, zero or more
-    var abs = articleMeta.querySelector("abstract");
-    if (abs) {
+    var abstracts = articleMeta.querySelectorAll("abstract");
+
+    _.each(abstracts, function(abs) {
       this.abstract(state, abs);
-    }
+    }, this);
 
     // Not supported yet:
     // <trans-abstract> Translated Abstract, zero or more
@@ -787,19 +789,26 @@ LensImporter.Prototype = function() {
     };
   };
 
-  // Note: This is *very* rudimentary considering the actual spec for 'abstract' (which is rather complex)
   this.abstract = function(state, abs) {
     var doc = state.doc;
+    var nodes = [];
 
-    // TODO: extend this when we support more content
-    var children = abs.children;
-    for (var i = 0; i < children.length; i++) {
-      var child = children[i];
-      var type = this.getNodeType(child);
-      if (type === "p") {
-        doc.abstract = child.textContent;
-        return;
-      }
+    var title = abs.querySelector("title");
+
+    var heading = {
+      id: state.nextId("heading"),
+      type: "heading",
+      level: 1,
+      content: title ? title.textContent : "Abstract"
+    };
+    
+    doc.create(heading);
+    nodes.push(heading);
+
+    nodes = nodes.concat(this.bodyNodes(state, abs.children));
+    console.log('articlemeta', nodes);
+    if (nodes.length > 0) {
+      this.show(state, nodes);
     }
   };
 
