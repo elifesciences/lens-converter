@@ -338,18 +338,7 @@ LensImporter.Prototype = function() {
       throw new ImporterError("Expected to find an 'article' element.");
     }
 
-    // Assign id
-    var articleId = article.querySelector("article-id");
-    // Note: Substance.Article does only support one id
-    if (articleId) {
-      doc.id = articleId.textContent;
-    } else {
-      // if no id was set we create a random one
-      doc.id = util.uuid();
-    }
 
-    // First extract all figure-ish content, using a global approach
-    this.extractFigures(state, xmlDoc);
 
     // recursive-descent for the main body of the article
     this.article(state, article);
@@ -409,6 +398,13 @@ LensImporter.Prototype = function() {
 
 
 
+  this.extractCitations = function(state, xmlDoc) {
+    var refList = xmlDoc.querySelector("ref-list");
+    if (refList) {
+      this.refList(state, refList);
+    }
+  };
+
   // Handle <fig> element
   // --------
   // 
@@ -441,8 +437,6 @@ LensImporter.Prototype = function() {
 
     return figureNode;
   };
-
-
 
   // Handle <supplementary-material> element
   // --------
@@ -563,6 +557,8 @@ LensImporter.Prototype = function() {
   };
 
 
+  // Example video element
+  // 
   // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
   //   <object-id pub-id-type="doi">
   //     10.7554/eLife.00005.013</object-id>
@@ -655,6 +651,22 @@ LensImporter.Prototype = function() {
 
   this.article = function(state, article) {
 
+    // Assign id
+    var articleId = article.querySelector("article-id");
+    // Note: Substance.Article does only support one id
+    if (articleId) {
+      doc.id = articleId.textContent;
+    } else {
+      // if no id was set we create a random one
+      doc.id = util.uuid();
+    }
+
+    // First extract all figure-ish content, using a global approach
+    this.extractFigures(state, article);
+
+    // Same for the citations, also globally
+    this.extractCitations(state, article);
+
     var front = article.querySelector("front");
     if (!front) {
       throw new ImporterError("Expected to find a 'front' element.");
@@ -739,31 +751,6 @@ LensImporter.Prototype = function() {
 
     // Not yet supported:
     // <subtitle> Document Subtitle, zero or one
-  };
-
-  // Note: Substance.Article supports only one author.
-  // We use the first author found in the contribGroup for the 'creator' property.
-  this.contribGroup = function(state, contribGroup) {
-    var doc = state.doc;
-
-    function _getAuthor(contribGroup) {
-      var contribs = contribGroup.querySelectorAll("contrib");
-      if (contribs) {
-        for (var i = 0; i < contribs.length; i++) {
-          var contrib = contribs[i];
-          if (contrib.getAttribute("contrib-type") === "author") {
-            var name = contrib.querySelector("name");
-            var surname = name.querySelector("surname").textContent;
-            var givenNames = name.querySelector("given-names").textContent;
-            return givenNames + " " + surname;
-          }
-        }
-      }
-      return "";
-    }
-
-    var creator = _getAuthor(contribGroup);
-    doc.creator = creator;
   };
 
   // Note: Substance.Article supports no publications directly.
@@ -1013,7 +1000,6 @@ LensImporter.Prototype = function() {
     return listNode;
   };
 
-
   // Formula Node Type
   // --------
 
@@ -1090,23 +1076,10 @@ LensImporter.Prototype = function() {
   // TODO: is implemented naively, should be implemented considering the NLM spec
   this.citation = function(state, ref, citation) {
     var doc = state.doc;
+    var citationNode;
     var i;
 
     var id = state.nextId("article_citation");
-    var citationNode = {
-      "id": id,
-      "source_id": ref.getAttribute("id"),
-      "type": "article_citation",
-      "title": "N/A",
-      "label": "",
-      "authors": [],
-      "doi": "",
-      "source": "",
-      "volume": "",
-      "fpage": "",
-      "lpage": "",
-      "citation_urls": []
-    };
 
     // TODO: we should consider to have a more structured citation type
     // and let the view decide how to render it instead of blobbing everything here.
@@ -1119,6 +1092,7 @@ LensImporter.Prototype = function() {
 
       citationNode = {
         "id": id,
+        "source_id": ref.getAttribute("id"),
         "type": "article_citation",
         "title": "N/A",
         "label": "",
@@ -1165,13 +1139,14 @@ LensImporter.Prototype = function() {
       var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
       if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;       
     } else {
-      console.error("FIXME: there is one of those 'mixed-citation' without any structure.", citation);
-      citationNode = {
-        id: id,
-        type: "mixed_citation",
-        citation: citation.textContent,
-        doi: ""
-      };
+      console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping.", citation);
+      return;
+      // citationNode = {
+      //   id: id,
+      //   type: "mixed_citation",
+      //   citation: citation.textContent,
+      //   doi: ""
+      // };
     }
 
     doc.create(citationNode);
@@ -1183,10 +1158,8 @@ LensImporter.Prototype = function() {
   // Contains things like references, notes, etc.
 
   this.back = function(state, back) {
-    var refList = back.querySelector("ref-list");
-    if (refList) {
-      this.refList(state, refList);
-    }
+    // No processing at the moment
+    // citations are taken care of in a global handler.
   };
 };
 
