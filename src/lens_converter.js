@@ -14,7 +14,6 @@ var LandesConfiguration = require("./configurations/landes");
 var DefaultConfiguration = require("./configurations/default");
 var PLOSConfiguration = require("./configurations/plos");
 
-
 var LensImporter = function(options) {
   this.options;
 };
@@ -635,8 +634,6 @@ LensImporter.Prototype = function() {
   };
 
 
-
-
   // Article
   // --------
   // Does the actual conversion.
@@ -678,6 +675,9 @@ LensImporter.Prototype = function() {
     if (body) {
       this.body(state, body);
     }
+
+    // Give the config the chance to add stuff
+    state.config.enhanceArticle(this, state, article);
 
     var back = article.querySelector("back");
     if (back) {
@@ -813,6 +813,7 @@ LensImporter.Prototype = function() {
     }
   };
 
+
   // Top-level elements as they can be found in the body or
   // in a section.
   this.bodyNodes = function(state, children, startIndex) {
@@ -857,9 +858,13 @@ LensImporter.Prototype = function() {
         // Note: Maybe we could create a Substance.Comment?
         // Keep it silent for now
         // console.error("Ignoring comment");
-      }
-      else {
+      } else if (type === "boxed-text") {
+        // var p = child.querySelector("p")
+        // Just treat as another container
+        nodes = nodes.concat(this.bodyNodes(state, child.children));
+      } else {
         console.error("Node not yet supported within section: " + type);
+
         // throw new ImporterError("Node not yet supported within section: " + type);
       }
     }
@@ -876,6 +881,7 @@ LensImporter.Prototype = function() {
     var children = section.children;
 
     // create a heading
+    // TODO: headings can contain annotations too
     var title = children[0];
     var heading = {
       id: state.nextId("heading"),
@@ -893,12 +899,9 @@ LensImporter.Prototype = function() {
 
     // popping the section level
     state.sectionLevel--;
-
+ 
     return nodes;
   };
-
-
-
 
 
   // A 'paragraph' is given a '<p>' tag
@@ -929,6 +932,7 @@ LensImporter.Prototype = function() {
           type: "paragraph",
           content: ""
         };
+
         // pushing information to the stack so that annotations can be created appropriately
         state.stack.push({
           node: node,

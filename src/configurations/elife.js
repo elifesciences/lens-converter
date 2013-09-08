@@ -38,6 +38,68 @@ ElifeConfiguration.Prototype = function() {
     node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
     node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
   };
+
+  // Add Decision letter and author response
+  // ---------
+
+  this.enhanceArticle = function(converter, state, article) {
+
+    var nodes = [];
+
+    // Decision letter (if available)
+    // -----------
+
+    var articleCommentary = article.querySelector("#SA1");
+    if (articleCommentary) {
+
+      var heading = {
+        id: state.nextId("heading"),
+        type: "heading",
+        level: 1,
+        content: "Article Commentary"
+      };
+      doc.create(heading);
+      nodes.push(heading);
+
+      var heading = {
+        id: state.nextId("heading"),
+        type: "heading",
+        level: 2,
+        content: "Decision letter"
+      };
+      doc.create(heading);
+      nodes.push(heading);
+
+      var body = articleCommentary.querySelector("body");
+      nodes = nodes.concat(converter.bodyNodes(state, body.children));
+    }
+
+    // Author response
+    // -----------
+
+    var authorResponse = article.querySelector("#SA2");
+    if (authorResponse) {
+
+      var heading = {
+        id: state.nextId("heading"),
+        type: "heading",
+        level: 2,
+        content: "Author response"
+      };
+      doc.create(heading);
+      nodes.push(heading);
+
+      var body = authorResponse.querySelector("body");
+      nodes = nodes.concat(converter.bodyNodes(state, body.children));
+    }
+
+    // Show them off
+    // ----------
+
+    if (nodes.length > 0) {
+      converter.show(state, nodes);
+    }
+  };
 };
 
 ElifeConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
