@@ -11,7 +11,7 @@ PLOSConfiguration.Prototype = function() {
   // 
 
   this.enhanceFigure = function(state, node, element) {
-    var graphic = figure.querySelector("graphic");
+    var graphic = element.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
 
     url = [
