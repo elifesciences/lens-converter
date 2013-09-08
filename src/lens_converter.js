@@ -1,9 +1,10 @@
 "use strict";
 
 var _ = require("underscore");
-var Converter = require("substance-converter");
-var ImporterError = Converter.ImporterError;
-var NLMImporter = Converter.NLMImporter;
+var util = require("substance-util");
+var errors = util.errors;
+var ImporterError = errors.define("ImporterError");
+
 
 // Available configurations
 // --------
@@ -19,8 +20,6 @@ var LensImporter = function(options) {
 };
 
 LensImporter.Prototype = function() {
-
-  var __super__ = NLMImporter.prototype;
 
   // Helpers
   // --------
@@ -41,6 +40,46 @@ LensImporter.Prototype = function() {
     var tmp = document.createElement("DIV");
     tmp.appendChild(el.cloneNode(true));
     return tmp.innerHTML;
+  };
+
+
+  this.getNodeType = function(el) {
+    if (el.nodeType === Node.TEXT_NODE) {
+      return "text";
+    } else if (el.nodeType === Node.COMMENT_NODE) {
+      return "comment";
+    } else {
+      return el.tagName.toLowerCase();
+    }
+  };
+
+  // ### The main entry point for starting an import
+
+  this.import = function(input) {
+    var xmlDoc;
+
+    // Note: when we are using jqueries get("<file>.xml") we
+    // magically get a parsed XML document already
+    if (_.isString(input)) {
+      var parser = new DOMParser();
+      xmlDoc = parser.parseFromString(input,"text/xml");
+    } else {
+      xmlDoc = input;
+    }
+
+    // Creating the output Document via factore, so that it is possible to
+    // create specialized NLMImporter later which would want to instantiate
+    // a specialized Document type
+    var doc = this.createDocument();
+
+    // For debug purposes
+    window.doc = doc;
+
+    // A deliverable state which makes this importer stateless
+    var state = new LensImporter.State(xmlDoc, doc);
+
+    // Note: all other methods are called corresponding
+    return this.document(state, xmlDoc);
   };
 
   // Overridden to create a Lens Article instance
@@ -68,7 +107,11 @@ LensImporter.Prototype = function() {
   };
 
   this.front = function(state, front) {
-    __super__.front.call(this, state, front);
+    var articleMeta = front.querySelector("article-meta");
+    if (!articleMeta) {
+      throw new ImporterError("Expected element: 'article-meta'");
+    }
+    this.articleMeta(state, articleMeta);
 
     var doc = state.doc;
     var docNode = doc.get("document");
@@ -171,6 +214,8 @@ LensImporter.Prototype = function() {
     return _annotationTypes[type] !== undefined;
   };
 
+
+
   this.createAnnotation = function(state, el, start, end) {
     var type = el.tagName.toLowerCase();
     var anno = {
@@ -179,51 +224,224 @@ LensImporter.Prototype = function() {
     };
     if (type === "xref") {
       var refType = el.getAttribute("ref-type");
-      var targetId = el.getAttribute("rid");
+
+      var sourceId = el.getAttribute("rid");
       if (refType === "bibr") {
         anno.type = "citation_reference";
       } else if (refType === "fig" || refType === "table" || "supplementary-material") {
         anno.type = "figure_reference";
-      }
-      // 'supplementary-material', disp-formula
-      else {
+      } else {
         console.log("Ignoring xref: ", refType, el);
         return;
       }
-      anno.target = targetId;
+
+      var targetNode = state.doc.getNodeBySourceId(sourceId);
+      anno.target = targetNode ? targetNode.id : sourceId;
     }
     // Common annotations (e.g., emphasis)
     else if (_annotationTypes[type] !== undefined) {
       anno.type = _annotationTypes[type];
-
       if (type === "ext-link") {
         anno.url = el.getAttribute("xlink:href");
       }
-
     }
     else {
       console.log("Ignoring annotation: ", type, el);
       return;
     }
-    anno.id = state.nextId(anno.type);
 
+    anno.id = state.nextId(anno.type);
     state.annotations.push(anno);
   };
 
-  // Article.ArticleMeta
+  this.annotatedText = function(state, iterator, charPos, nested) {
+    var plainText = "";
+
+    for (; iterator.pos < iterator.length; iterator.pos++) {
+      var el = iterator.childNodes[iterator.pos];
+
+      // Plain text nodes...
+      if (el.nodeType === Node.TEXT_NODE) {
+        plainText += el.textContent;
+        charPos += el.textContent.length;
+      }
+
+      // Annotations...
+      else {
+
+        var type = this.getNodeType(el);
+        if (this.isAnnotation(type)) {
+
+          var start = charPos;
+
+          var childIterator = {
+            childNodes: el.childNodes,
+            length: el.childNodes.length,
+            pos: 0
+          };
+
+          // recurse into the annotation element to collect nested annotations
+          // and the contained plain text
+          var annotatedText = this.annotatedText(state, childIterator, charPos, "nested");
+
+          plainText += annotatedText;
+          charPos += annotatedText.length;
+
+          this.createAnnotation(state, el, start, charPos);
+        }
+
+        // Unsupported...
+        else {
+          if (nested) {
+            throw new ImporterError("Node not yet supported in annoted text: " + type);
+          }
+          else {
+            // on paragraph level other elements can break a text block
+            // we shift back the position and finish this call
+            iterator.pos--;
+            break;
+          }
+        }
+      }
+    }
+    return plainText;
+  };
+
+
+  // Parser
   // --------
-
-  // this.articleMeta = function(state, articleMeta) {
-  //   __super__.articleMeta.call(this, state, articleMeta);
-  // }; 
+  // These methods are used to process XML elements in
+  // using a recursive-descent approach.
 
 
-  // Article.Back
+  // ### Top-Level function that takes a full NLM tree
+  // Note: a specialized converter can derive this method and
+  // add additional pre- or post-processing.
+
+  this.document = function(state, xmlDoc) {
+    // Setup configuration objects
+    var publisherName = xmlDoc.querySelector("publisher-name").textContent;
+    if (publisherName === "Landes Bioscience") {
+      state.config = new LandesConfiguration();
+    } else if (publisherName === "eLife Sciences Publications, Ltd") {
+      state.config = new ElifeConfiguration();
+    } else if (publisherName === "Public Library of Science") {
+      state.config = new PLOSConfiguration();
+    } else {
+      state.config = new DefaultConfiguration();
+    }
+
+    var doc = state.doc;
+    var article = xmlDoc.querySelector("article");
+
+    if (!article) {
+      throw new ImporterError("Expected to find an 'article' element.");
+    }
+
+    // Assign id
+    var articleId = article.querySelector("article-id");
+    // Note: Substance.Article does only support one id
+    if (articleId) {
+      doc.id = articleId.textContent;
+    } else {
+      // if no id was set we create a random one
+      doc.id = util.uuid();
+    }
+
+    // First extract all figure-ish content, using a global approach
+    this.extractFigures(state, xmlDoc);
+
+    // recursive-descent for the main body of the article
+    this.article(state, article);
+
+    // post-processing:
+
+    // Creating the annotations afterwards, to make sure
+    // that all referenced nodes are available
+    for (var i = 0; i < state.annotations.length; i++) {
+      doc.create(state.annotations[i]);
+    }
+
+    // Rebuild views to ensure consistency
+    _.each(doc.views, function(view) {
+      doc.get(view).rebuild();
+    });
+
+    return doc;
+  };
+
+
+  this.extractFigures = function(state, xmlDoc) {
+    // Globally query all figure-ish content, <fig>, <supplementary-material>, <table-wrap>, <media video>
+    // mimetype="video"
+    var figureElements = xmlDoc.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
+    var figureNodes = [];
+    var node;
+
+    for (var i = 0; i < figureElements.length; i++) {
+      var figEl = figureElements[i];
+      var type = this.getNodeType(figEl);
+
+      if (type === "fig") {
+        // nodes = nodes.concat(this.paragraph(state, child));
+        node = this.figure(state, figEl);
+        if (node) figureNodes.push(node);
+      }
+      else if (type === "table-wrap") {
+        node = this.tableWrap(state, figEl);
+        if (node) figureNodes.push(node);
+        // nodes = nodes.concat(this.section(state, child));
+      } else if (type === "media") {
+        node = this.video(state, figEl);
+        if (node) figureNodes.push(node);
+      } else if (type === "supplementary-material") {
+        
+        node = this.supplement(state, figEl);
+        if (node) figureNodes.push(node);
+      }
+    }
+
+    // Show the figures
+    if (figureNodes.length > 0) {
+      this.show(state, figureNodes);
+    }
+  };
+
+
+
+  // Handle <fig> element
   // --------
+  // 
 
-  // this.back = function(state, back) {
-  //   __super__.back.call(this, state, back);
-  // };
+  this.figure = function(state, figure) {
+    var doc = state.doc;
+
+    var label = figure.querySelector("label");
+
+    // Top level figure node
+    var figureNode = {
+      "type": "figure",
+      "id": state.nextId("figure"),
+      "source_id": figure.getAttribute("id"),
+      "label": label ? label.textContent : "",
+      "url": "http://images.wisegeek.com/young-calico-cat.jpg",
+      "caption": null
+    };
+    
+    // Add a caption if available
+    var caption = figure.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) figureNode.caption = captionNode.id;
+    }
+
+    // Lets the configuration patch the figure node properties
+    state.config.enhanceFigure(state, figureNode, figure);
+    doc.create(figureNode);
+
+    return figureNode;
+  };
+
 
 
   // Handle <supplementary-material> element
@@ -286,71 +504,10 @@ LensImporter.Prototype = function() {
     // Let config enhance the node
     state.config.enhanceSupplement(state, supplementNode, supplement);
     doc.create(supplementNode);
+    return supplementNode;
     // doc.show("figures", id);
   };
 
-  // Hot patch state object and add configuration object
-  // --------
-  // 
-
-  this.document = function(state, xmlDoc) {
-    var publisherName = state.xmlDoc.querySelector("publisher-name").textContent;
-    if (publisherName === "Landes Bioscience") {
-      state.config = new LandesConfiguration();
-    } else if (publisherName === "eLife Sciences Publications, Ltd") {
-      state.config = new ElifeConfiguration();
-    } else if (publisherName === "Public Library of Science") {
-      state.config = new PLOSConfiguration();
-    } else {
-      state.config = new DefaultConfiguration();
-    }
-
-    // Doc without supplements
-    var doc = __super__.document.call(this, state, xmlDoc);
-
-    // <supplementary-material> Supplemental Material, zero or more
-    // Queried globally as a post-processing step
-    var supplements = state.xmlDoc.querySelectorAll("supplementary-material");
-
-    _.each(supplements, function(supplement) {
-      this.supplement(state, supplement);
-    }, this);
-
-    return doc;
-  };
-
-  // Handle <fig> element
-  // --------
-  // 
-
-  this.figure = function(state, figure) {
-    var doc = state.doc;
-
-    var label = figure.querySelector("label");
-
-    // Top level figure node
-    var figureNode = {
-      "type": "figure",
-      "id": state.nextId("figure"),
-      "source_id": figure.getAttribute("id"),
-      "label": label ? label.textContent : "",
-      "url": "http://images.wisegeek.com/young-calico-cat.jpg",
-      "caption": null
-    };
-    
-    // Add a caption if available
-    var caption = figure.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) figureNode.caption = captionNode.id;
-    }
-
-    // Lets the configuration patch the figure node properties
-    state.config.enhanceFigure(state, figureNode, figure);
-    doc.create(figureNode);
-
-    return figureNode;
-  };
 
   // Used by Figure, Table, Video, Supplement types.
   // --------
@@ -405,16 +562,6 @@ LensImporter.Prototype = function() {
     return captionNode;
   };
 
-
-  this.media = function(state, media) {
-    var mimetype = media.getAttribute("mimetype");
-    if (mimetype === "video") {
-      return this.video(state, media);
-    } else {
-      console.error("Media type not supported yet: " + mimetype);
-      // throw new ImporterError("Media type not supported yet: " + mimetype);
-    }
-  };
 
   // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
   //   <object-id pub-id-type="doi">
@@ -491,12 +638,387 @@ LensImporter.Prototype = function() {
     return tableNode;
   };
 
+
+
+
+  // Article
+  // --------
+  // Does the actual conversion.
+  //
+  // Note: this is implemented as lazy as possible (ALAP) and will be extended as demands arise.
+  //
+  // If you need such an element supported:
+  //  - add a stub to this class (empty body),
+  //  - add code to call the method to the appropriate function,
+  //  - and implement the handler here if it can be done in general way
+  //    or in your specialized importer.
+
+  this.article = function(state, article) {
+
+    var front = article.querySelector("front");
+    if (!front) {
+      throw new ImporterError("Expected to find a 'front' element.");
+    } else {
+      this.front(state, front);
+    }
+
+    var body = article.querySelector("body");
+    if (body) {
+      this.body(state, body);
+    }
+
+    var back = article.querySelector("back");
+    if (back) {
+      this.back(state, back);
+    }
+  };
+
+
+  // #### Front.ArticleMeta
+  //
+
+  this.articleMeta = function(state, articleMeta) {
+
+    // <article-id> Article Identifier, zero or more
+    var articleIds = articleMeta.querySelectorAll("article-id");
+    this.articleIds(state, articleIds);
+
+    // <title-group> Title Group, zero or one
+    var titleGroup = articleMeta.querySelector("title-group");
+    if (titleGroup) {
+      this.titleGroup(state, titleGroup);
+    }
+
+    // TODO: the spec says, that there may be any combination of
+    // 'contrib-group', 'aff', 'aff-alternatives', and 'x'
+    // However, in the articles seen so far, these were sub-elements of 'contrib-group', which itself was single
+    var contribGroup = articleMeta.querySelector("contrib-group");
+    if (contribGroup) {
+      this.contribGroup(state, contribGroup);
+    }
+
+    // <pub-date> Publication Date, zero or more
+    var pubDates = articleMeta.querySelectorAll("pub-date");
+    this.pubDates(state, pubDates);
+
+    // <abstract> Abstract, zero or more
+    var abs = articleMeta.querySelector("abstract");
+    if (abs) {
+      this.abstract(state, abs);
+    }
+
+    // Not supported yet:
+    // <trans-abstract> Translated Abstract, zero or more
+    // <kwd-group> Keyword Group, zero or more
+    // <funding-group> Funding Group, zero or more
+    // <conference> Conference Information, zero or more
+    // <counts> Counts, zero or one
+    // <custom-meta-group> Custom Metadata Group, zero or one
+  };
+
+  // articleIds: array of <article-id> elements
+  this.articleIds = function(state, articleIds) {
+    var doc = state.doc;
+
+    // Note: Substance.Article does only support one id
+    if (articleIds.length > 0) {
+      doc.id = articleIds[0].textContent;
+    } else {
+      // if no id was set we create a random one
+      doc.id = util.uuid();
+    }
+  };
+
+  this.titleGroup = function(state, titleGroup) {
+    var doc = state.doc;
+
+    var articleTitle = titleGroup.querySelector("article-title");
+    if (articleTitle) {
+      doc.title = articleTitle.textContent;
+    }
+
+    // Not yet supported:
+    // <subtitle> Document Subtitle, zero or one
+  };
+
+  // Note: Substance.Article supports only one author.
+  // We use the first author found in the contribGroup for the 'creator' property.
+  this.contribGroup = function(state, contribGroup) {
+    var doc = state.doc;
+
+    function _getAuthor(contribGroup) {
+      var contribs = contribGroup.querySelectorAll("contrib");
+      if (contribs) {
+        for (var i = 0; i < contribs.length; i++) {
+          var contrib = contribs[i];
+          if (contrib.getAttribute("contrib-type") === "author") {
+            var name = contrib.querySelector("name");
+            var surname = name.querySelector("surname").textContent;
+            var givenNames = name.querySelector("given-names").textContent;
+            return givenNames + " " + surname;
+          }
+        }
+      }
+      return "";
+    }
+
+    var creator = _getAuthor(contribGroup);
+    doc.creator = creator;
+  };
+
+  // Note: Substance.Article supports no publications directly.
+  // We use the first pub-date for created_at
+  this.pubDates = function(state, pubDates) {
+    var doc = state.doc;
+    if (pubDates.length > 0) {
+      var converted = this.pubDate(state, pubDates[0]);
+      doc.created_at = converted.date;
+    }
+  };
+
+  // Note: this does not follow the spec but only takes the parts as it was necessary until now
+  // TODO: implement it thoroughly
+  this.pubDate = function(state, pubDate) {
+    var day = -1;
+    var month = -1;
+    var year = -1;
+    _.each(pubDate.children, function(el) {
+      var type = this.getNodeType(el);
+
+      var value = el.textContent;
+      if (type === "day") {
+        day = parseInt(value, 10);
+      } else if (type === "month") {
+        month = parseInt(value, 10);
+      } else if (type === "year") {
+        year = parseInt(value, 10);
+      }
+    }, this);
+    var date = new Date(year, month, day);
+    return {
+      date: date
+    };
+  };
+
+  // Note: This is *very* rudimentary considering the actual spec for 'abstract' (which is rather complex)
+  this.abstract = function(state, abs) {
+    var doc = state.doc;
+
+    // TODO: extend this when we support more content
+    var children = abs.children;
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      var type = this.getNodeType(child);
+      if (type === "p") {
+        doc.abstract = child.textContent;
+        return;
+      }
+    }
+  };
+
+  // ### Article.Body
+  //
+
+  this.body = function(state, body) {
+    var nodes = this.bodyNodes(state, body.children);
+    if (nodes.length > 0) {
+      this.show(state, nodes);
+    }
+  };
+
+  // Top-level elements as they can be found in the body or
+  // in a section.
+  this.bodyNodes = function(state, children, startIndex) {
+    var nodes = [];
+
+    startIndex = startIndex || 0;
+
+    for (var i = startIndex; i < children.length; i++) {
+      var child = children[i];
+      var type = this.getNodeType(child);
+
+      if (type === "p") {
+        nodes = nodes.concat(this.paragraph(state, child));
+      }
+      else if (type === "sec") {
+        nodes = nodes.concat(this.section(state, child));
+      }
+      else if (type === "list") {
+        node = this.list(state, child);
+        if (node) nodes.push(node);
+      }
+      else if (type === "fig") {
+        // node = this.figure(state, child);
+        // if (node) nodes.push(node);
+      }
+      else if (type === "fig-group") {
+        // nodes = nodes.concat(this.figGroup(state, child));
+      }
+      else if (type === "table-wrap") {
+        // node = this.tableWrap(state, child);
+        // if (node) nodes.push(node);
+      }
+      else if (type === "disp-formula") {
+        node = this.formula(state, child);
+        if (node) nodes.push(node);
+      }
+      else if (type === "media") {
+        // node = this.media(state, child);
+        // if (node) nodes.push(node);
+      }
+      else if (type === "comment") {
+        // Note: Maybe we could create a Substance.Comment?
+        // Keep it silent for now
+        // console.error("Ignoring comment");
+      }
+      else {
+        console.error("Node not yet supported within section: " + type);
+        // throw new ImporterError("Node not yet supported within section: " + type);
+      }
+    }
+
+    return nodes;
+  };
+
+  this.section = function(state, section) {
+
+    // pushing the section level to track the level for nested sections
+    state.sectionLevel++;
+
+    var doc = state.doc;
+    var children = section.children;
+
+    // create a heading
+    var title = children[0];
+    var heading = {
+      id: state.nextId("heading"),
+      source_id: section.getAttribute("id"),
+      type: "heading",
+      level: state.sectionLevel,
+      content: title.textContent
+    };
+    doc.create(heading);
+
+    // Recursive Descent: get all section body nodes
+    var nodes = this.bodyNodes(state, children, 1);
+    // add the heading at the front
+    nodes.unshift(heading);
+
+    // popping the section level
+    state.sectionLevel--;
+
+    return nodes;
+  };
+
+
+
+
+
+  // A 'paragraph' is given a '<p>' tag
+  this.paragraph = function(state, paragraph) {
+    var doc = state.doc;
+
+    // Note: there are some elements in the NLM paragraph allowed
+    // which are not allowed in a Substance Paragraph.
+    // I.e., they can not be nested inside, but must be added on top-level
+
+    var nodes = [];
+
+    var iterator = {
+      childNodes: paragraph.childNodes,
+      length: paragraph.childNodes.length,
+      pos: 0
+    };
+
+    for (; iterator.pos < iterator.length; iterator.pos++) {
+      var child = iterator.childNodes[iterator.pos];
+      var type = this.getNodeType(child);
+      var node;
+
+      if (type === "text" || this.isAnnotation(type)) {
+        node = {
+          id: state.nextId("paragraph"),
+          source_id: paragraph.getAttribute("id"),
+          type: "paragraph",
+          content: ""
+        };
+        // pushing information to the stack so that annotations can be created appropriately
+        state.stack.push({
+          node: node,
+          path: [node.id, "content"]
+        });
+
+        // Note: this will consume as many textish elements (text and annotations)
+        // but will return when hitting the first un-textish element.
+        // In that case, the iterator will still have more elements
+        // and the loop is continued
+        var annotatedText = this.annotatedText(state, iterator, 0);
+
+        // Ignore empty paragraphs
+        if (!util.isEmpty(annotatedText)) {
+          node.content = annotatedText;
+          doc.create(node);
+          nodes.push(node);
+        }
+
+        // popping the stack
+        state.stack.pop();
+      }
+      else if (type === "list") {
+        node = this.list(state, child);
+        if (node) nodes.push(node);
+      }
+      else if (type === "disp-formula") {
+        node = this.formula(state, child);
+        if (node) nodes.push(node);
+      }
+    }
+
+    return nodes;
+  };
+
+
+  // List type
+  // --------
+
+  this.list = function(state, list) {
+    var doc = state.doc;
+
+    var listNode = {
+      "id": state.nextId("list"),
+      "source_id": list.getAttribute("id"),
+      "type": "list",
+      "items": [],
+      "ordered": false
+    };
+
+    // TODO: better detect ordererd list types (need examples)
+    if (list.getAttribute("list-type") === "ordered") {
+      listNode.ordered = true;
+    }
+
+    var listItems = list.querySelectorAll("list-item");
+    for (var i = 0; i < listItems.length; i++) {
+      var listItem = listItems[i];
+      // Note: we do not care much about what is served as items
+      // However, we do not have complex nodes on paragraph level
+      // They will be extract as sibling items
+      var nodes = this.bodyNodes(state, listItem.children, 0);
+      for (var j = 0; j < nodes.length; j++) {
+        listNode.items.push(nodes[j].id);
+      }
+    }
+
+    doc.create(listNode);
+    return listNode;
+  };
+
+
   // Formula Node Type
   // --------
 
   this.formula = function(state, dispFormula) {
     var doc = state.doc;
-
 
     var formulaNode = {
       id: state.nextId("formula"),
@@ -596,17 +1118,17 @@ LensImporter.Prototype = function() {
     if (personGroup) {
 
       citationNode = {
-        id: id,
-        type: "article_citation",
-        title: "N/A",
-        label: "",
-        authors: [],
-        doi: "",
-        source: "",
-        volume: "",
-        fpage: "",
-        lpage: "",
-        citation_urls: []
+        "id": id,
+        "type": "article_citation",
+        "title": "N/A",
+        "label": "",
+        "authors": [],
+        "doi": "",
+        "source": "",
+        "volume": "",
+        "fpage": "",
+        "lpage": "",
+        "citation_urls": []
       };
 
       var nameElements = personGroup.querySelectorAll("name");
@@ -656,9 +1178,46 @@ LensImporter.Prototype = function() {
     doc.show("citations", id);
   };
 
+  // Article.Back
+  // --------
+  // Contains things like references, notes, etc.
+
+  this.back = function(state, back) {
+    var refList = back.querySelector("ref-list");
+    if (refList) {
+      this.refList(state, refList);
+    }
+  };
 };
 
-LensImporter.Prototype.prototype = NLMImporter.prototype;
+
+LensImporter.State = function(xmlDoc, doc) {
+  // the input xml document
+  this.xmlDoc = xmlDoc;
+
+  // the output substance document
+  this.doc = doc;
+
+  // store annotations to be created here
+  // they will be added to the document when everything else is in place
+  this.annotations = [];
+
+  // when recursing into sub-nodes it is necessary to keep the stack
+  // of processed nodes to be able to associate other things (e.g., annotations) correctly.
+  this.stack = [];
+
+  this.sectionLevel = 0;
+
+  // an id generator for different types
+  var ids = {};
+  this.nextId = function(type) {
+    ids[type] = ids[type] || 0;
+    ids[type]++;
+    return type +"_"+ids[type];
+  };
+};
+
+// LensImporter.Prototype.prototype = NLMImporter.prototype;
 LensImporter.prototype = new LensImporter.Prototype();
 
 module.exports = {
