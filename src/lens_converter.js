@@ -194,6 +194,7 @@ LensImporter.Prototype = function() {
     }
 
     doc.create(personNode);
+    doc.show("info", personNode.id);
   };
 
   // Annotations
@@ -806,7 +807,6 @@ LensImporter.Prototype = function() {
     nodes.push(heading);
 
     nodes = nodes.concat(this.bodyNodes(state, abs.children));
-    console.log('articlemeta', nodes);
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
