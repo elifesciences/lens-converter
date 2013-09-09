@@ -1106,7 +1106,7 @@ LensImporter.Prototype = function() {
       citationNode = {
         "id": id,
         "source_id": ref.getAttribute("id"),
-        "type": "article_citation",
+        "type": "citation",
         "title": "N/A",
         "label": "",
         "authors": [],
@@ -1152,7 +1152,7 @@ LensImporter.Prototype = function() {
       var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
       if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;       
     } else {
-      console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping.", citation);
+      console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...", citation);
       return;
       // citationNode = {
       //   id: id,
