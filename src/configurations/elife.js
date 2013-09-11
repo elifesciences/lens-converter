@@ -71,7 +71,7 @@ ElifeConfiguration.Prototype = function() {
       nodes.push(heading);
 
       var body = articleCommentary.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, body.children));
+      nodes = nodes.concat(converter.bodyNodes(state, converter.getChildren(body)));
     }
 
     // Author response
@@ -90,7 +90,7 @@ ElifeConfiguration.Prototype = function() {
       nodes.push(heading);
 
       var body = authorResponse.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, body.children));
+      nodes = nodes.concat(converter.bodyNodes(state, converter.getChildren(body)));
     }
 
     // Show them off

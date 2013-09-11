@@ -22,7 +22,7 @@ LensImporter.Prototype = function() {
 
   // Note: it is not safe regarding browser in-compatibilities
   // to access el.children directly.
-  var _getChildren = function(el) {
+  this.getChildren = function(el) {
     if (el.children !== undefined) return el.children;
     var children = [];
     var child = el.firstElementChild;
@@ -828,7 +828,7 @@ LensImporter.Prototype = function() {
     var day = -1;
     var month = -1;
     var year = -1;
-    _.each(_getChildren(pubDate), function(el) {
+    _.each(this.getChildren(pubDate), function(el) {
       var type = this.getNodeType(el);
 
       var value = el.textContent;
@@ -862,7 +862,7 @@ LensImporter.Prototype = function() {
     doc.create(heading);
     nodes.push(heading);
 
-    nodes = nodes.concat(this.bodyNodes(state, _getChildren(abs)));
+    nodes = nodes.concat(this.bodyNodes(state, this.getChildren(abs)));
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -872,7 +872,7 @@ LensImporter.Prototype = function() {
   //
 
   this.body = function(state, body) {
-    var nodes = this.bodyNodes(state, _getChildren(body));
+    var nodes = this.bodyNodes(state, this.getChildren(body));
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -880,10 +880,14 @@ LensImporter.Prototype = function() {
 
 
   // Top-level elements as they can be found in the body or
-  // in a section.
+  // in a section
   this.bodyNodes = function(state, children, startIndex) {
     var nodes = [];
     var node;
+
+    if (!children) {
+      debugger;
+    }
 
     startIndex = startIndex || 0;
 
@@ -927,7 +931,7 @@ LensImporter.Prototype = function() {
       } else if (type === "boxed-text") {
         // var p = child.querySelector("p")
         // Just treat as another container
-        nodes = nodes.concat(this.bodyNodes(state, _getChildren(child)));
+        nodes = nodes.concat(this.bodyNodes(state, this.getChildren(child)));
       } else {
         console.error("Node not yet supported within section: " + type);
 
@@ -944,7 +948,7 @@ LensImporter.Prototype = function() {
     state.sectionLevel++;
 
     var doc = state.doc;
-    var children = _getChildren(section);
+    var children = this.getChildren(section);
 
     // create a heading
     // TODO: headings can contain annotations too
@@ -1060,7 +1064,7 @@ LensImporter.Prototype = function() {
       // Note: we do not care much about what is served as items
       // However, we do not have complex nodes on paragraph level
       // They will be extract as sibling items
-      var nodes = this.bodyNodes(state, _getChildren(listItem), 0);
+      var nodes = this.bodyNodes(state, this.getChildren(listItem), 0);
       for (var j = 0; j < nodes.length; j++) {
         listNode.items.push(nodes[j].id);
       }
@@ -1088,7 +1092,7 @@ LensImporter.Prototype = function() {
     var label = dispFormula.querySelector("label");
     if (label) formulaNode.label = label.textContent;
 
-    var children = _getChildren(dispFormula);
+    var children = this.getChildren(dispFormula);
 
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -1128,7 +1132,7 @@ LensImporter.Prototype = function() {
   };
 
   this.ref = function(state, ref) {
-    var children = _getChildren(ref);
+    var children = this.getChildren(ref);
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
       var type = this.getNodeType(child);
