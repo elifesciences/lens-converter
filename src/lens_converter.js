@@ -267,9 +267,7 @@ LensImporter.Prototype = function() {
         console.log("Ignoring xref: ", refType, el);
         return;
       }
-
-      var targetNode = state.doc.getNodeBySourceId(sourceId);
-      anno.target = targetNode ? targetNode.id : sourceId;
+      anno.target = sourceId.split(" ")[0];
     }
     // Common annotations (e.g., emphasis)
     else if (_annotationTypes[type] !== undefined) {
@@ -379,6 +377,12 @@ LensImporter.Prototype = function() {
     // Creating the annotations afterwards, to make sure
     // that all referenced nodes are available
     for (var i = 0; i < state.annotations.length; i++) {
+      var anno = state.annotations[i];
+      if (anno.target) {
+        var targetNode = state.doc.getNodeBySourceId(anno.target);
+        if (targetNode) anno.target = targetNode.id;
+      }
+
       doc.create(state.annotations[i]);
     }
 
@@ -705,11 +709,13 @@ LensImporter.Prototype = function() {
     // Extract authors etc.
     this.extractContributors(state, article);
 
+    // Same for the citations, also globally
+    this.extractCitations(state, article);
+
     // First extract all figure-ish content, using a global approach
     this.extractFigures(state, article);
 
-    // Same for the citations, also globally
-    this.extractCitations(state, article);
+
 
     var front = article.querySelector("front");
     if (!front) {
