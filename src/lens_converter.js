@@ -883,6 +883,7 @@ LensImporter.Prototype = function() {
   // in a section.
   this.bodyNodes = function(state, children, startIndex) {
     var nodes = [];
+    var node;
 
     startIndex = startIndex || 0;
 
