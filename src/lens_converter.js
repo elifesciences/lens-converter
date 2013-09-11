@@ -105,6 +105,7 @@ LensImporter.Prototype = function() {
     });
   };
 
+
   this.front = function(state, front) {
     var articleMeta = front.querySelector("article-meta");
     if (!articleMeta) {
@@ -117,9 +118,40 @@ LensImporter.Prototype = function() {
       id: "cover",
       type: "cover",
       title: docNode.title,
-      authors: docNode.authors,
+      authors: [], // docNode.authors,
       abstract: docNode.abstract
     };
+
+    // Create authors paragraph that has person_reference annotations
+    // to activate the author cards
+
+    var authorsList = "";
+
+    var charCount = 0;
+
+    _.each(docNode.authors, function(personId) {
+      var person = doc.get(personId);
+
+      var authorsPara = {
+        "id": "paragraph_"+personId+"_reference",
+        "type": "paragraph",
+        "content": person.name
+      };
+
+      doc.create(authorsPara);
+      cover.authors.push(authorsPara.id);
+
+      var anno = {
+        id: state.nextId("person_reference"),
+        type: "person_reference",
+        path: ["paragraph_" + personId + "_reference", "content"],
+        range: [0, person.name.length],
+        target: personId
+      };
+
+      doc.create(anno);
+    }, this);
+
     doc.create(cover);
     doc.show("content", cover.id);
 
@@ -339,8 +371,6 @@ LensImporter.Prototype = function() {
       throw new ImporterError("Expected to find an 'article' element.");
     }
 
-
-
     // recursive-descent for the main body of the article
     this.article(state, article);
 
@@ -358,6 +388,18 @@ LensImporter.Prototype = function() {
     });
 
     return doc;
+  };
+
+
+
+  this.extractContributors = function(state, article) {
+    // TODO: the spec says, that there may be any combination of
+    // 'contrib-group', 'aff', 'aff-alternatives', and 'x'
+    // However, in the articles seen so far, these were sub-elements of 'contrib-group', which itself was single
+    var contribGroup = article.querySelector("article-meta contrib-group");
+    if (contribGroup) {
+      this.contribGroup(state, contribGroup);
+    }
   };
 
 
@@ -660,6 +702,9 @@ LensImporter.Prototype = function() {
       doc.id = util.uuid();
     }
 
+    // Extract authors etc.
+    this.extractContributors(state, article);
+
     // First extract all figure-ish content, using a global approach
     this.extractFigures(state, article);
 
@@ -701,14 +746,6 @@ LensImporter.Prototype = function() {
     var titleGroup = articleMeta.querySelector("title-group");
     if (titleGroup) {
       this.titleGroup(state, titleGroup);
-    }
-
-    // TODO: the spec says, that there may be any combination of
-    // 'contrib-group', 'aff', 'aff-alternatives', and 'x'
-    // However, in the articles seen so far, these were sub-elements of 'contrib-group', which itself was single
-    var contribGroup = articleMeta.querySelector("contrib-group");
-    if (contribGroup) {
-      this.contribGroup(state, contribGroup);
     }
 
     // <pub-date> Publication Date, zero or more
