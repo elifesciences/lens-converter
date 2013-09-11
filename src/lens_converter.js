@@ -20,6 +20,19 @@ var LensImporter = function(options) {
 
 LensImporter.Prototype = function() {
 
+  // Note: it is not safe regarding browser in-compatibilities
+  // to access el.children directly.
+  var _getChildren = function(el) {
+    if (el.children !== undefined) return el.children;
+    var children = [];
+    var child = el.firstElementChild;
+    while (child) {
+      children.push(child);
+      child = child.nextElementSibling;
+    }
+    return children;
+  }
+
   // Helpers
   // --------
 
@@ -111,7 +124,7 @@ LensImporter.Prototype = function() {
     if (!articleMeta) {
       throw new ImporterError("Expected element: 'article-meta'");
     }
-    
+
     var doc = state.doc;
     var docNode = doc.get("document");
     var cover = {
@@ -431,7 +444,7 @@ LensImporter.Prototype = function() {
         node = this.video(state, figEl);
         if (node) figureNodes.push(node);
       } else if (type === "supplementary-material") {
-        
+
         node = this.supplement(state, figEl);
         if (node) figureNodes.push(node);
       }
@@ -454,7 +467,7 @@ LensImporter.Prototype = function() {
 
   // Handle <fig> element
   // --------
-  // 
+  //
 
   this.figure = function(state, figure) {
     var doc = state.doc;
@@ -470,7 +483,7 @@ LensImporter.Prototype = function() {
       "url": "http://images.wisegeek.com/young-calico-cat.jpg",
       "caption": null
     };
-    
+
     // Add a caption if available
     var caption = figure.querySelector("caption");
     if (caption) {
@@ -487,15 +500,15 @@ LensImporter.Prototype = function() {
 
   // Handle <supplementary-material> element
   // --------
-  // 
+  //
   // eLife Example:
-  // 
+  //
   // <supplementary-material id="SD1-data">
   //   <object-id pub-id-type="doi">10.7554/eLife.00299.013</object-id>
   //   <label>Supplementary file 1.</label>
   //   <caption>
   //     <title>Compilation of the tables and figures (XLS).</title>
-  //     <p>This is a static version of the 
+  //     <p>This is a static version of the
   //       <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink">
   //         Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
   //     <p>
@@ -505,9 +518,9 @@ LensImporter.Prototype = function() {
   //   </caption>
   //   <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
   // </supplementary-material>
-  // 
+  //
   // LB Example:
-  // 
+  //
   // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
   //   <label>Additional material</label>
   //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
@@ -522,7 +535,7 @@ LensImporter.Prototype = function() {
 
     var url = "http://meh.com";
     var doi = supplement.querySelector("object-id[pub-id-type='doi']");
-    doi = doi ? "http://dx.doi.org/" + doi.textContent : "";    
+    doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
 
     //create supplement node using file ids
     var supplementNode = {
@@ -541,7 +554,7 @@ LensImporter.Prototype = function() {
       var captionNode = this.caption(state, caption);
       if (captionNode) supplementNode.caption = captionNode.id;
     }
-    
+
     // Let config enhance the node
     state.config.enhanceSupplement(state, supplementNode, supplement);
     doc.create(supplementNode);
@@ -585,7 +598,7 @@ LensImporter.Prototype = function() {
     var children = [];
     _.each(paragraphs, function(p) {
       // Oliver: Explain, why we need NLMImporter.paragraph to return an array nodes?
-      // I would expect it to return just one paragraph node. 
+      // I would expect it to return just one paragraph node.
       var nodes = this.paragraph(state, p);
       if (nodes.length > 1) {
         // throw new ImporterError("Ooops. Not ready for that...");
@@ -605,7 +618,7 @@ LensImporter.Prototype = function() {
 
 
   // Example video element
-  // 
+  //
   // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
   //   <object-id pub-id-type="doi">
   //     10.7554/eLife.00005.013</object-id>
@@ -815,7 +828,7 @@ LensImporter.Prototype = function() {
     var day = -1;
     var month = -1;
     var year = -1;
-    _.each(pubDate.children, function(el) {
+    _.each(_getChildren(pubDate), function(el) {
       var type = this.getNodeType(el);
 
       var value = el.textContent;
@@ -845,11 +858,11 @@ LensImporter.Prototype = function() {
       level: 1,
       content: title ? title.textContent : "Abstract"
     };
-    
+
     doc.create(heading);
     nodes.push(heading);
 
-    nodes = nodes.concat(this.bodyNodes(state, abs.children));
+    nodes = nodes.concat(this.bodyNodes(state, _getChildren(abs)));
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -859,7 +872,7 @@ LensImporter.Prototype = function() {
   //
 
   this.body = function(state, body) {
-    var nodes = this.bodyNodes(state, body.children);
+    var nodes = this.bodyNodes(state, _getChildren(body));
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -913,7 +926,7 @@ LensImporter.Prototype = function() {
       } else if (type === "boxed-text") {
         // var p = child.querySelector("p")
         // Just treat as another container
-        nodes = nodes.concat(this.bodyNodes(state, child.children));
+        nodes = nodes.concat(this.bodyNodes(state, _getChildren(child)));
       } else {
         console.error("Node not yet supported within section: " + type);
 
@@ -930,7 +943,7 @@ LensImporter.Prototype = function() {
     state.sectionLevel++;
 
     var doc = state.doc;
-    var children = section.children;
+    var children = _getChildren(section);
 
     // create a heading
     // TODO: headings can contain annotations too
@@ -951,7 +964,7 @@ LensImporter.Prototype = function() {
 
     // popping the section level
     state.sectionLevel--;
- 
+
     return nodes;
   };
 
@@ -1046,7 +1059,7 @@ LensImporter.Prototype = function() {
       // Note: we do not care much about what is served as items
       // However, we do not have complex nodes on paragraph level
       // They will be extract as sibling items
-      var nodes = this.bodyNodes(state, listItem.children, 0);
+      var nodes = this.bodyNodes(state, _getChildren(listItem), 0);
       for (var j = 0; j < nodes.length; j++) {
         listNode.items.push(nodes[j].id);
       }
@@ -1074,7 +1087,7 @@ LensImporter.Prototype = function() {
     var label = dispFormula.querySelector("label");
     if (label) formulaNode.label = label.textContent;
 
-    var children = dispFormula.children;
+    var children = _getChildren(dispFormula);
 
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -1114,7 +1127,7 @@ LensImporter.Prototype = function() {
   };
 
   this.ref = function(state, ref) {
-    var children = ref.children;
+    var children = _getChildren(ref);
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
       var type = this.getNodeType(child);
@@ -1193,7 +1206,7 @@ LensImporter.Prototype = function() {
       if(label) citationNode.label = label.textContent;
 
       var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
-      if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;       
+      if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;
     } else {
       console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...", citation);
       return;
