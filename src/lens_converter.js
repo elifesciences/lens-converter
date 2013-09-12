@@ -120,11 +120,6 @@ LensImporter.Prototype = function() {
 
 
   this.front = function(state, front) {
-    var articleMeta = front.querySelector("article-meta");
-    if (!articleMeta) {
-      throw new ImporterError("Expected element: 'article-meta'");
-    }
-
     var doc = state.doc;
     var docNode = doc.get("document");
     var cover = {
@@ -168,7 +163,6 @@ LensImporter.Prototype = function() {
     doc.create(cover);
     doc.show("content", cover.id);
 
-    this.articleMeta(state, articleMeta);
   };
 
   // Note: Substance.Article supports only one author.
@@ -206,13 +200,6 @@ LensImporter.Prototype = function() {
       country: country ? country.textContent: null
     };
 
-    // TODO: fill the node
-    // var label = aff.querySelector("label");
-    // if (label) institutionNode.label = label.textContent;
-
-    // var name = aff.querySelector("institution");
-    // if (name) institutionNode.name = name.textContent;
-
     doc.create(affiliationNode);
   };
 
@@ -235,7 +222,6 @@ LensImporter.Prototype = function() {
       contribution: ""
     };
 
-    console.log('contributor', personNode);
 
     var nameEl = contrib.querySelector("name");
     personNode.name = _getName(nameEl);
@@ -277,7 +263,7 @@ LensImporter.Prototype = function() {
       doc.nodes.document.authors.push(id);
     }
 
-    console.log("PERSONNODE", personNode);
+    // console.log("PERSONNODE", personNode);
 
     doc.create(personNode);
     doc.show("info", personNode.id);
@@ -778,6 +764,9 @@ LensImporter.Prototype = function() {
       this.front(state, front);
     }
 
+    // Extract ArticleMeta
+    this.extractArticleMeta(state, article);
+
     var body = article.querySelector("body");
     if (body) {
       this.body(state, body);
@@ -796,7 +785,13 @@ LensImporter.Prototype = function() {
   // #### Front.ArticleMeta
   //
 
-  this.articleMeta = function(state, articleMeta) {
+  this.extractArticleMeta = function(state, article) {
+    var doc = state.doc;
+
+    var articleMeta = article.querySelector("article-meta");
+    if (!articleMeta) {
+      throw new ImporterError("Expected element: 'article-meta'");
+    }
 
     // <article-id> Article Identifier, zero or more
     var articleIds = articleMeta.querySelectorAll("article-id");
@@ -819,10 +814,22 @@ LensImporter.Prototype = function() {
       this.abstract(state, abs);
     }, this);
 
+
+    // Create Article Meta node
+    // ---------------
+
+    var node = {
+      "id": "publication_info",
+      "type": "publication_info",
+      // TODO add actual properties
+    };
+
+    doc.create(node);
+    doc.show("info", node.id, 0);
+
     // Not supported yet:
     // <trans-abstract> Translated Abstract, zero or more
     // <kwd-group> Keyword Group, zero or more
-    // <funding-group> Funding Group, zero or more
     // <conference> Conference Information, zero or more
     // <counts> Counts, zero or one
     // <custom-meta-group> Custom Metadata Group, zero or one
