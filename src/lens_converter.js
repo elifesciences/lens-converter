@@ -189,11 +189,21 @@ LensImporter.Prototype = function() {
   this.affiliation = function(state, aff) {
     var doc = state.doc;
 
-    //TODO: this needs a proper specification in Lens.Article
-    var institutionNode = {
-      id: state.nextId("institution"),
+    var institution = aff.querySelector("institution");
+    var country = aff.querySelector("country");
+    var label = aff.querySelector("label");
+    var department = aff.querySelector("addr-line named-content[content-type=department]");
+    var city = aff.querySelector("addr-line named-content[content-type=city]");
+
+    var affiliationNode = {
+      id: state.nextId("affiliation"),
+      type: "affiliation",
       source_id: aff.getAttribute("id"),
-      type: "institution",
+      label: label ? label.textContent : null,
+      department: department ? department.textContent : null,
+      city: city ? city.textContent : null,
+      institution: institution ? institution.textContent : null,
+      country: country ? country.textContent: null
     };
 
     // TODO: fill the node
@@ -203,8 +213,10 @@ LensImporter.Prototype = function() {
     // var name = aff.querySelector("institution");
     // if (name) institutionNode.name = name.textContent;
 
-    doc.create(institutionNode);
+    doc.create(affiliationNode);
   };
+
+
 
   this.contributor = function(state, contrib) {
     var doc = state.doc;
@@ -216,27 +228,56 @@ LensImporter.Prototype = function() {
       type: "person",
       name: "",
       affiliations: [],
+      fundings: [],
       // Not yet supported... need examples
       image: "",
       emails: [],
       contribution: ""
     };
 
+    console.log('contributor', personNode);
+
     var nameEl = contrib.querySelector("name");
     personNode.name = _getName(nameEl);
 
     // extract affiliations stored as xrefs
     var xrefs = contrib.querySelectorAll("xref");
-    for (var i = 0; i < xrefs.length; i++) {
-      var xref = xrefs[i];
+
+    _.each(xrefs, function(xref, i) {
       if (xref.getAttribute("ref-type") === "aff") {
-        personNode.affiliations.push(xref.getAttribute("rid"));
+        var affId = xref.getAttribute("rid");
+        var affNode = doc.getNodeBySourceId(affId);
+        if (affNode) {
+          personNode.affiliations.push(affNode.id);  
+        }
+      } else if (xref.getAttribute("ref-type") === "other") {
+        var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
+        if (!awardGroup) return;
+        var fundingSource = awardGroup.querySelector("funding-source");
+        if (!fundingSource) return;
+        personNode.fundings.push(fundingSource.textContent);
+      } else if (xref.getAttribute("ref-type") === "corresp") {
+        var corresp = state.xmlDoc.getElementById(xref.getAttribute("rid"));
+        if (!corresp) return;
+        var email = corresp.querySelector("email");
+        if (!email) return;
+        personNode.emails.push(email.textContent);
+      } else if (xref.getAttribute("ref-type") === "fn") {
+        // Extract contribution
+        var elem = state.xmlDoc.getElementById(xref.getAttribute("rid"));
+        if (elem.getAttribute("fn-type") === "con") {
+          personNode.contribution = elem.textContent;
+        } else {
+          // skipping...
+        }
       }
-    }
+    });
 
     if (contrib.getAttribute("contrib-type") === "author") {
       doc.nodes.document.authors.push(id);
     }
+
+    console.log("PERSONNODE", personNode);
 
     doc.create(personNode);
     doc.show("info", personNode.id);
@@ -1146,6 +1187,35 @@ LensImporter.Prototype = function() {
       }
     }
   };
+
+
+  // Citation
+  // ------------------
+  // NLM input example
+  // 
+  // <element-citation publication-type="journal" publication-format="print">
+  // <name><surname>Llanos De La Torre Quiralte</surname>
+  // <given-names>M</given-names></name>
+  // <name><surname>Garijo Ayestaran</surname>
+  // <given-names>M</given-names></name>
+  // <name><surname>Poch Olive</surname>
+  // <given-names>ML</given-names></name>
+  // <article-title xml:lang="es">Evolucion de la mortalidad
+  // infantil de La Rioja (1980-1998)</article-title>
+  // <trans-title xml:lang="en">Evolution of the infant
+  // mortality rate in la Rioja in Spain 
+  // (1980-1998)</trans-title>
+  // <source>An Esp Pediatr</source>
+  // <year>2001</year>
+  // <month>Nov</month>
+  // <volume>55</volume>
+  // <issue>5</issue>
+  // <fpage>413</fpage>
+  // <lpage>420</lpage>
+  // <comment>Figura 3, Tendencia de mortalidad infantil
+  // [Figure 3, Trends in infant mortality]; p. 418.
+  // Spanish</comment>
+  // </element-citation>
 
   // TODO: is implemented naively, should be implemented considering the NLM spec
   this.citation = function(state, ref, citation) {
