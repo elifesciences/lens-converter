@@ -67,7 +67,7 @@ LensImporter.Prototype = function() {
 
   // ### The main entry point for starting an import
 
-  this.import = function(input) {
+  this.import = function(input, options) {
     var xmlDoc;
 
     // Note: when we are using jqueries get("<file>.xml") we
@@ -88,7 +88,7 @@ LensImporter.Prototype = function() {
     window.doc = doc;
 
     // A deliverable state which makes this importer stateless
-    var state = new LensImporter.State(xmlDoc, doc);
+    var state = new LensImporter.State(xmlDoc, doc, options);
 
     // Note: all other methods are called corresponding
     return this.document(state, xmlDoc);
@@ -815,17 +815,11 @@ LensImporter.Prototype = function() {
     }, this);
 
 
-    // Create Article Meta node
-    // ---------------
 
-    var node = {
-      "id": "publication_info",
-      "type": "publication_info",
-      // TODO add actual properties
-    };
+    // Populate Publication Info node
+    // ------------
 
-    doc.create(node);
-    doc.show("info", node.id, 0);
+    this.extractPublicationInfo(state, article);
 
     // Not supported yet:
     // <trans-abstract> Translated Abstract, zero or more
@@ -834,6 +828,108 @@ LensImporter.Prototype = function() {
     // <counts> Counts, zero or one
     // <custom-meta-group> Custom Metadata Group, zero or one
   };
+
+
+
+  this.extractPublicationInfo = function(state, article) {
+    var articleMeta = article.querySelector("article-meta");
+
+    function _extractDate(dateEl) {
+      if (!dateEl) return null;
+      var day = dateEl.querySelector("day").textContent;
+      var month = dateEl.querySelector("month").textContent;
+      var year = dateEl.querySelector("year").textContent;
+      return [year, month, day].join("-");
+    }
+
+
+    var pubDate = articleMeta.querySelector("pub-date");
+    var receivedDate = articleMeta.querySelector("date[date-type=received]");
+    var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
+
+    // Extract keywords
+    // ------------
+    // 
+    // <kwd-group kwd-group-type="author-keywords">
+    // <title>Author keywords</title>
+    // <kwd>innate immunity</kwd>
+    // <kwd>histones</kwd>
+    // <kwd>lipid droplet</kwd>
+    // <kwd>anti-bacterial</kwd>
+    // </kwd-group>
+    var keyWords = articleMeta.querySelectorAll("kwd-group[kwd-group-type=author-keywords] kwd");
+
+    // Extract research organism
+    // ------------
+    // 
+
+    // <kwd-group kwd-group-type="research-organism">
+    // <title>Research organism</title>
+    // <kwd>B. subtilis</kwd>
+    // <kwd>D. melanogaster</kwd>
+    // <kwd>E. coli</kwd>
+    // <kwd>Mouse</kwd>
+    // </kwd-group>
+    var organisms = articleMeta.querySelectorAll("kwd-group[kwd-group-type=research-organism] kwd");
+
+    // Extract subjects
+    // ------------
+    // 
+    // <subj-group subj-group-type="heading">
+    // <subject>Immunology</subject>
+    // </subj-group>
+    // <subj-group subj-group-type="heading">
+    // <subject>Microbiology and infectious disease</subject>
+    // </subj-group>
+
+    var subjects = articleMeta.querySelectorAll("subj-group[subj-group-type=heading] subject");
+
+    // Extract article_type
+    // ---------------
+    // 
+    // <subj-group subj-group-type="display-channel">
+    // <subject>Research article</subject>
+    // </subj-group>
+
+    var articleType = articleMeta.querySelector("subj-group[subj-group-type=display-channel] subject");
+
+    // Extract journal title
+    // ---------------
+    // 
+
+    var journalTitle = article.querySelector("journal-title");
+
+    // <article-id pub-id-type="doi">10.7554/eLife.00003</article-id>
+    var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
+
+
+    // Create Article Meta node
+    // ---------------
+
+    var pubInfoNode = {
+      "id": "publication_info",
+      "type": "publication_info",
+      "published_on": _extractDate(pubDate),
+      "received_on": _extractDate(receivedDate),
+      "accepted_on": _extractDate(acceptedDate),
+      "keywords": _.pluck(keyWords, "textContent"),
+      "research_organisms": _.pluck(organisms, "textContent"),
+      "subjects": _.pluck(subjects, "textContent"),
+      "article_type": articleType ? articleType.textContent : "",
+      "journal": journalTitle ? journalTitle.textContent : "",
+      "pdf_link": "http://mickey.com/mouse.pdf",
+      "xml_link": "http://mickey.com/mouse.xml",
+      "json_link": "http://mickey.com/mouse.json",
+      "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
+      // TODO add actual properties
+    };
+
+    console.log('PUBLICATION NODE', pubInfoNode);
+
+    doc.create(pubInfoNode);
+    doc.show("info", pubInfoNode.id, 0);
+  };
+
 
   // articleIds: array of <article-id> elements
   this.articleIds = function(state, articleIds) {
@@ -1315,12 +1411,15 @@ LensImporter.Prototype = function() {
 };
 
 
-LensImporter.State = function(xmlDoc, doc) {
+LensImporter.State = function(xmlDoc, doc, options) {
   // the input xml document
   this.xmlDoc = xmlDoc;
 
   // the output substance document
   this.doc = doc;
+
+  // keep track of the options
+  this.options = options || {};
 
   // store annotations to be created here
   // they will be added to the document when everything else is in place
