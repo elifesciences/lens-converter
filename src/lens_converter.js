@@ -5,7 +5,6 @@ var util = require("substance-util");
 var errors = util.errors;
 var ImporterError = errors.define("ImporterError");
 
-
 // Available configurations
 // --------
 
@@ -95,7 +94,7 @@ LensImporter.Prototype = function() {
   };
 
 
-  this.front = function(state /*, front*/) {
+  this.extractCover = function(state, article) {
     var doc = state.doc;
     var docNode = doc.get("document");
     var cover = {
@@ -109,15 +108,12 @@ LensImporter.Prototype = function() {
     // Create authors paragraph that has person_reference annotations
     // to activate the author cards
 
-    // var authorsList = "";
-    // var charCount = 0;
-
     _.each(docNode.authors, function(personId) {
       var person = doc.get(personId);
 
       var authorsPara = {
-        "id": "paragraph_"+personId+"_reference",
-        "type": "paragraph",
+        "id": "text_"+personId+"_reference",
+        "type": "text",
         "content": person.name
       };
 
@@ -127,7 +123,7 @@ LensImporter.Prototype = function() {
       var anno = {
         id: state.nextId("person_reference"),
         type: "person_reference",
-        path: ["paragraph_" + personId + "_reference", "content"],
+        path: ["text_" + personId + "_reference", "content"],
         range: [0, person.name.length],
         target: personId
       };
@@ -136,8 +132,7 @@ LensImporter.Prototype = function() {
     }, this);
 
     doc.create(cover);
-    doc.show("content", cover.id);
-
+    doc.show("content", cover.id, 0);
   };
 
   // Note: Substance.Article supports only one author.
@@ -715,14 +710,8 @@ LensImporter.Prototype = function() {
     // First extract all figure-ish content, using a global approach
     this.extractFigures(state, article);
 
-
-
-    var front = article.querySelector("front");
-    if (!front) {
-      throw new ImporterError("Expected to find a 'front' element.");
-    } else {
-      this.front(state, front);
-    }
+    // Make up a cover node
+    this.extractCover(state, article);
 
     // Extract ArticleMeta
     this.extractArticleMeta(state, article);
@@ -735,11 +724,6 @@ LensImporter.Prototype = function() {
     // Give the config the chance to add stuff
     state.config.enhanceArticle(this, state, article);
 
-    // currently not used
-    // var back = article.querySelector("back");
-    // if (back) {
-    //   this.back(state, back);
-    // }
   };
 
 
@@ -774,8 +758,6 @@ LensImporter.Prototype = function() {
     _.each(abstracts, function(abs) {
       this.abstract(state, abs);
     }, this);
-
-
 
     // Populate Publication Info node
     // ------------
@@ -1161,8 +1143,8 @@ LensImporter.Prototype = function() {
       // annotated text node
       if (type === "text" || this.isAnnotation(type)) {
         var textNode = {
-          id: state.nextId("paragraph"),
-          type: "paragraph",
+          id: state.nextId("text"),
+          type: "text",
           content: null
         };
         // pushing information to the stack so that annotations can be created appropriately
@@ -1209,13 +1191,15 @@ LensImporter.Prototype = function() {
     }
 
     // if there is only a single node, return do not create a rich paragraph around it
-    if (nodes.length < 2) {
-      return nodes[0];
-    } else {
-      node.children = _.map(nodes, function(n) { return n.id; } );
-      doc.create(node);
-      return node;
-    }
+    // if (nodes.length < 2) {
+    //   return nodes[0];
+    // } else {
+    if (nodes.length === 0) return null;
+
+    node.children = _.map(nodes, function(n) { return n.id; } );
+    doc.create(node);
+    return node;
+    // }
   };
 
   // List type
@@ -1282,7 +1266,6 @@ LensImporter.Prototype = function() {
         };
       }
     }
-
     return null;
   };
 

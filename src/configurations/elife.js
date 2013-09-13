@@ -50,40 +50,36 @@ ElifeConfiguration.Prototype = function() {
   // Copyright
 
   this.enhanceInfo = function(converter, state, article) {
-    var doc = state.doc;
+    // var doc = state.doc;
 
-    var h1 = {
-      "type": "heading",
-      "id": state.nextId("heading"),
-      "level": 1,
-      "content": "Impact",
-    };
+    // var h1 = {
+    //   "type": "heading",
+    //   "id": state.nextId("heading"),
+    //   "level": 1,
+    //   "content": "Impact",
+    // };
 
-    var p1 = {
-      "type": "paragraph",
-      "id": state.nextId("paragraph"),
-      "content": "Not yet ready.",
-    };
+    // var t1 = {
+    //   "type": "paragraph",
+    //   "id": state.nextId("paragraph"),
+    //   "content": "Not yet ready.",
+    // };
 
-    doc.create(h1);
-    doc.create(p1);
+    // doc.create(h1);
+    // doc.create(p1);
 
-    // Using the caption node type until we have our RichParagraph ready
-    var articleInfo = {
-      "id": "caption_info",
-      "type": "caption",
-      "children": [
-        h1.id,
-        p1.id
-      ]
-    };
+    // // Using the caption node type until we have our RichParagraph ready
+    // var articleInfo = {
+    //   "id": "articleinfo",
+    //   "type": "richparagraph",
+    //   "children": [
+    //     h1.id,
+    //     t1.id
+    //   ]
+    // };
 
-    doc.create(articleInfo);
-    doc.show("info", articleInfo.id);
-
-
-
-
+    // doc.create(articleInfo);
+    // doc.show("info", articleInfo.id);
   };
 
   // Add Decision letter and author response
