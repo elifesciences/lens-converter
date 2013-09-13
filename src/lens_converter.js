@@ -15,7 +15,7 @@ var DefaultConfiguration = require("./configurations/default");
 var PLOSConfiguration = require("./configurations/plos");
 
 var LensImporter = function(options) {
-  this.options;
+  this.options = options;
 };
 
 LensImporter.Prototype = function() {
@@ -39,17 +39,6 @@ LensImporter.Prototype = function() {
     var tmp = document.createElement("DIV");
     tmp.appendChild(el.cloneNode(true));
     return tmp.innerHTML;
-  };
-
-
-  this.getNodeType = function(el) {
-    if (el.nodeType === Node.TEXT_NODE) {
-      return "text";
-    } else if (el.nodeType === Node.COMMENT_NODE) {
-      return "comment";
-    } else {
-      return el.tagName.toLowerCase();
-    }
   };
 
   // ### The main entry point for starting an import
@@ -106,7 +95,7 @@ LensImporter.Prototype = function() {
   };
 
 
-  this.front = function(state, front) {
+  this.front = function(state /*, front*/) {
     var doc = state.doc;
     var docNode = doc.get("document");
     var cover = {
@@ -120,9 +109,8 @@ LensImporter.Prototype = function() {
     // Create authors paragraph that has person_reference annotations
     // to activate the author cards
 
-    var authorsList = "";
-
-    var charCount = 0;
+    // var authorsList = "";
+    // var charCount = 0;
 
     _.each(docNode.authors, function(personId) {
       var person = doc.get(personId);
@@ -216,7 +204,7 @@ LensImporter.Prototype = function() {
     // extract affiliations stored as xrefs
     var xrefs = contrib.querySelectorAll("xref");
 
-    _.each(xrefs, function(xref, i) {
+    _.each(xrefs, function(xref) {
       if (xref.getAttribute("ref-type") === "aff") {
         var affId = xref.getAttribute("rid");
         var affNode = doc.getNodeBySourceId(affId);
@@ -329,7 +317,7 @@ LensImporter.Prototype = function() {
       // Annotations...
       else {
 
-        var type = this.getNodeType(el);
+        var type = util.dom.getNodeType(el);
         if (this.isAnnotation(type)) {
           var start = charPos;
           // recurse into the annotation element to collect nested annotations
@@ -436,7 +424,7 @@ LensImporter.Prototype = function() {
 
     for (var i = 0; i < figureElements.length; i++) {
       var figEl = figureElements[i];
-      var type = this.getNodeType(figEl);
+      var type = util.dom.getNodeType(figEl);
 
       if (type === "fig") {
         node = this.figure(state, figEl);
@@ -534,7 +522,6 @@ LensImporter.Prototype = function() {
 
   this.supplement = function(state, supplement) {
     var doc = state.doc;
-    var that = this;
 
     //get supplement info
     var label = supplement.querySelector("label");
@@ -596,7 +583,7 @@ LensImporter.Prototype = function() {
       // Resolve title by delegating to the paragraph
       var node = this.richParagraph(state, title);
       if (node) {
-        captionNode.title = node.id
+        captionNode.title = node.id;
       }
     }
 
@@ -707,6 +694,7 @@ LensImporter.Prototype = function() {
   //    or in your specialized importer.
 
   this.article = function(state, article) {
+    var doc = state.doc;
 
     // Assign id
     var articleId = article.querySelector("article-id");
@@ -747,10 +735,11 @@ LensImporter.Prototype = function() {
     // Give the config the chance to add stuff
     state.config.enhanceArticle(this, state, article);
 
-    var back = article.querySelector("back");
-    if (back) {
-      this.back(state, back);
-    }
+    // currently not used
+    // var back = article.querySelector("back");
+    // if (back) {
+    //   this.back(state, back);
+    // }
   };
 
 
@@ -758,7 +747,7 @@ LensImporter.Prototype = function() {
   //
 
   this.extractArticleMeta = function(state, article) {
-    var doc = state.doc;
+    // var doc = state.doc;
 
     var articleMeta = article.querySelector("article-meta");
     if (!articleMeta) {
@@ -804,6 +793,8 @@ LensImporter.Prototype = function() {
 
 
   this.extractPublicationInfo = function(state, article) {
+    var doc = state.doc;
+
     var articleMeta = article.querySelector("article-meta");
 
     function _extractDate(dateEl) {
@@ -821,7 +812,7 @@ LensImporter.Prototype = function() {
 
     // Extract keywords
     // ------------
-    // 
+    //
     // <kwd-group kwd-group-type="author-keywords">
     // <title>Author keywords</title>
     // <kwd>innate immunity</kwd>
@@ -833,7 +824,7 @@ LensImporter.Prototype = function() {
 
     // Extract research organism
     // ------------
-    // 
+    //
 
     // <kwd-group kwd-group-type="research-organism">
     // <title>Research organism</title>
@@ -846,7 +837,7 @@ LensImporter.Prototype = function() {
 
     // Extract subjects
     // ------------
-    // 
+    //
     // <subj-group subj-group-type="heading">
     // <subject>Immunology</subject>
     // </subj-group>
@@ -858,7 +849,7 @@ LensImporter.Prototype = function() {
 
     // Extract article_type
     // ---------------
-    // 
+    //
     // <subj-group subj-group-type="display-channel">
     // <subject>Research article</subject>
     // </subj-group>
@@ -867,7 +858,7 @@ LensImporter.Prototype = function() {
 
     // Extract journal title
     // ---------------
-    // 
+    //
 
     var journalTitle = article.querySelector("journal-title");
 
@@ -945,7 +936,7 @@ LensImporter.Prototype = function() {
     var month = -1;
     var year = -1;
     _.each(util.dom.getChildren(pubDate), function(el) {
-      var type = this.getNodeType(el);
+      var type = util.dom.getNodeType(el);
 
       var value = el.textContent;
       if (type === "day") {
@@ -1000,16 +991,11 @@ LensImporter.Prototype = function() {
   this.bodyNodes = function(state, children, startIndex) {
     var nodes = [];
     var node;
-
-    if (!children) {
-      debugger;
-    }
-
     startIndex = startIndex || 0;
 
     for (var i = startIndex; i < children.length; i++) {
       var child = children[i];
-      var type = this.getNodeType(child);
+      var type = util.dom.getNodeType(child);
 
       if (type === "p") {
         nodes = nodes.concat(this.paragraphGroup(state, child));
@@ -1089,6 +1075,11 @@ LensImporter.Prototype = function() {
     "disp-formula": { handler: "formula" },
   };
 
+  this.inlineParagraphElements = {
+    "inline-graphic": true,
+    "inline-formula": true
+  };
+
   // Segments children elements of a NLM <p> element
   // into blocks grouping according to following rules:
   // - "text", "inline-graphic", "inline-formula", and annotations
@@ -1102,13 +1093,13 @@ LensImporter.Prototype = function() {
     // first fragment the childNodes into blocks
     while (iterator.hasNext()) {
       var child = iterator.next();
-      var type = this.getNodeType(child);
+      var type = util.dom.getNodeType(child);
 
       // ignore some elements
       if (this.ignoredParagraphElements[type]) continue;
 
       // paragraph elements
-      if (type === "text" || this.isAnnotation(type) || type === "inline-graphic") {
+      if (type === "text" || this.isAnnotation(type) || this.inlineParagraphElements[type]) {
         if (lastType !== "paragraph") {
           blocks.push({ handler: "richParagraph", nodes: [] });
           lastType = "paragraph";
@@ -1142,7 +1133,7 @@ LensImporter.Prototype = function() {
       var node;
       if (block.handler === "richParagraph") {
         node = this.richParagraph(state, block.nodes);
-        node.source_id = paragraph.getAttribute("id");
+        if (node) node.source_id = paragraph.getAttribute("id");
       } else {
         node = this[block.handler](state, block.node);
       }
@@ -1165,7 +1156,7 @@ LensImporter.Prototype = function() {
     var iterator = new util.dom.ChildNodeIterator(children);
     while (iterator.hasNext()) {
       var child = iterator.next();
-      var type = this.getNodeType(child);
+      var type = util.dom.getNodeType(child);
 
       // annotated text node
       if (type === "text" || this.isAnnotation(type)) {
@@ -1187,7 +1178,7 @@ LensImporter.Prototype = function() {
         var annotatedText = this.annotatedText(state, iterator.back(), 0);
 
         // Ignore empty paragraphs
-        if (!util.isEmpty(annotatedText)) {
+        if (annotatedText.length > 0) {
           textNode.content = annotatedText;
           doc.create(textNode);
           nodes.push(textNode);
@@ -1210,7 +1201,10 @@ LensImporter.Prototype = function() {
       }
 
       else if (type === "inline-formula") {
-        console.error("Not supported yet");
+        var formula = this.formula(state, child, "inline");
+        if (formula) {
+          nodes.push(formula);
+        }
       }
     }
 
@@ -1262,48 +1256,56 @@ LensImporter.Prototype = function() {
   // Formula Node Type
   // --------
 
-  this.formula = function(state, dispFormula) {
+  var _getFormula = function(formulaElement) {
+    var children = util.dom.getChildren(formulaElement);
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      var type = util.dom.getNodeType(child);
+
+      if (type === "mml:math") {
+        return {
+          format: "mathml",
+          data: _toHtml(child)
+        };
+      }
+      else if (type === "tex-math") {
+        return {
+          format: "latex",
+          data: child.textContent
+        };
+      }
+    }
+
+    return null;
+  };
+
+  this.formula = function(state, dispFormula, inline) {
     var doc = state.doc;
 
+    var id = inline ? state.nextId("inline_formula") : state.nextId("formula");
+
     var formulaNode = {
-      id: state.nextId("formula"),
+      id: id,
       source_id: dispFormula.getAttribute("id"),
       type: "formula",
       label: "",
       data: "",
-      format: ""
+      format: "",
     };
+    if (inline) formulaNode.inline = true;
 
     var label = dispFormula.querySelector("label");
     if (label) formulaNode.label = label.textContent;
 
-    var children = util.dom.getChildren(dispFormula);
-
-    for (var i = 0; i < children.length; i++) {
-      var child = children[i];
-      var type = this.getNodeType(child);
-
-      if (type === "mml:math") {
-        // TODO: is it really important to unwrap the mml:row?
-        // why not just take the MathML directly?
-        // Note: somehow it is not accepted to querySelect with "mml:row"
-        var mmlRow = child.firstChild;
-        formulaNode.format = "mathml";
-        formulaNode.data = _toHtml(mmlRow);
-      }
-      else if (type === "tex-math") {
-        formulaNode.format = "latex";
-        formulaNode.data = child.textContent;
-      }
-    }
-
-    if (formulaNode.format === "") {
-      console.error("This formula is not yet supported", dispFormula);
+    var formula = _getFormula(dispFormula);
+    if (!formula) {
       return null;
     } else {
-      doc.create(formulaNode);
-      return formulaNode;
+      formulaNode.format = formula.format;
+      formulaNode.data = formula.data;
     }
+    doc.create(formulaNode);
+    return formulaNode;
   };
 
   // Citations
@@ -1320,7 +1322,7 @@ LensImporter.Prototype = function() {
     var children = util.dom.getChildren(ref);
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
-      var type = this.getNodeType(child);
+      var type = util.dom.getNodeType(child);
 
       if (type === "mixed-citation" || type === "element-citation") {
         this.citation(state, ref, child);
@@ -1445,10 +1447,10 @@ LensImporter.Prototype = function() {
   // --------
   // Contains things like references, notes, etc.
 
-  this.back = function(state, back) {
-    // No processing at the moment
-    // citations are taken care of in a global handler.
-  };
+  // this.back = function(state, back) {
+  //   // No processing at the moment
+  //   // citations are taken care of in a global handler.
+  // };
 };
 
 
