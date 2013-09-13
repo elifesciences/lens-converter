@@ -690,14 +690,14 @@ LensImporter.Prototype = function() {
 
   this.tableWrap = function(state, tableWrap) {
     var doc = state.doc;
-    var label = tableWrap.querySelector("label").textContent;
+    var label = tableWrap.querySelector("label");
 
     var tableNode = {
       "id": state.nextId("table"),
       "source_id": tableWrap.getAttribute("id"),
       "type": "table",
       "title": "",
-      "label": label,
+      "label": label ? label.textContent : "Table",
       "content": "",
       "caption": null,
       // Not supported yet ... need examples
