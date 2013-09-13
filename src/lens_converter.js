@@ -1256,13 +1256,20 @@ LensImporter.Prototype = function() {
   // Formula Node Type
   // --------
 
-  var _getFormula = function(formulaElement) {
+  var _getFormula = function(formulaElement, inline) {
     var children = util.dom.getChildren(formulaElement);
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
       var type = util.dom.getNodeType(child);
 
       if (type === "mml:math") {
+        // make sure that 'display' is set to 'block', otherwise
+        // there will be rendering issues.
+        // Although it is a rendering related issue it is easier
+        // to make this conform here
+        if (!inline) {
+          child.setAttribute("display", "block");
+        }
         return {
           format: "mathml",
           data: _toHtml(child)
@@ -1297,7 +1304,7 @@ LensImporter.Prototype = function() {
     var label = dispFormula.querySelector("label");
     if (label) formulaNode.label = label.textContent;
 
-    var formula = _getFormula(dispFormula);
+    var formula = _getFormula(dispFormula, inline);
     if (!formula) {
       return null;
     } else {
