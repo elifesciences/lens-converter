@@ -284,6 +284,9 @@ LensImporter.Prototype = function() {
       anno.type = _annotationTypes[type];
       if (type === "ext-link") {
         anno.url = el.getAttribute("xlink:href");
+        if (el.getAttribute("ext-link-type") === "doi") {
+          anno.url = ["http://dx.doi.org/", anno.url].join("");
+        }
       }
     }
     else {

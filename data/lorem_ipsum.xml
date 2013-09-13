@@ -98,6 +98,16 @@
           <list-item>
             <p>List item 2</p>
           </list-item>
+          <list-item>
+            <list list-type="bullet">
+              <list-item>
+                <p>List item 2.1</p>
+              </list-item>
+              <list-item>
+                <p>List item 2.2</p>
+              </list-item>
+            </list>
+          </list-item>
           </list></p></sec>
       <sec id="s2-2">
         <title>More Results</title><!--
