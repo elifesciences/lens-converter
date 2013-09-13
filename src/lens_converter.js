@@ -20,19 +20,6 @@ var LensImporter = function(options) {
 
 LensImporter.Prototype = function() {
 
-  // Note: it is not safe regarding browser in-compatibilities
-  // to access el.children directly.
-  this.getChildren = function(el) {
-    if (el.children !== undefined) return el.children;
-    var children = [];
-    var child = el.firstElementChild;
-    while (child) {
-      children.push(child);
-      child = child.nextElementSibling;
-    }
-    return children;
-  }
-
   // Helpers
   // --------
 
@@ -234,7 +221,7 @@ LensImporter.Prototype = function() {
         var affId = xref.getAttribute("rid");
         var affNode = doc.getNodeBySourceId(affId);
         if (affNode) {
-          personNode.affiliations.push(affNode.id);  
+          personNode.affiliations.push(affNode.id);
         }
       } else if (xref.getAttribute("ref-type") === "other") {
         var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
@@ -301,7 +288,7 @@ LensImporter.Prototype = function() {
       var sourceId = el.getAttribute("rid");
       if (refType === "bibr") {
         anno.type = "citation_reference";
-      } else if (refType === "fig" || refType === "table" || "supplementary-material") {
+      } else if (refType === "fig" || refType === "table" || refType === "supplementary-material") {
         anno.type = "figure_reference";
       } else {
         console.log("Ignoring xref: ", refType, el);
@@ -328,36 +315,29 @@ LensImporter.Prototype = function() {
   this.annotatedText = function(state, iterator, charPos, nested) {
     var plainText = "";
 
-    for (; iterator.pos < iterator.length; iterator.pos++) {
-      var el = iterator.childNodes[iterator.pos];
+    if (charPos === undefined) {
+      charPos = 0;
+    }
 
+    while(iterator.hasNext()) {
+      var el = iterator.next();
       // Plain text nodes...
       if (el.nodeType === Node.TEXT_NODE) {
         plainText += el.textContent;
         charPos += el.textContent.length;
       }
-
       // Annotations...
       else {
 
         var type = this.getNodeType(el);
         if (this.isAnnotation(type)) {
-
           var start = charPos;
-
-          var childIterator = {
-            childNodes: el.childNodes,
-            length: el.childNodes.length,
-            pos: 0
-          };
-
           // recurse into the annotation element to collect nested annotations
           // and the contained plain text
+          var childIterator = new util.dom.ChildNodeIterator(el);
           var annotatedText = this.annotatedText(state, childIterator, charPos, "nested");
-
           plainText += annotatedText;
           charPos += annotatedText.length;
-
           this.createAnnotation(state, el, start, charPos);
         }
 
@@ -369,7 +349,7 @@ LensImporter.Prototype = function() {
           else {
             // on paragraph level other elements can break a text block
             // we shift back the position and finish this call
-            iterator.pos--;
+            iterator.back();
             break;
           }
         }
@@ -459,7 +439,6 @@ LensImporter.Prototype = function() {
       var type = this.getNodeType(figEl);
 
       if (type === "fig") {
-        // nodes = nodes.concat(this.paragraph(state, child));
         node = this.figure(state, figEl);
         if (node) figureNodes.push(node);
       }
@@ -615,25 +594,18 @@ LensImporter.Prototype = function() {
     // Titles can be annotated, thus delegate to paragraph
     if (title) {
       // Resolve title by delegating to the paragraph
-      var nodes = this.paragraph(state, title);
-      if (nodes.length > 0) {
-        captionNode.title = nodes[0].id
+      var node = this.richParagraph(state, title);
+      if (node) {
+        captionNode.title = node.id
       }
     }
 
 
     var children = [];
     _.each(paragraphs, function(p) {
-      // Oliver: Explain, why we need NLMImporter.paragraph to return an array nodes?
-      // I would expect it to return just one paragraph node.
-      var nodes = this.paragraph(state, p);
-      if (nodes.length > 1) {
-        // throw new ImporterError("Ooops. Not ready for that...");
-        console.error("Ooops. Not ready for multiple nodes... only using the first one.");
-      }
-      if (nodes.length > 0) {
-        var paragraphNode = nodes[0];
-        children.push(paragraphNode.id);
+      var node = this.richParagraph(state, p);
+      if (node) {
+        children.push(node.id);
       }
     }, this);
 
@@ -876,7 +848,7 @@ LensImporter.Prototype = function() {
     var day = -1;
     var month = -1;
     var year = -1;
-    _.each(this.getChildren(pubDate), function(el) {
+    _.each(util.dom.getChildren(pubDate), function(el) {
       var type = this.getNodeType(el);
 
       var value = el.textContent;
@@ -910,7 +882,7 @@ LensImporter.Prototype = function() {
     doc.create(heading);
     nodes.push(heading);
 
-    nodes = nodes.concat(this.bodyNodes(state, this.getChildren(abs)));
+    nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(abs)));
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -920,7 +892,7 @@ LensImporter.Prototype = function() {
   //
 
   this.body = function(state, body) {
-    var nodes = this.bodyNodes(state, this.getChildren(body));
+    var nodes = this.bodyNodes(state, util.dom.getChildren(body));
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -944,7 +916,7 @@ LensImporter.Prototype = function() {
       var type = this.getNodeType(child);
 
       if (type === "p") {
-        nodes = nodes.concat(this.paragraph(state, child));
+        nodes = nodes.concat(this.paragraphGroup(state, child));
       }
       else if (type === "sec") {
         nodes = nodes.concat(this.section(state, child));
@@ -953,37 +925,22 @@ LensImporter.Prototype = function() {
         node = this.list(state, child);
         if (node) nodes.push(node);
       }
-      else if (type === "fig") {
-        // node = this.figure(state, child);
-        // if (node) nodes.push(node);
-      }
-      else if (type === "fig-group") {
-        // nodes = nodes.concat(this.figGroup(state, child));
-      }
-      else if (type === "table-wrap") {
-        // node = this.tableWrap(state, child);
-        // if (node) nodes.push(node);
-      }
       else if (type === "disp-formula") {
         node = this.formula(state, child);
         if (node) nodes.push(node);
       }
-      else if (type === "media") {
-        // node = this.media(state, child);
-        // if (node) nodes.push(node);
+      else if (type === "boxed-text") {
+        // Just treat as another container
+        nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(child)));
       }
+      // Note: here are some node types ignored which are
+      // processed in an extra pass (figures, tables, etc.)
       else if (type === "comment") {
         // Note: Maybe we could create a Substance.Comment?
         // Keep it silent for now
         // console.error("Ignoring comment");
-      } else if (type === "boxed-text") {
-        // var p = child.querySelector("p")
-        // Just treat as another container
-        nodes = nodes.concat(this.bodyNodes(state, this.getChildren(child)));
       } else {
-        console.error("Node not yet supported within section: " + type);
-
-        // throw new ImporterError("Node not yet supported within section: " + type);
+        console.error("Node not yet supported as top-level node: " + type);
       }
     }
 
@@ -996,7 +953,7 @@ LensImporter.Prototype = function() {
     state.sectionLevel++;
 
     var doc = state.doc;
-    var children = this.getChildren(section);
+    var children = util.dom.getChildren(section);
 
     // create a heading
     // TODO: headings can contain annotations too
@@ -1022,70 +979,154 @@ LensImporter.Prototype = function() {
   };
 
 
+  this.ignoredParagraphElements = {
+    "comment": true,
+    "supplementary-material": true,
+    "fig": true,
+    "fig-group": true,
+    "table-wrap": true,
+    "media": true
+  };
+
+  this.acceptedParagraphElements = {
+    "list": { handler: "list" },
+    "disp-formula": { handler: "formula" },
+  };
+
+  // Segments children elements of a NLM <p> element
+  // into blocks grouping according to following rules:
+  // - "text", "inline-graphic", "inline-formula", and annotations
+  // - ignore comments, supplementary-materials
+  // - others are treated as singles
+  this.segmentParagraphElements = function(paragraph) {
+    var blocks = [];
+    var lastType = "";
+    var iterator = new util.dom.ChildNodeIterator(paragraph);
+
+    // first fragment the childNodes into blocks
+    while (iterator.hasNext()) {
+      var child = iterator.next();
+      var type = this.getNodeType(child);
+
+      // ignore some elements
+      if (this.ignoredParagraphElements[type]) continue;
+
+      // paragraph elements
+      if (type === "text" || this.isAnnotation(type) || type === "inline-graphic") {
+        if (lastType !== "paragraph") {
+          blocks.push({ handler: "richParagraph", nodes: [] });
+          lastType = "paragraph";
+        }
+        _.last(blocks).nodes.push(child);
+        continue;
+      }
+      // other elements are treated as single blocks
+      else if (this.acceptedParagraphElements[type]) {
+        blocks.push(_.extend({node: child}, this.acceptedParagraphElements[type]));
+      }
+      lastType = type;
+    }
+    return blocks;
+  };
+
+
   // A 'paragraph' is given a '<p>' tag
-  this.paragraph = function(state, paragraph) {
-    var doc = state.doc;
-
-    // Note: there are some elements in the NLM paragraph allowed
-    // which are not allowed in a Substance Paragraph.
-    // I.e., they can not be nested inside, but must be added on top-level
-
+  // An NLM <p> can contain nested elements that are represented flattened in a Substance.Article
+  // Hence, this function returns an array of nodes
+  this.paragraphGroup = function(state, paragraph) {
     var nodes = [];
 
-    var iterator = {
-      childNodes: paragraph.childNodes,
-      length: paragraph.childNodes.length,
-      pos: 0
-    };
+    // Note: there are some elements in the NLM paragraph allowed
+    // which are flattened here. To simplify further processing we
+    // segment the children of the paragraph elements in blocks
+    var blocks = this.segmentParagraphElements(paragraph);
 
-    for (; iterator.pos < iterator.length; iterator.pos++) {
-      var child = iterator.childNodes[iterator.pos];
-      var type = this.getNodeType(child);
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
       var node;
-
-      if (type === "text" || this.isAnnotation(type)) {
-        node = {
-          id: state.nextId("paragraph"),
-          source_id: paragraph.getAttribute("id"),
-          type: "paragraph",
-          content: ""
-        };
-
-        // pushing information to the stack so that annotations can be created appropriately
-        state.stack.push({
-          node: node,
-          path: [node.id, "content"]
-        });
-
-        // Note: this will consume as many textish elements (text and annotations)
-        // but will return when hitting the first un-textish element.
-        // In that case, the iterator will still have more elements
-        // and the loop is continued
-        var annotatedText = this.annotatedText(state, iterator, 0);
-
-        // Ignore empty paragraphs
-        if (!util.isEmpty(annotatedText)) {
-          node.content = annotatedText;
-          doc.create(node);
-          nodes.push(node);
-        }
-
-        // popping the stack
-        state.stack.pop();
+      if (block.handler === "richParagraph") {
+        node = this.richParagraph(state, block.nodes);
+        node.source_id = paragraph.getAttribute("id");
+      } else {
+        node = this[block.handler](state, block.node);
       }
-      else if (type === "list") {
-        node = this.list(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "disp-formula") {
-        node = this.formula(state, child);
-        if (node) nodes.push(node);
-      }
+      if (node) nodes.push(node);
     }
 
     return nodes;
   };
 
+  this.richParagraph = function(state, children) {
+    var doc = state.doc;
+
+    var node = {
+      id: state.nextId("richparagraph"),
+      type: "richparagraph",
+      children: null
+    };
+    var nodes = [];
+
+    var iterator = new util.dom.ChildNodeIterator(children);
+    while (iterator.hasNext()) {
+      var child = iterator.next();
+      var type = this.getNodeType(child);
+
+      // annotated text node
+      if (type === "text" || this.isAnnotation(type)) {
+        var textNode = {
+          id: state.nextId("paragraph"),
+          type: "paragraph",
+          content: null
+        };
+        // pushing information to the stack so that annotations can be created appropriately
+        state.stack.push({
+          node: textNode,
+          path: [textNode.id, "content"]
+        });
+        // Note: this will consume as many textish elements (text and annotations)
+        // but will return when hitting the first un-textish element.
+        // In that case, the iterator will still have more elements
+        // and the loop is continued
+        // Before descending, we reset the iterator to provide the current element again.
+        var annotatedText = this.annotatedText(state, iterator.back(), 0);
+
+        // Ignore empty paragraphs
+        if (!util.isEmpty(annotatedText)) {
+          textNode.content = annotatedText;
+          doc.create(textNode);
+          nodes.push(textNode);
+        }
+
+        // popping the stack
+        state.stack.pop();
+      }
+
+      // inline image node
+      else if (type === "inline-graphic") {
+        var url = child.getAttribute("xlink:href");
+        var img = {
+          id: state.nextId("image"),
+          type: "image",
+          url: url
+        };
+        doc.create(img);
+        nodes.push(img);
+      }
+
+      else if (type === "inline-formula") {
+        console.error("Not supported yet");
+      }
+    }
+
+    // if there is only a single node, return do not create a rich paragraph around it
+    if (nodes.length < 2) {
+      return nodes[0];
+    } else {
+      node.children = _.map(nodes, function(n) { return n.id; } );
+      doc.create(node);
+      return node;
+    }
+  };
 
   // List type
   // --------
@@ -1112,7 +1153,7 @@ LensImporter.Prototype = function() {
       // Note: we do not care much about what is served as items
       // However, we do not have complex nodes on paragraph level
       // They will be extract as sibling items
-      var nodes = this.bodyNodes(state, this.getChildren(listItem), 0);
+      var nodes = this.bodyNodes(state, util.dom.getChildren(listItem), 0);
       for (var j = 0; j < nodes.length; j++) {
         listNode.items.push(nodes[j].id);
       }
@@ -1140,7 +1181,7 @@ LensImporter.Prototype = function() {
     var label = dispFormula.querySelector("label");
     if (label) formulaNode.label = label.textContent;
 
-    var children = this.getChildren(dispFormula);
+    var children = util.dom.getChildren(dispFormula);
 
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -1180,7 +1221,7 @@ LensImporter.Prototype = function() {
   };
 
   this.ref = function(state, ref) {
-    var children = this.getChildren(ref);
+    var children = util.dom.getChildren(ref);
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
       var type = this.getNodeType(child);
@@ -1199,7 +1240,7 @@ LensImporter.Prototype = function() {
   // Citation
   // ------------------
   // NLM input example
-  // 
+  //
   // <element-citation publication-type="journal" publication-format="print">
   // <name><surname>Llanos De La Torre Quiralte</surname>
   // <given-names>M</given-names></name>
@@ -1210,7 +1251,7 @@ LensImporter.Prototype = function() {
   // <article-title xml:lang="es">Evolucion de la mortalidad
   // infantil de La Rioja (1980-1998)</article-title>
   // <trans-title xml:lang="en">Evolution of the infant
-  // mortality rate in la Rioja in Spain 
+  // mortality rate in la Rioja in Spain
   // (1980-1998)</trans-title>
   // <source>An Esp Pediatr</source>
   // <year>2001</year>

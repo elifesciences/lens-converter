@@ -1,5 +1,8 @@
-var DefaultConfiguration = require('./default');
+"use strict";
 
+var util = require("substance-util");
+
+var DefaultConfiguration = require('./default');
 
 var ElifeConfiguration = function() {
 
@@ -9,7 +12,7 @@ ElifeConfiguration.Prototype = function() {
 
   // Resolves figure url
   // --------
-  // 
+  //
 
   this.enhanceFigure = function(state, node, element) {
     var graphic = element.querySelector("graphic");
@@ -40,7 +43,7 @@ ElifeConfiguration.Prototype = function() {
 
   // Add additional information to the info view
   // ---------
-  // 
+  //
   // Impact
   // Major datasets
   // Acknowledgements
@@ -112,7 +115,7 @@ ElifeConfiguration.Prototype = function() {
       nodes.push(heading);
 
       var body = articleCommentary.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, converter.getChildren(body)));
+      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     }
 
     // Author response
@@ -131,7 +134,7 @@ ElifeConfiguration.Prototype = function() {
       nodes.push(heading);
 
       var body = authorResponse.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, converter.getChildren(body)));
+      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     }
 
     // Show them off
