@@ -81,6 +81,9 @@ ElifeConfiguration.Prototype = function() {
     doc.create(articleInfo);
     doc.show("info", articleInfo.id);
 
+
+
+
   };
 
   // Add Decision letter and author response
