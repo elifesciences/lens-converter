@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE article SYSTEM "journalpub-oasis3.dtd">
 
-<!-- 
+<!--
  Lorem Ipsum Document for automated testing of the converter
- 
+
  Goal: Has every possible combination of tags our converter supports
  If there's a new edge case we want to cover it has to be formalized here, and a test needs to be added.
 -->
@@ -40,7 +40,7 @@
         <label>Additional material</label>
         <media xlink:href="2013CC4897R-Sup.pdf"/>
       </supplementary-material>
-      
+
     </article-meta>
   </front>
   <body>
@@ -48,10 +48,9 @@
       <title>Results</title>
       <sec id="s2-1">
         <title>Section title level 2</title>
-        <p>Lorem <italic>ipsum</italic> dolor sit amet, consectetur <xref ref-type="fig" rid="fig1">Figure 1</xref> adipiscing elit. Cras vel accumsan lectus, id hendrerit magna. Donec vehicula dui quis ipsum tempor tincidunt. Quisque adipiscing, nibh at pulvinar feugiat, odio lectus eleifend <ext-link ext-link-type="uri" xlink:href="http://example.com/x.pdf" xmlns:xlink="http://www.w3.org/1999/xlink">felis</ext-link>. 
-        </p>
-        <p>Also see <xref ref-type="supplementary-material" rid="SD1-data">Supplementary file 1</xref>.
-          <fig id="fig1" position="float">
+        <p>Lorem <italic>ipsum</italic> dolor sit amet, consectetur <xref ref-type="fig" rid="fig1">Figure 1</xref> adipiscing elit. Cras vel accumsan lectus, id hendrerit magna. Donec vehicula dui quis ipsum tempor tincidunt. Quisque adipiscing, nibh at pulvinar feugiat, odio lectus eleifend <ext-link ext-link-type="uri" xlink:href="http://example.com/x.pdf" xmlns:xlink="http://www.w3.org/1999/xlink">felis</ext-link>.</p>
+        <p>Also see <xref ref-type="supplementary-material" rid="SD1-data">Supplementary file 1</xref>.<!--
+        --><fig id="fig1" position="float">
             <object-id pub-id-type="doi">10.7554/eLife.00299.003</object-id>
             <label>Figure 1.</label>
             <caption>
@@ -60,10 +59,9 @@
               <p><bold>DOI:</bold> <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.003">http://dx.doi.org/10.7554/eLife.00299.003</ext-link></p>
             </caption>
             <graphic xlink:href="http://camanocommunity.net/wp-content/uploads/2012/11/calico.jpg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
-          </fig>
-          
-          <!-- A Video -->
-          <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
+          </fig><!--
+          A Video
+          --><media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
             <object-id pub-id-type="doi">
               10.7554/eLife.00005.013</object-id>
             <label>Movie 1.</label>
@@ -71,10 +69,9 @@
               <title>Movement of GFP tag.</title>
               <p><bold>DOI:</bold> <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link></p>
             </caption>
-          </media>
-
-          <!-- Video that has a supplement in it -->
-          <media content-type="glencoe play-in-place height-250 width-310" id="movie2" mime-subtype="mov" mimetype="video" xlink:href="elife00005m002.mov">
+          </media><!--
+          Video that has a supplement in it
+          --><media content-type="glencoe play-in-place height-250 width-310" id="movie2" mime-subtype="mov" mimetype="video" xlink:href="elife00005m002.mov">
             <object-id pub-id-type="doi">10.7554/eLife.00005.016</object-id>
             <label>Movie 2.</label>
             <caption>
@@ -93,34 +90,27 @@
                 </supplementary-material>
               </p>
             </caption>
-          </media>
-        </p>
-        <p>
-          <list list-type="bullet">
+          </media></p>
+        <p><list list-type="bullet">
           <list-item>
             <p>List item 1</p>
           </list-item>
           <list-item>
             <p>List item 2</p>
           </list-item>
-          </list>
-        </p>
-      </sec>
+          </list></p></sec>
       <sec id="s2-2">
-        <title>More Results</title>
-        <p>
-          <table-wrap id="tbl1" position="float">
+        <title>More Results</title><!--
+      --><p><table-wrap id="tbl1" position="float">
             <object-id pub-id-type="doi">
               10.7554/eLife.00768.006</object-id>
             <label>Table 1.</label>
             <caption>
-              <p>Expression in miracidia and sporocysts of schistosome homologs of planarian neoblast-enriched transcripts, measured by RNAseq</p>
-              <p>
+              <p>Expression in miracidia and sporocysts of schistosome homologs of planarian neoblast-enriched transcripts, measured by RNAseq</p><!--
+            --><p>
                 <bold>DOI:</bold>
-                <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00768.006">http://dx.doi.org/10.7554/eLife.00768.006</ext-link>
-              </p>
-            </caption>
-            <table frame="hsides" rules="groups">
+                <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00768.006">http://dx.doi.org/10.7554/eLife.00768.006</ext-link></p>
+            </caption><table frame="hsides" rules="groups">
               <thead>
                 <tr>
                   <th>Gene name</th>
@@ -159,9 +149,9 @@
                 <p>Expression of genes in bold is confirmed in this study with qPCR or FISH.</p>
               </fn>
             </table-wrap-foot>
-          </table-wrap>
-        </p>
-        <p>Hi I am a paragraph.</p>
+          </table-wrap><!--
+      --></p><!--
+      --><p>Hi I am a paragraph.</p>
       </sec>
     </sec>
   </body>
