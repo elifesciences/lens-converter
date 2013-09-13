@@ -576,7 +576,7 @@ LensImporter.Prototype = function() {
     // Titles can be annotated, thus delegate to paragraph
     if (title) {
       // Resolve title by delegating to the paragraph
-      var node = this.richParagraph(state, title);
+      var node = this.paragraph(state, title);
       if (node) {
         captionNode.title = node.id;
       }
@@ -585,7 +585,7 @@ LensImporter.Prototype = function() {
 
     var children = [];
     _.each(paragraphs, function(p) {
-      var node = this.richParagraph(state, p);
+      var node = this.paragraph(state, p);
       if (node) {
         children.push(node.id);
       }
@@ -1083,7 +1083,7 @@ LensImporter.Prototype = function() {
       // paragraph elements
       if (type === "text" || this.isAnnotation(type) || this.inlineParagraphElements[type]) {
         if (lastType !== "paragraph") {
-          blocks.push({ handler: "richParagraph", nodes: [] });
+          blocks.push({ handler: "paragraph", nodes: [] });
           lastType = "paragraph";
         }
         _.last(blocks).nodes.push(child);
@@ -1113,8 +1113,8 @@ LensImporter.Prototype = function() {
     for (var i = 0; i < blocks.length; i++) {
       var block = blocks[i];
       var node;
-      if (block.handler === "richParagraph") {
-        node = this.richParagraph(state, block.nodes);
+      if (block.handler === "paragraph") {
+        node = this.paragraph(state, block.nodes);
         if (node) node.source_id = paragraph.getAttribute("id");
       } else {
         node = this[block.handler](state, block.node);
@@ -1125,12 +1125,12 @@ LensImporter.Prototype = function() {
     return nodes;
   };
 
-  this.richParagraph = function(state, children) {
+  this.paragraph = function(state, children) {
     var doc = state.doc;
 
     var node = {
-      id: state.nextId("richparagraph"),
-      type: "richparagraph",
+      id: state.nextId("paragraph"),
+      type: "paragraph",
       children: null
     };
     var nodes = [];
@@ -1190,7 +1190,7 @@ LensImporter.Prototype = function() {
       }
     }
 
-    // if there is only a single node, return do not create a rich paragraph around it
+    // if there is only a single node, return do not create a paragraph around it
     // if (nodes.length < 2) {
     //   return nodes[0];
     // } else {
