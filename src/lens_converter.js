@@ -274,8 +274,9 @@ LensImporter.Prototype = function() {
       } else if (refType === "fig" || refType === "table" || refType === "supplementary-material") {
         anno.type = "figure_reference";
       } else {
-        console.log("Ignoring xref: ", refType, el);
-        return;
+        anno.type = "figure_reference";
+        // console.log("Ignoring xref: ", refType, el);
+        // return;
       }
       anno.target = sourceId.split(" ")[0];
     }
@@ -872,8 +873,6 @@ LensImporter.Prototype = function() {
       // TODO add actual properties
     };
 
-    console.log('PUBLICATION NODE', pubInfoNode);
-
     doc.create(pubInfoNode);
     doc.show("info", pubInfoNode.id, 0);
   };
@@ -1007,7 +1006,7 @@ LensImporter.Prototype = function() {
         // Keep it silent for now
         // console.error("Ignoring comment");
       } else {
-        console.error("Node not yet supported as top-level node: " + type);
+        // console.error("Node not yet supported as top-level node: " + type);
       }
     }
 
