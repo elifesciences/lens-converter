@@ -278,7 +278,8 @@ LensImporter.Prototype = function() {
         // console.log("Ignoring xref: ", refType, el);
         // return;
       }
-      anno.target = sourceId.split(" ")[0];
+
+      if (sourceId) anno.target = sourceId.split(" ")[0];
     }
     // Common annotations (e.g., emphasis)
     else if (_annotationTypes[type] !== undefined) {
