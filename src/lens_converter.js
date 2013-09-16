@@ -221,7 +221,7 @@ LensImporter.Prototype = function() {
       } else if (xref.getAttribute("ref-type") === "fn") {
         // Extract contribution
         var elem = state.xmlDoc.getElementById(xref.getAttribute("rid"));
-        if (elem.getAttribute("fn-type") === "con") {
+        if (elem && elem.getAttribute("fn-type") === "con") {
           personNode.contribution = elem.textContent;
         } else {
           // skipping...
