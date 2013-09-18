@@ -56,7 +56,7 @@ ElifeConfiguration.Prototype = function() {
       "type": "paragraph",
       "children": []
     };
-    var nodes = articleInfo["children"];
+    var nodes = articleInfo.children;
 
     // var impact = article.querySelector("custom-meta");
     // if (impact) {
@@ -75,9 +75,8 @@ ElifeConfiguration.Prototype = function() {
     //   console.log(impact.textContent)
     //   doc.create(h1);
     //   doc.create(t1);
-    //   nodes.push(h1);
-    //   nodes.push(t1);
-    //   nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
+    //   nodes.push(h1.id);
+    //   nodes.push(t1.id);
     // }
     // Using the caption node type until we have our RichParagraph ready
     
@@ -90,7 +89,7 @@ ElifeConfiguration.Prototype = function() {
         "content" : "Copyright and License"
       };
       doc.create(h1);
-      nodes.push(h1);
+      nodes.push(h1.id);
 
       var copyright = license.querySelector("copyright-statement");
       if (copyright) {
@@ -100,7 +99,7 @@ ElifeConfiguration.Prototype = function() {
           "content" : copyright.textContent
         };
         doc.create(t1);
-        nodes.push(t1);
+        nodes.push(t1.id);
       }
       var para = license.querySelector("p");
       if (para) {
