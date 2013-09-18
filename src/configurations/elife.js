@@ -54,10 +54,7 @@ ElifeConfiguration.Prototype = function() {
     var articleInfo = {
       "id": "articleinfo",
       "type": "paragraph",
-      "children": [
-        h1.id,
-        t1.id
-      ]
+      "children": []
     };
     console.log('start the fun')
     var impact = article.querySelector("fn-group");
