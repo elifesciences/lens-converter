@@ -103,6 +103,8 @@ ElifeConfiguration.Prototype = function() {
       }
       var para = license.querySelector("p");
       if (para) {
+        console.log('inside')
+        console.log(para)
         var indiv_node = this.paragraph(state, para);
         nodes.push(indiv_node.id);
       }
