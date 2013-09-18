@@ -60,6 +60,7 @@ ElifeConfiguration.Prototype = function() {
 
     var impact = article.querySelector("custom-meta");
     if (impact.getAttribute('specific-use') === 'meta-only') {
+      console.log('inside custom-meta')
       var h1 = {
         "type": "heading",
         "id": state.nextId("heading"),
