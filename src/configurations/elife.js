@@ -106,7 +106,7 @@ ElifeConfiguration.Prototype = function() {
       }
       //var para = license.querySelector("p");
       
-      
+      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     }
     doc.create(articleInfo);
     doc.show("info", articleInfo.id);
