@@ -58,26 +58,28 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
-    // var impact = article.querySelector("custom-meta");
-    // if (impact) {
-    //   var h1 = {
-    //     "type": "heading",
-    //     "id": state.nextId("heading"),
-    //     "level": 1,
-    //     "content": "Impact",
-    //   };
+    var impact = article.querySelector("custom-meta");
+    if (impact.getAttribute('specific-use') === 'meta-only') {
+      var h1 = {
+        "type": "heading",
+        "id": state.nextId("heading"),
+        "level": 1,
+        "content": "Impact",
+      };
 
-    //   var t1 = {
-    //     "type": "text",
-    //     "id": state.nextId("text"),
-    //     "content": impact.textContent,
-    //   };
-    //   console.log(impact.textContent)
-    //   doc.create(h1);
-    //   doc.create(t1);
-    //   nodes.push(h1.id);
-    //   nodes.push(t1.id);
-    // }
+      var text = impact.querySelector('meta-value');
+      if (text) {
+        var t1 = {
+          "type": "text",
+          "id": state.nextId("text"),
+          "content": text.textContent,
+        };
+      }
+      doc.create(h1);
+      doc.create(t1);
+      nodes.push(h1.id);
+      nodes.push(t1.id);
+    }
     // Using the caption node type until we have our RichParagraph ready
     
     var license = article.querySelector("permissions");
@@ -105,7 +107,7 @@ ElifeConfiguration.Prototype = function() {
       if (para) {
         console.log('inside')
         console.log(para)
-        var indiv_node = this.paragraph(state, para);
+        var indiv_node = para.paragraph(state, para);
         nodes.push(indiv_node.id);
       }
     }
