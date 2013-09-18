@@ -56,6 +56,8 @@ ElifeConfiguration.Prototype = function() {
       "type": "paragraph",
       "children": []
     };
+    var nodes = articleInfo["children"];
+
     console.log('start the fun')
     var impact = article.querySelector("fn-group");
     if (impact) {
@@ -73,9 +75,9 @@ ElifeConfiguration.Prototype = function() {
       };
 
       doc.create(h1);
-      doc.create(p1);
-      articleInfo["children"].push(h1);
-      articleInfo["children"].push(p1);
+      doc.create(t1);
+      nodes.push(h1);
+      nodes.push(t1);
     }
     // Using the caption node type until we have our RichParagraph ready
     
@@ -87,6 +89,8 @@ ElifeConfiguration.Prototype = function() {
         "level" : 1,
         "content" : "Copyright and License"
       };
+      doc.create(h1);
+      nodes.push(h1);
 
       var copyright = license.querySelector("copyright-statement");
       if (copyright) {
@@ -95,10 +99,12 @@ ElifeConfiguration.Prototype = function() {
           "id" : state.nextId("text"),
           "content" : copyright.textContent
         };
+        doc.create(t1);
+        nodes.push(t1);
       }
-      var para = license.querySelector("p");
-      articleInfo["children"].push(h1);
-      articleInfo["children"].push(t1);
+      //var para = license.querySelector("p");
+      
+      
     }
     doc.create(articleInfo);
     doc.show("info", articleInfo.id);
