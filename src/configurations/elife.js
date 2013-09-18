@@ -58,7 +58,6 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo["children"];
 
-    console.log('start the fun')
     // var impact = article.querySelector("custom-meta");
     // if (impact) {
     //   var h1 = {
@@ -100,15 +99,20 @@ ElifeConfiguration.Prototype = function() {
           "id" : state.nextId("text"),
           "content" : copyright.textContent
         };
-        console.log(copyright.textContent)
         doc.create(t1);
         nodes.push(t1);
       }
-      //var para = license.querySelector("p");
-      
-      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
+      var para = license.querySelector("p");
+      if (para) {
+        var indiv_node = this.paragraph(state, para);
+        if (indiv_node) {
+          nodes.push(indiv_node.id);
+        }
+      }
     }
+    //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     doc.create(articleInfo);
+    console.log(JSON.stringify(articleInfo))
     doc.show("info", articleInfo.id);
   };
 
