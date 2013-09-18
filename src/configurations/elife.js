@@ -73,11 +73,12 @@ ElifeConfiguration.Prototype = function() {
         "id": state.nextId("text"),
         "content": impact.textContent,
       };
-
+      console.log(t1)
       doc.create(h1);
       doc.create(t1);
       nodes.push(h1);
       nodes.push(t1);
+      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     }
     // Using the caption node type until we have our RichParagraph ready
     
