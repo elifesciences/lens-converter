@@ -50,36 +50,61 @@ ElifeConfiguration.Prototype = function() {
   // Copyright
 
   this.enhanceInfo = function(converter, state, article) {
-    // var doc = state.doc;
+    var doc = state.doc;
+    var articleInfo = {
+      "id": "articleinfo",
+      "type": "paragraph",
+      "children": [
+        h1.id,
+        t1.id
+      ]
+    };
+    console.log('start the fun')
+    var impact = article.querySelector("fn-group");
+    if (impact) {
+      var h1 = {
+        "type": "heading",
+        "id": state.nextId("heading"),
+        "level": 1,
+        "content": "Impact",
+      };
 
-    // var h1 = {
-    //   "type": "heading",
-    //   "id": state.nextId("heading"),
-    //   "level": 1,
-    //   "content": "Impact",
-    // };
+      var t1 = {
+        "type": "text",
+        "id": state.nextId("text"),
+        "content": impact.textContent,
+      };
 
-    // var t1 = {
-    //   "type": "paragraph",
-    //   "id": state.nextId("paragraph"),
-    //   "content": "Not yet ready.",
-    // };
+      doc.create(h1);
+      doc.create(p1);
+      articleInfo["children"].push(h1);
+      articleInfo["children"].push(p1);
+    }
+    // Using the caption node type until we have our RichParagraph ready
+    
+    var license = article.querySelector("permissions");
+    if (license) {
+      var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 1,
+        "content" : "Copyright and License"
+      };
 
-    // doc.create(h1);
-    // doc.create(p1);
-
-    // // Using the caption node type until we have our RichParagraph ready
-    // var articleInfo = {
-    //   "id": "articleinfo",
-    //   "type": "richparagraph",
-    //   "children": [
-    //     h1.id,
-    //     t1.id
-    //   ]
-    // };
-
-    // doc.create(articleInfo);
-    // doc.show("info", articleInfo.id);
+      var copyright = license.querySelector("copyright-statement");
+      if (copyright) {
+        var t1 = {
+          "type" : "text",
+          "id" : state.nextId("text"),
+          "content" : copyright.textContent
+        };
+      }
+      var para = license.querySelector("p");
+      articleInfo["children"].push(h1);
+      articleInfo["children"].push(t1);
+    }
+    doc.create(articleInfo);
+    doc.show("info", articleInfo.id);
   };
 
   // Add Decision letter and author response
