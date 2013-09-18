@@ -59,27 +59,27 @@ ElifeConfiguration.Prototype = function() {
     var nodes = articleInfo["children"];
 
     console.log('start the fun')
-    var impact = article.querySelector("fn-group");
-    if (impact) {
-      var h1 = {
-        "type": "heading",
-        "id": state.nextId("heading"),
-        "level": 1,
-        "content": "Impact",
-      };
+    // var impact = article.querySelector("custom-meta");
+    // if (impact) {
+    //   var h1 = {
+    //     "type": "heading",
+    //     "id": state.nextId("heading"),
+    //     "level": 1,
+    //     "content": "Impact",
+    //   };
 
-      var t1 = {
-        "type": "text",
-        "id": state.nextId("text"),
-        "content": impact.textContent,
-      };
-      console.log(t1)
-      doc.create(h1);
-      doc.create(t1);
-      nodes.push(h1);
-      nodes.push(t1);
-      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
-    }
+    //   var t1 = {
+    //     "type": "text",
+    //     "id": state.nextId("text"),
+    //     "content": impact.textContent,
+    //   };
+    //   console.log(impact.textContent)
+    //   doc.create(h1);
+    //   doc.create(t1);
+    //   nodes.push(h1);
+    //   nodes.push(t1);
+    //   nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
+    // }
     // Using the caption node type until we have our RichParagraph ready
     
     var license = article.querySelector("permissions");
@@ -100,6 +100,7 @@ ElifeConfiguration.Prototype = function() {
           "id" : state.nextId("text"),
           "content" : copyright.textContent
         };
+        console.log(copyright.textContent)
         doc.create(t1);
         nodes.push(t1);
       }
