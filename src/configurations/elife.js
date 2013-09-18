@@ -104,9 +104,7 @@ ElifeConfiguration.Prototype = function() {
       var para = license.querySelector("p");
       if (para) {
         var indiv_node = this.paragraph(state, para);
-        if (indiv_node) {
-          nodes.push(indiv_node.id);
-        }
+        nodes.push(indiv_node.id);
       }
     }
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
