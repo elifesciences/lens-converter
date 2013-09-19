@@ -78,6 +78,7 @@ ElifeConfiguration.Prototype = function() {
           nodes.push(h1.id);
           nodes = nodes.concat(this.paragraphGroup(state, child));
         }
+      }
     }
     // Using the caption node type until we have our RichParagraph ready
     
