@@ -58,7 +58,7 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
-    var impact = article.querySelector("custom-meta");
+    var impact = article.querySelectorAll("custom-meta");
     if (impact) {
       console.log('inside custom-meta')
       var h1 = {
@@ -105,11 +105,11 @@ ElifeConfiguration.Prototype = function() {
         nodes.push(t1.id);
       }
       var para = license.querySelector("p");
+      console.log(para)
       if (para) {
         console.log('inside')
         console.log(para)
-        var indiv_node = para.paragraph(state, para);
-        nodes.push(indiv_node.id);
+        nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(para)));
       }
     }
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
