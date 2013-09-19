@@ -1048,9 +1048,9 @@ LensImporter.Prototype = function() {
       var type = util.dom.getNodeType(info);
       if (type === "name") {
         var children = util.dom.getChildren(info);
-        for (var i = 0;i<info.length;i++) {
+        for (var j = 0;j<info.length;j++) {
           var name = info[i];
-          if (i === 0) {
+          if (j === 0) {
             text1.content += name.textContent+", "
           }
           else {
