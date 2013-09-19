@@ -80,6 +80,56 @@ ElifeConfiguration.Prototype = function() {
     doc.create(t1)
     nodes.push(t1.id)
    
+    
+
+    // Get conflict of interest
+
+    var conflict = article.querySelectorAll("fn");
+    for (var i = 0; i < conflict.length;i++) {
+      var indiv = conflict[i];
+      var type = indiv.getAttribute("fn-type");
+      if (type === 'conflict') {
+        var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 1,
+        "content" : "Competing Interests"
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+      var par = converter.bodyNodes(state, util.dom.getChildren(indiv));
+      nodes.push(par[0].id);
+      }
+    }
+
+    // Get major datasets
+
+    var datasets = article.querySelector('sec');
+    for (var i = 0;i <datasets.length;i++){
+      var data = datasets[i];
+      var type = data.getAttribute('sec-type');
+      if (type === 'datasets') {
+        var par = converter.bodyNodes(state, util.dom.getChildren(data));
+        nodes.push(par[0].id);
+      }
+    }
+
+    // Get acknowledgements
+
+    var ack = article.querySelector("ack");
+    if (ack) {
+      var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 1,
+        "content" : "Acknowledgements"
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+      var par = converter.bodyNodes(state, util.dom.getChildren(ack));
+      nodes.push(par[0].id);
+    }
+    
     // Get copyright and license information
     var license = article.querySelector("permissions");
     if (license) {
@@ -114,43 +164,6 @@ ElifeConfiguration.Prototype = function() {
       }
       
     }
-
-    // Get conflict of interest
-
-    var conflict = article.querySelectorAll("fn");
-    for (var i = 0; i < conflict.length;i++) {
-      var indiv = conflict[i];
-      var type = indiv.getAttribute("fn-type");
-      if (type === 'conflict') {
-        var h1 = {
-        "type" : "heading",
-        "id" : state.nextId("heading"),
-        "level" : 1,
-        "content" : "Competing Interests"
-      };
-      doc.create(h1);
-      nodes.push(h1.id);
-      var par = converter.bodyNodes(state, util.dom.getChildren(indiv));
-      nodes.push(par[0].id);
-      }
-    }
-
-    // Get acknowledgements
-
-    var ack = article.querySelector("ack");
-    if (ack) {
-      var h1 = {
-        "type" : "heading",
-        "id" : state.nextId("heading"),
-        "level" : 1,
-        "content" : "Acknowledgements"
-      };
-      doc.create(h1);
-      nodes.push(h1.id);
-      var par = converter.bodyNodes(state, util.dom.getChildren(ack));
-      nodes.push(par[0].id);
-    }
-    
     
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     doc.create(articleInfo);
