@@ -104,7 +104,7 @@ ElifeConfiguration.Prototype = function() {
 
     // Get major datasets
 
-    var datasets = article.querySelector('sec');
+    var datasets = article.querySelectorAll('sec');
     for (var i = 0;i <datasets.length;i++){
       var data = datasets[i];
       var type = data.getAttribute('sec-type');
