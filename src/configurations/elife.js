@@ -110,7 +110,7 @@ ElifeConfiguration.Prototype = function() {
         console.log(type)
         if (type === 'p' || type === 'license-p') {
           console.log('here')
-          nodes = nodes.concat(converter.paragraph(state, child));
+          nodes.push(converter.paragraph(state, child));
         }
       }
     }
@@ -128,8 +128,7 @@ ElifeConfiguration.Prototype = function() {
       doc.create(h1);
       nodes.push(h1.id);
 
-      var para = ack.querySelector("p");
-      nodes = nodes.concat(converter.paragraph(state, para));
+      nodes.push(converter.paragraphGroup(state, util.dom.getChildren(ack)));
     }
     
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
