@@ -109,6 +109,7 @@ ElifeConfiguration.Prototype = function() {
       var data = datasets[i];
       var type = data.getAttribute('sec-type');
       if (type === 'datasets') {
+        console.log('getting data')
         var par = converter.bodyNodes(state, util.dom.getChildren(data));
         nodes.push(par[0].id);
       }
