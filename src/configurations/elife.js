@@ -115,6 +115,26 @@ ElifeConfiguration.Prototype = function() {
       
     }
 
+    // Get conflict of interest
+
+    var conflict = article.querySelectorAll("fn");
+    for (var i = 0; i < conflict.length;i++) {
+      var indiv = conflict[i];
+      var type = util.dom.getAttribute(indiv,"fn-type");
+      if (type === 'conflict') {
+        var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 1,
+        "content" : "Competing Interests"
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+      var par = converter.bodyNodes(state, util.dom.getChildren(indiv));
+      nodes.push(par[0].id);
+      }
+    }
+
     // Get acknowledgements
 
     var ack = article.querySelector("ack");
@@ -130,6 +150,7 @@ ElifeConfiguration.Prototype = function() {
       var par = converter.bodyNodes(state, util.dom.getChildren(ack));
       nodes.push(par[0].id);
     }
+    
     
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     doc.create(articleInfo);
