@@ -120,7 +120,7 @@ ElifeConfiguration.Prototype = function() {
     var conflict = article.querySelectorAll("fn");
     for (var i = 0; i < conflict.length;i++) {
       var indiv = conflict[i];
-      var type = util.dom.getAttribute(indiv,"fn-type");
+      var type = indiv.getAttribute("fn-type");
       if (type === 'conflict') {
         var h1 = {
         "type" : "heading",
