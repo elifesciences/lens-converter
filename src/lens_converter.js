@@ -1015,7 +1015,6 @@ LensImporter.Prototype = function() {
   };
   this.datasets = function(state, datasets){
     var nodes = [];
-    var node;
 
     for (var i=0;i<datasets.length;i++) {
       var data = datasets[i];
@@ -1024,8 +1023,7 @@ LensImporter.Prototype = function() {
         nodes = nodes.concat(this.paragraphGroup(state, data));
         var obj = data.querySelector('related-object');
         if (obj) {
-          var node = this.indivdata(state,obj);
-          nodes = nodes.concat(node);
+          nodes = nodes.concat(this.indivdata(state,obj));
         }
       } 
     }
@@ -1037,12 +1035,12 @@ LensImporter.Prototype = function() {
       "type" : "paragraph",
       "id" : state.nextId("paragraph"),
       "children" : []
-    }
+    };
     var text1 = {
       "type" : "text",
       "id" : state.nextId("text"),
       "content" : ""
-    }
+    };
     var input = util.dom.getChildren(indivdata);
     for (var i = 0;i<input.length;i++) {
       var info = input[i];
@@ -1052,7 +1050,7 @@ LensImporter.Prototype = function() {
         for (var j = 0;j<info.length;j++) {
           var name = info[i];
           if (j === 0) {
-            text1.content += name.textContent+", "
+            text1.content += name.textContent+", ";
           }
           else {
             text1.content += name.textContent;
@@ -1071,8 +1069,9 @@ LensImporter.Prototype = function() {
     p1.children.push(text1);
     p1.children.push(par[0].id);
     
-    return p1.id
-  }
+    return p1.id;
+  };
+
   this.section = function(state, section) {
 
     // pushing the section level to track the level for nested sections
