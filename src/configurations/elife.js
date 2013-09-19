@@ -100,17 +100,18 @@ ElifeConfiguration.Prototype = function() {
         doc.create(t1);
         nodes.push(t1.id);
       }
-      var para = license.querySelector("p");
-      console.log(para)
-      if (para) {
-        console.log('inside')
-        console.log(para)
-        nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(para)));
+      var children = util.dom.getChildren(license);
+      for (var i = 0;i < children.length;i++){
+        var child = children[i];
+        var type = util.dom.getNodeType(child);
+        if (type === 'p') {
+          nodes = nodes.concat(this.paragraphGroup(state, child));
+        }
       }
     }
+    
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     doc.create(articleInfo);
-    console.log(JSON.stringify(articleInfo))
     doc.show("info", articleInfo.id);
   };
 
