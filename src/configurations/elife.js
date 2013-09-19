@@ -62,7 +62,7 @@ ElifeConfiguration.Prototype = function() {
     
     if (impact) {
       var children = util.dom.getChildren(impact);
-      for (var i = startIndex; i < children.length; i++) {
+      for (var i = 0; i < children.length; i++) {
         var child = children[i];
         var type = util.dom.getNodeType(child);
         var attr = util.dom.getAttribute(child,'specific-use');
