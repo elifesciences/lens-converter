@@ -65,7 +65,11 @@ ElifeConfiguration.Prototype = function() {
       for (var i = 0; i < children.length; i++) {
         var child = children[i];
         var type = util.dom.getNodeType(child);
+        console.log(children)
+        console.log(child)
+        console.log(type)
         var attr = util.dom.getAttribute(child,'specific-use');
+        console.log(attr)
         if (!attr) {continue}
         if (type === "meta-value") {
            var h1 = {
