@@ -108,7 +108,7 @@ ElifeConfiguration.Prototype = function() {
         var child = children[i];
         var type = util.dom.getNodeType(child);
         console.log(type)
-        if (type === 'p') {
+        if (type === 'p' || type === 'license-p') {
           console.log('here')
           nodes = nodes.concat(converter.paragraph(state, child));
         }
