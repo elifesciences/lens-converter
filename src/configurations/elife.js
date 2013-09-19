@@ -60,6 +60,7 @@ ElifeConfiguration.Prototype = function() {
 
     var meta = article.querySelectorAll("meta-value");
     var impact = meta[1];
+    
     var h1 = {
       "type": "heading",
       "id": state.nextId("heading"),
@@ -73,6 +74,8 @@ ElifeConfiguration.Prototype = function() {
       "id" : state.nextId("text"),
       "content" : impact.textContent
     };
+    doc.create(t1)
+    nodes.push(t1.id)
    
     // Using the caption node type until we have our RichParagraph ready
     
