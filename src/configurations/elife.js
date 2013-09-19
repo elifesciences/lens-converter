@@ -128,6 +128,7 @@ ElifeConfiguration.Prototype = function() {
       doc.create(h1);
       nodes.push(h1.id);
       var par = converter.bodyNodes(state, util.dom.getChildren(ack));
+      console.log(JSON.stringify(par))
       nodes.push(par.id);
     }
     
