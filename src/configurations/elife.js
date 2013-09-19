@@ -58,7 +58,7 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
-    var meta = article.querySelectorAll("custom-meta");
+    var meta = article.querySelectorAll("meta-value");
     var impact = meta[1];
     var h1 = {
       "type": "heading",
