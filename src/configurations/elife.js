@@ -58,40 +58,22 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
-    var impact = article.querySelector("custom-meta-wrap");
-    
-    if (impact) {
-      var children = util.dom.getChildren(impact);
-      console.log(children.length)
-      for (var i = 0; i < children.length; i++) {
-        var child = children[i];
-        var type = util.dom.getNodeType(child);
-        var attr = util.dom.getAttribute(child,'specific-use');
-        console.log(attr)
-        if (attr === 'meta-only') {
-          var imp_text = child.querySelector("meta-value");
-          if (imp_text) {
-            var h1 = {
-              "type": "heading",
-              "id": state.nextId("heading"),
-              "level": 1,
-              "content": "Impact",
-            };
-            doc.create(h1);
-            nodes.push(h1.id);
-            var t1 = {
-              "type" : "text",
-              "id" : state.nextId("text"),
-              "content" : imp_text.textContent
-            };
-            doc.create(t1);
-            nodes.push(t1.id);
-            console.log(t1.id)
-          }
-
-        }
-      }
-    }
+    var meta = article.querySelectorAll("custom-meta");
+    var impact = meta[1];
+    var h1 = {
+      "type": "heading",
+      "id": state.nextId("heading"),
+      "level": 1,
+      "content": "Impact",
+    };
+    doc.create(h1);
+    nodes.push(h1.id);
+    var t1 = {
+      "type" : "text",
+      "id" : state.nextId("text"),
+      "content" : impact.textContent
+    };
+   
     // Using the caption node type until we have our RichParagraph ready
     
     var license = article.querySelector("permissions");
