@@ -103,16 +103,7 @@ ElifeConfiguration.Prototype = function() {
         nodes.push(t1.id);
       }
       var lic = license.querySelector("license");
-      var children = util.dom.getChildren(lic);
-      for (var i = 0;i < children.length;i++){
-        var child = children[i];
-        var type = util.dom.getNodeType(child);
-        console.log(type)
-        if (type === 'p' || type === 'license-p') {
-          console.log('here')
-          nodes.push(converter.paragraph(state, child));
-        }
-      }
+      nodes.push(converter.bodyNodes(state, util.dom.getChildren(lic)));
     }
 
     // Get acknowledgements
@@ -128,7 +119,7 @@ ElifeConfiguration.Prototype = function() {
       doc.create(h1);
       nodes.push(h1.id);
 
-      nodes.push(converter.paragraphGroup(state, util.dom.getChildren(ack)));
+      nodes.push(converter.bodyNodes(state, util.dom.getChildren(ack)));
     }
     
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
