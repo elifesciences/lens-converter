@@ -42,6 +42,14 @@ ElifeConfiguration.Prototype = function() {
   };
 
 
+  this.enhanceSupplement = function(state, node, element) {
+    node.url = [
+      "http://cdn.elifesciences.org/elife-articles/",
+      state.doc.id,
+      "/supplements/",
+      node.url
+    ].join('');
+  };
 
 
   this.extractPublicationInfo = function(converter, state, article) {
@@ -56,7 +64,6 @@ ElifeConfiguration.Prototype = function() {
       var year = dateEl.querySelector("year").textContent;
       return [year, month, day].join("-");
     }
-
 
     var pubDate = articleMeta.querySelector("pub-date");
     var receivedDate = articleMeta.querySelector("date[date-type=received]");
@@ -193,8 +200,11 @@ ElifeConfiguration.Prototype = function() {
     doc.create(h1);
     nodes.push(h1.id);
 
-    var par = converter.paragraphGroup(state, impact);
-    nodes.push(par[0].id);
+    if (impact) {
+      var par = converter.paragraphGroup(state, impact);
+      nodes.push(par[0].id);      
+    }
+
 
     // Get conflict of interest
 
@@ -291,7 +301,6 @@ ElifeConfiguration.Prototype = function() {
     
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     doc.create(articleInfo);
-    console.log(JSON.stringify(articleInfo));
     doc.show("info", articleInfo.id);
   };
 

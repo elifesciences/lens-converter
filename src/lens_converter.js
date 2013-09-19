@@ -527,6 +527,8 @@ LensImporter.Prototype = function() {
     var label = supplement.querySelector("label");
 
     var url = "http://meh.com";
+    var mediaEl = supplement.querySelector("media");
+    var url = mediaEl ? mediaEl.getAttribute("xlink:href") : null;
     var doi = supplement.querySelector("object-id[pub-id-type='doi']");
     doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
 
