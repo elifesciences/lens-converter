@@ -107,8 +107,8 @@ ElifeConfiguration.Prototype = function() {
         var child = children[i];
         var type = util.dom.getNodeType(child);
         if (type === 'p') {
-          nodes = nodes.concat(this.paragraphGroup(state, child));
-          console.log(JSON.stringify(nodes))
+          console.log('here')
+          nodes = nodes.concat(converter.paragraph(state, child));
         }
       }
     }
