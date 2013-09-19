@@ -58,29 +58,36 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
-    var impact = article.querySelector("custom-meta-group");
+    var impact = article.querySelector("custom-meta-wrap");
     
     if (impact) {
       var children = util.dom.getChildren(impact);
       for (var i = 0; i < children.length; i++) {
         var child = children[i];
         var type = util.dom.getNodeType(child);
-        console.log(children)
-        console.log(child)
-        console.log(type)
         var attr = util.dom.getAttribute(child,'specific-use');
         console.log(attr)
-        if (!attr) {continue}
-        if (type === "meta-value") {
-           var h1 = {
-            "type": "heading",
-            "id": state.nextId("heading"),
-            "level": 1,
-            "content": "Impact",
-          };
-          doc.create(h1);
-          nodes.push(h1.id);
-          nodes = nodes.concat(this.paragraphGroup(state, child));
+        if (attr === 'meta-only') {
+          var imp_text = child.querySelector("meta-value");
+          if (imp_text) {
+            var h1 = {
+              "type": "heading",
+              "id": state.nextId("heading"),
+              "level": 1,
+              "content": "Impact",
+            };
+            doc.create(h1);
+            nodes.push(h1.id);
+            var t1 = {
+              "type" : "text",
+              "id" : state.nextId("text"),
+              "content" : imp_text.textContent
+            };
+            doc.create(t1);
+            nodes.push(t1.id);
+            console.log(t1.id)
+          }
+
         }
       }
     }
