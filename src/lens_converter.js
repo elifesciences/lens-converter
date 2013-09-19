@@ -922,15 +922,16 @@ LensImporter.Prototype = function() {
       var data = datasets[i];
       var type = util.dom.getNodeType(data);
       if (type === 'p'){
-        var par = this.paragraphGroup(state, data);
-        nodes.push(par.id);
         var obj = data.querySelector('related-object');
         if (obj) {
           nodes = nodes.concat(this.indivdata(state,obj));
         }
+        else {
+          var par = this.paragraphGroup(state, data);
+          nodes.push(par.id);
+        }
       } 
     }
-    
     return nodes;
   };
   this.indivdata = function(state,indivdata) {
@@ -971,7 +972,6 @@ LensImporter.Prototype = function() {
     doc.create(text1);
     p1.children.push(text1);
     p1.children.push(par[0].id);
-    console.log(p1.id)
     return p1.id;
   };
 
