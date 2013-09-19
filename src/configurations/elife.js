@@ -120,7 +120,8 @@ ElifeConfiguration.Prototype = function() {
         nodes.push(h1.id);
         var ids = converter.datasets(state, util.dom.getChildren(data));
         for (var j=0;j < ids.length;j++) {
-          if (!ids[j]) {
+          if (!ids[j]) {}
+          else {
             nodes.push(ids[j]);
           }
         }
