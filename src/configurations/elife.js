@@ -62,6 +62,7 @@ ElifeConfiguration.Prototype = function() {
     
     if (impact) {
       var children = util.dom.getChildren(impact);
+      console.log(children.length)
       for (var i = 0; i < children.length; i++) {
         var child = children[i];
         var type = util.dom.getNodeType(child);
