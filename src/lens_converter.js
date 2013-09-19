@@ -1022,32 +1022,54 @@ LensImporter.Prototype = function() {
       var type = util.dom.getNodeType(data);
       if (type === 'p'){
         nodes = nodes.concat(this.paragraphGroup(state, data));
-      }
-      else if (type === "related-object") {
-        var p1 = {
-          "type" : "text",
-          "id" : state.nextId("text"),
-          "content" : ""
+        var obj = data.querySelector('related-object');
+        if (obj) {
+          var node = this.indivdata(state,obj);
         }
-        var children = util.dom.getChildren(data);
-        for (var i = 0;i<children.length;i++) {
-          var child = children[i];
-          var type = util.dom.getNodeType(child);
-          if (type !== 'comment'){
-            p1.content += child.textContent;
-          }
-          else{
-            var par = this.paragraphGroup(state,child)
-          }
-        }
-        doc.create(p1);
-        nodes.push(p1.id);
-        nodes.push(par[0].id)
-      }
+      } 
     }
     
     return nodes;
   };
+  this.indivdata = function(state,indivdata) {
+    var p1 = {
+      "type" : "paragraph",
+      "id" : state.nextId("paragraph"),
+      "children" : []
+    }
+    var text1 = {
+      "type" : "text",
+      "id" : state.nextId("text"),
+      "content" : ""
+    }
+    var input = util.dom.getChildren(indivdata);
+    for (var i = 0;i<input.length;i++) {
+      var info = input[i];
+      var type = util.dom.getNodeType(info);
+      if (type === "name") {
+        var children = util.dom.getChildren(info);
+        for (var i = 0;i<info.length;i++) {
+          var name = info[i];
+          if (i === 0) {
+            text1.content += name.textContent+", "
+          }
+          else {
+            text1.content += name.textContent;
+          }
+        }
+      }
+      else if (type === 'comment'){
+        var par = this.paragraphGroup(state,info);
+      }
+      else {
+        text1.content += info.textContent;
+      }
+    }
+    doc.create(p1);
+    nodes.push(p1.id);
+    nodes.push(par[0].id)
+    return nodes
+  }
   this.section = function(state, section) {
 
     // pushing the section level to track the level for nested sections
