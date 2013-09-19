@@ -24,6 +24,10 @@ DefaultConfiguration.Prototype = function() {
   this.enhanceArticle = function(converter, state, article) {
     // Noop - override in your configuration
   };
+
+  this.extractPublicationInfo = function() {
+    // Noop - override in your configuration
+  };
 };
 
 DefaultConfiguration.prototype = new DefaultConfiguration.Prototype();

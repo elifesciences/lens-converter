@@ -1,7 +1,7 @@
 "use strict";
 
 var util = require("substance-util");
-
+var _ = require("underscore");
 var DefaultConfiguration = require('./default');
 
 var ElifeConfiguration = function() {
@@ -41,6 +41,126 @@ ElifeConfiguration.Prototype = function() {
     node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
   };
 
+
+
+
+  this.extractPublicationInfo = function(converter, state, article) {
+    var doc = state.doc;
+
+    var articleMeta = article.querySelector("article-meta");
+
+    function _extractDate(dateEl) {
+      if (!dateEl) return null;
+      var day = dateEl.querySelector("day").textContent;
+      var month = dateEl.querySelector("month").textContent;
+      var year = dateEl.querySelector("year").textContent;
+      return [year, month, day].join("-");
+    }
+
+
+    var pubDate = articleMeta.querySelector("pub-date");
+    var receivedDate = articleMeta.querySelector("date[date-type=received]");
+    var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
+
+    // Extract keywords
+    // ------------
+    //
+    // <kwd-group kwd-group-type="author-keywords">
+    // <title>Author keywords</title>
+    // <kwd>innate immunity</kwd>
+    // <kwd>histones</kwd>
+    // <kwd>lipid droplet</kwd>
+    // <kwd>anti-bacterial</kwd>
+    // </kwd-group>
+    var keyWords = articleMeta.querySelectorAll("kwd-group[kwd-group-type=author-keywords] kwd");
+
+    // Extract research organism
+    // ------------
+    //
+
+    // <kwd-group kwd-group-type="research-organism">
+    // <title>Research organism</title>
+    // <kwd>B. subtilis</kwd>
+    // <kwd>D. melanogaster</kwd>
+    // <kwd>E. coli</kwd>
+    // <kwd>Mouse</kwd>
+    // </kwd-group>
+    var organisms = articleMeta.querySelectorAll("kwd-group[kwd-group-type=research-organism] kwd");
+
+    // Extract subjects
+    // ------------
+    //
+    // <subj-group subj-group-type="heading">
+    // <subject>Immunology</subject>
+    // </subj-group>
+    // <subj-group subj-group-type="heading">
+    // <subject>Microbiology and infectious disease</subject>
+    // </subj-group>
+
+    var subjects = articleMeta.querySelectorAll("subj-group[subj-group-type=heading] subject");
+
+    // Extract article_type
+    // ---------------
+    //
+    // <subj-group subj-group-type="display-channel">
+    // <subject>Research article</subject>
+    // </subj-group>
+
+    var articleType = articleMeta.querySelector("subj-group[subj-group-type=display-channel] subject");
+
+    // Extract journal title
+    // ---------------
+    //
+
+    var journalTitle = article.querySelector("journal-title");
+
+    // <article-id pub-id-type="doi">10.7554/eLife.00003</article-id>
+    var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
+
+
+    // Extract PDF link
+    // ---------------
+    //
+    // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
+    
+    var pdfURI = article.querySelector("self-uri[content-type=pdf");
+    console.log('PDFURI', pdfURI);
+    
+
+    var pdfLink = [
+      "http://cdn.elifesciences.org/elife-articles/",
+      state.doc.id,
+      "/pdf/",
+      pdfURI ? pdfURI.getAttribute("xlink:href") : "#"
+    ].join('');
+
+    // Create PublicationInfo node
+    // ---------------
+    
+    var pubInfoNode = {
+      "id": "publication_info",
+      "type": "publication_info",
+      "published_on": _extractDate(pubDate),
+      "received_on": _extractDate(receivedDate),
+      "accepted_on": _extractDate(acceptedDate),
+      "keywords": _.pluck(keyWords, "textContent"),
+      "research_organisms": _.pluck(organisms, "textContent"),
+      "subjects": _.pluck(subjects, "textContent"),
+      "article_type": articleType ? articleType.textContent : "",
+      "journal": journalTitle ? journalTitle.textContent : "",
+      "pdf_link": pdfLink,
+      "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml", // "http://mickey.com/mouse.xml",
+      "json_link": "http://mickey.com/mouse.json",
+      "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
+      // TODO add actual properties
+    };
+
+
+    doc.create(pubInfoNode);
+    doc.show("info", pubInfoNode.id, 0);
+  };
+
+
   // Add additional information to the info view
   // ---------
   //
@@ -72,15 +192,9 @@ ElifeConfiguration.Prototype = function() {
     };
     doc.create(h1);
     nodes.push(h1.id);
-    var t1 = {
-      "type" : "text",
-      "id" : state.nextId("text"),
-      "content" : impact.textContent
-    };
-    doc.create(t1)
-    nodes.push(t1.id)
-   
-    
+
+    var par = converter.paragraphGroup(state, impact);
+    nodes.push(par[0].id);
 
     // Get conflict of interest
 
@@ -88,28 +202,29 @@ ElifeConfiguration.Prototype = function() {
     for (var i = 0; i < conflict.length;i++) {
       var indiv = conflict[i];
       var type = indiv.getAttribute("fn-type");
-      if (type === 'conflict') {
-        var h1 = {
-        "type" : "heading",
-        "id" : state.nextId("heading"),
-        "level" : 1,
-        "content" : "Competing Interests"
-      };
-      doc.create(h1);
-      nodes.push(h1.id);
-      var par = converter.bodyNodes(state, util.dom.getChildren(indiv));
-      nodes.push(par[0].id);
+        if (type === 'conflict') {
+          var h1 = {
+          "type" : "heading",
+          "id" : state.nextId("heading"),
+          "level" : 1,
+          "content" : "Competing Interests"
+        };
+        doc.create(h1);
+        nodes.push(h1.id);
+        var par = converter.bodyNodes(state, util.dom.getChildren(indiv));
+        nodes.push(par[0].id);
       }
     }
 
     // Get major datasets
 
     var datasets = article.querySelectorAll('sec');
+
     for (var i = 0;i <datasets.length;i++){
       var data = datasets[i];
       var type = data.getAttribute('sec-type');
       if (type === 'datasets') {
-        console.log('getting data')
+        console.log('getting data');
         var h1 = {
           "type" : "heading",
           "id" : state.nextId("heading"),
@@ -158,13 +273,8 @@ ElifeConfiguration.Prototype = function() {
 
       var copyright = license.querySelector("copyright-statement");
       if (copyright) {
-        var t1 = {
-          "type" : "text",
-          "id" : state.nextId("text"),
-          "content" : copyright.textContent
-        };
-        doc.create(t1);
-        nodes.push(t1.id);
+        var par = converter.paragraphGroup(state, copyright);
+        nodes.push(par[0].id);
       }
       var lic = license.querySelector("license");
       var children = util.dom.getChildren(lic);
