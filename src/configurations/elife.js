@@ -102,7 +102,8 @@ ElifeConfiguration.Prototype = function() {
         doc.create(t1);
         nodes.push(t1.id);
       }
-      var children = util.dom.getChildren(license);
+      var lic = license.querySelector("license");
+      var children = util.dom.getChildren(lic);
       for (var i = 0;i < children.length;i++){
         var child = children[i];
         var type = util.dom.getNodeType(child);
