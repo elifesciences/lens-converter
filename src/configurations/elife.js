@@ -130,7 +130,7 @@ ElifeConfiguration.Prototype = function() {
     //
     // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
     
-    var pdfURI = article.querySelector("self-uri[content-type=pdf");
+    var pdfURI = article.querySelector("self-uri[content-type=pdf]");
     console.log('PDFURI', pdfURI);
     
 
