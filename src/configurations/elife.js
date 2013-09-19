@@ -107,6 +107,7 @@ ElifeConfiguration.Prototype = function() {
       for (var i = 0;i < children.length;i++){
         var child = children[i];
         var type = util.dom.getNodeType(child);
+        console.log(type)
         if (type === 'p') {
           console.log('here')
           nodes = nodes.concat(converter.paragraph(state, child));
