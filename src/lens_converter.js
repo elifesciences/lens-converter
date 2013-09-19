@@ -1021,7 +1021,8 @@ LensImporter.Prototype = function() {
       var type = util.dom.getNodeType(data);
       if (type === 'p'){
         var par = this.paragraphGroup(state, data);
-        if (par) {nodes.push(par[0].id);}
+        console.log(par)
+        if (par) {nodes.push(par.id);}
         var obj = data.querySelector('related-object');
         if (obj) {
           nodes = nodes.concat(this.indivdata(state,obj));
