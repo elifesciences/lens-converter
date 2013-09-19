@@ -51,6 +51,8 @@ ElifeConfiguration.Prototype = function() {
 
   this.enhanceInfo = function(converter, state, article) {
     var doc = state.doc;
+
+    // Initialize the Article Info object
     var articleInfo = {
       "id": "articleinfo",
       "type": "paragraph",
@@ -58,6 +60,7 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
+    // Get the author's impact statement
     var meta = article.querySelectorAll("meta-value");
     var impact = meta[1];
     
@@ -77,8 +80,7 @@ ElifeConfiguration.Prototype = function() {
     doc.create(t1)
     nodes.push(t1.id)
    
-    // Using the caption node type until we have our RichParagraph ready
-    
+    // Get copyright and license information
     var license = article.querySelector("permissions");
     if (license) {
       var h1 = {
@@ -106,6 +108,7 @@ ElifeConfiguration.Prototype = function() {
         var type = util.dom.getNodeType(child);
         if (type === 'p') {
           nodes = nodes.concat(this.paragraphGroup(state, child));
+          console.log(JSON.stringify(nodes))
         }
       }
     }
