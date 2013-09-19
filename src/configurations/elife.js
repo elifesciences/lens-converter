@@ -58,28 +58,26 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
-    var impact = article.querySelectorAll("custom-meta");
+    var impact = article.querySelectorAll("custom-meta-group");
+    
     if (impact) {
-      console.log('inside custom-meta')
-      var h1 = {
-        "type": "heading",
-        "id": state.nextId("heading"),
-        "level": 1,
-        "content": "Impact",
-      };
-
-      var text = impact.querySelector('meta-value');
-      if (text) {
-        var t1 = {
-          "type": "text",
-          "id": state.nextId("text"),
-          "content": text.textContent,
-        };
-      }
-      doc.create(h1);
-      doc.create(t1);
-      nodes.push(h1.id);
-      nodes.push(t1.id);
+      var children = util.dom.getChildren(impact);
+      for (var i = startIndex; i < children.length; i++) {
+        var child = children[i];
+        var type = util.dom.getNodeType(child);
+        var attr = util.dom.getAttribute(child,'specific-use');
+        if !(attr){continue}
+        if (type === "meta-value") {
+           var h1 = {
+            "type": "heading",
+            "id": state.nextId("heading"),
+            "level": 1,
+            "content": "Impact",
+          };
+          doc.create(h1);
+          nodes.push(h1.id);
+          nodes = nodes.concat(this.paragraphGroup(state, child));
+        }
     }
     // Using the caption node type until we have our RichParagraph ready
     
