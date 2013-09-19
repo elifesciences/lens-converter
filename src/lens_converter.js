@@ -1020,7 +1020,8 @@ LensImporter.Prototype = function() {
       var data = datasets[i];
       var type = util.dom.getNodeType(data);
       if (type === 'p'){
-        nodes = nodes.concat(this.paragraphGroup(state, data));
+        var par = this.paragraphGroup(state, data);
+        nodes.push(par[0].id);
         var obj = data.querySelector('related-object');
         if (obj) {
           nodes = nodes.concat(this.indivdata(state,obj));
