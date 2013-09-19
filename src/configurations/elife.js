@@ -66,7 +66,7 @@ ElifeConfiguration.Prototype = function() {
         var child = children[i];
         var type = util.dom.getNodeType(child);
         var attr = util.dom.getAttribute(child,'specific-use');
-        if !(attr){continue}
+        if (!attr) {continue}
         if (type === "meta-value") {
            var h1 = {
             "type": "heading",
