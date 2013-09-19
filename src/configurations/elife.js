@@ -111,6 +111,7 @@ ElifeConfiguration.Prototype = function() {
       if (type === 'datasets') {
         console.log('getting data')
         var par = converter.bodyNodes(state, util.dom.getChildren(data));
+        console.log(JSON.stringify(par))
         nodes.push(par[0].id);
       }
     }
