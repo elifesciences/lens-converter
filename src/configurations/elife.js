@@ -103,7 +103,16 @@ ElifeConfiguration.Prototype = function() {
         nodes.push(t1.id);
       }
       var lic = license.querySelector("license");
-      nodes.push(converter.bodyNodes(state, util.dom.getChildren(lic)));
+      var children = util.dom.getChildren(lic);
+      for (var i = 0;i < children.length;i++) {
+        var child = children[i];
+        var type = util.dom.getNodeType(child);
+        if (type === 'p' || type === 'license-p') {
+          var par = converter.paragraphGroup(state, child);
+          nodes.push(par.id)
+        }
+      }
+      
     }
 
     // Get acknowledgements
@@ -118,8 +127,8 @@ ElifeConfiguration.Prototype = function() {
       };
       doc.create(h1);
       nodes.push(h1.id);
-
-      nodes.push(converter.bodyNodes(state, util.dom.getChildren(ack)));
+      var par = converter.bodyNodes(state, util.dom.getChildren(ack));
+      nodes.push(par.id);
     }
     
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
