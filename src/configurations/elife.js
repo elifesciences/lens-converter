@@ -114,6 +114,23 @@ ElifeConfiguration.Prototype = function() {
         }
       }
     }
+
+    // Get acknowledgements
+
+    var ack = article.querySelector("ack");
+    if (ack) {
+      var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 1,
+        "content" : "Acknowledgements"
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+
+      var para = ack.querySelector("p");
+      nodes = nodes.concat(converter.paragraph(state, para));
+    }
     
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     doc.create(articleInfo);
