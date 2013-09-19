@@ -1013,7 +1013,20 @@ LensImporter.Prototype = function() {
 
     return nodes;
   };
+  this.datasets = function(state, datasets){
+    var nodes = [];
+    var node;
 
+    for (var i=0;i<datasets.length;i++) {
+      var data = datasets[i];
+      var type = util.dom.getNodeType(data);
+      if (type === "related-object") {
+        nodes = nodes.concat(this.paragraphGroup(state, data));
+      }
+    }
+    
+    return nodes;
+  };
   this.section = function(state, section) {
 
     // pushing the section level to track the level for nested sections
