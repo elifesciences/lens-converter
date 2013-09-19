@@ -118,7 +118,7 @@ ElifeConfiguration.Prototype = function() {
         };
         doc.create(h1);
         nodes.push(h1.id);
-        nodes = nodes.concat(converter.datasets(state, util.dom.getChildren(data)));
+        nodes.push(converter.datasets(state, util.dom.getChildren(data)));
       }
     }
 
