@@ -58,7 +58,7 @@ ElifeConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
-    var impact = article.querySelectorAll("custom-meta-group");
+    var impact = article.querySelector("custom-meta-group");
     
     if (impact) {
       var children = util.dom.getChildren(impact);
