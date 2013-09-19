@@ -1024,7 +1024,25 @@ LensImporter.Prototype = function() {
         nodes = nodes.concat(this.paragraphGroup(state, data));
       }
       else if (type === "related-object") {
-        nodes = nodes.concat(this.paragraphGroup(state, data));
+        var p1 = {
+          "type" : "text",
+          "id" : state.nextId("text"),
+          "content" : ""
+        }
+        var children = util.dom.getChildren(data);
+        for (var i = 0;i<children.length;i++) {
+          var child = children[i];
+          var type = util.dom.getNodeType(child);
+          if (type !== 'comment'){
+            p1.content += child.textContent;
+          }
+          else{
+            var par = this.paragraphGroup(state,child)
+          }
+        }
+        doc.create(p1);
+        nodes.push(p1.id);
+        nodes.push(par[0].id)
       }
     }
     
