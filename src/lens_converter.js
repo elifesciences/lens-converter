@@ -965,16 +965,13 @@ LensImporter.Prototype = function() {
       }
       else if (type === 'comment'){
         var par = this.paragraph(state,info);
-        console.log(JSON.stringify(par))
-        console.log(JSON.stringify(par.children[0]))
       }
       else {
         text1.content += info.textContent;
       }
     }    
     p1.children.push(text1.id);
-    p1.children.push(par.id);
-    console.log(JSON.stringify(p1))
+    p1.children.push(par.children[0]);
     return p1.id;
   };
 
