@@ -966,7 +966,7 @@ LensImporter.Prototype = function() {
       else if (type === 'comment'){
         var par = this.paragraph(state,info);
         console.log(JSON.stringify(par))
-        console.log(JSON.stringify(doc[par.children[0]]))
+        console.log(JSON.stringify(par.children[0]))
       }
       else {
         text1.content += info.textContent;
