@@ -951,6 +951,7 @@ LensImporter.Prototype = function() {
     for (var i = 0;i<input.length;i++) {
       var info = input[i];
       var type = util.dom.getNodeType(info);
+      console.log(type)
       if (type === "name") {
         var children = util.dom.getChildren(info);
         for (var j = 0;j<info.length;j++) {
