@@ -970,7 +970,7 @@ LensImporter.Prototype = function() {
         text1.content += info.textContent;
       }
     }    
-    p1.children.push(text1);
+    p1.children.push(text1.id);
     p1.children.push(par.id);
     console.log(JSON.stringify(p1))
     return p1.id;
