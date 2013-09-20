@@ -954,8 +954,8 @@ LensImporter.Prototype = function() {
       if (type === "name") {
         var children = util.dom.getChildren(info);
         console.log(children)
-        for (var j = 0;j<info.length;j++) {
-          var name = info[j];
+        for (var j = 0;j<children.length;j++) {
+          var name = children[j];
           console.log(JSON.stringify(name))
           if (j === 0) {
             console.log(name.textContent)
@@ -975,6 +975,7 @@ LensImporter.Prototype = function() {
     }    
     p1.children.push(text1.id);
     p1.children.push(par.children[0]);
+    console.log(text1.content)
     console.log(JSON.stringify(p1))
     return p1.id;
   };
