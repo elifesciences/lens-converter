@@ -300,6 +300,7 @@ ElifeConfiguration.Prototype = function() {
     
     //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     doc.create(articleInfo);
+    console.log(JSON.stringify(articleInfo))
     doc.show("info", articleInfo.id);
   };
 
