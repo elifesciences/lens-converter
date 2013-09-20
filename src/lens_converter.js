@@ -927,7 +927,7 @@ LensImporter.Prototype = function() {
           nodes = nodes.concat(this.indivdata(state,obj));
         }
         else {
-          var par = this.paragraphGroup(state, data);
+          var par = this.paragraph(state, data);
           nodes.push(par.id);
         }
       } 
@@ -945,6 +945,8 @@ LensImporter.Prototype = function() {
       "id" : state.nextId("text"),
       "content" : ""
     };
+    doc.create(p1);
+    doc.create(text1);
     var input = util.dom.getChildren(indivdata);
     for (var i = 0;i<input.length;i++) {
       var info = input[i];
@@ -952,7 +954,7 @@ LensImporter.Prototype = function() {
       if (type === "name") {
         var children = util.dom.getChildren(info);
         for (var j = 0;j<info.length;j++) {
-          var name = info[i];
+          var name = info[j];
           if (j === 0) {
             text1.content += name.textContent+", ";
           }
@@ -962,14 +964,12 @@ LensImporter.Prototype = function() {
         }
       }
       else if (type === 'comment'){
-        var par = this.paragraphGroup(state,info);
+        var par = this.paragraph(state,info);
       }
       else {
         text1.content += info.textContent;
       }
-    }
-    doc.create(p1);
-    doc.create(text1);
+    }    
     p1.children.push(text1);
     p1.children.push(par[0].id);
     return p1.id;
