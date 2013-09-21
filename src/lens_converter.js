@@ -927,8 +927,8 @@ LensImporter.Prototype = function() {
           nodes = nodes.concat(this.indivdata(state,obj));
         }
         else {
-          var par = this.paragraph(state, data);
-          nodes.push(par.id);
+          var par = this.paragraphGroup(state, data);
+          nodes.push(par[0].id);
         }
       } 
     }
@@ -972,7 +972,7 @@ LensImporter.Prototype = function() {
       }
     }    
     p1.children.push(text1.id);
-    p1.children.push(par.children[0]);
+    p1.children.push(par[0].children[0]);
     console.log(JSON.stringify(p1))
     return p1.id;
   };
