@@ -962,7 +962,7 @@ LensImporter.Prototype = function() {
           }
         }
       }
-      else if (type === 'comment' || type === 'ext-link'){
+      else if (type === 'comment'){
         var par = this.paragraphGroup(state,info);
         p1.children.push(par[0].children[0]);
       }
