@@ -945,8 +945,7 @@ LensImporter.Prototype = function() {
       "id" : state.nextId("text"),
       "content" : ""
     };
-    doc.create(p1);
-    doc.create(text1);
+    
     var input = util.dom.getChildren(indivdata);
     for (var i = 0;i<input.length;i++) {
       var info = input[i];
@@ -965,7 +964,6 @@ LensImporter.Prototype = function() {
       }
       else if (type === 'comment'){
         var par = this.paragraphGroup(state,info);
-        console.log(JSON.stringify(par))
       }
       else {
         text1.content += info.textContent;
@@ -973,6 +971,8 @@ LensImporter.Prototype = function() {
     }    
     p1.children.push(text1.id);
     p1.children.push(par[0].children[0]);
+    doc.create(p1);
+    doc.create(text1);
     console.log(JSON.stringify(p1))
     return p1.id;
   };
