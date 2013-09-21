@@ -927,7 +927,7 @@ LensImporter.Prototype = function() {
           nodes = nodes.concat(this.indivdata(state,obj));
         }
         else {
-          var par = this.paragraph(state, data);
+          var par = this.paragraphGroup(state, data);
           nodes.push(par.id);
         }
       } 
@@ -964,7 +964,7 @@ LensImporter.Prototype = function() {
         }
       }
       else if (type === 'comment'){
-        var par = this.paragraph(state,info);
+        var par = this.paragraphGroup(state,info);
       }
       else {
         text1.content += info.textContent;
