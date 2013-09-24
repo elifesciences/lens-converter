@@ -19,15 +19,15 @@ ElifeConfiguration.Prototype = function() {
     var url = graphic.getAttribute("xlink:href");
 
     // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
-    url = [
-      "http://cdn.elifesciences.org/elife-articles/",
-      state.doc.id,
-      "/svg/",
-      url,
-      ".svg"
-    ].join('');
+    // url = [
+    //   "http://cdn.elifesciences.org/elife-articles/",
+    //   state.doc.id,
+    //   "/svg/",
+    //   url,
+    //   ".svg"
+    // ].join('');
 
-    node.url = url;
+    node.url = this.resolveURL(state, url);
   };
 
   this.enhanceVideo = function(state, node, element) {
@@ -41,6 +41,16 @@ ElifeConfiguration.Prototype = function() {
     node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
   };
 
+  // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
+  this.resolveURL = function(state, url) {
+    return [
+      "http://cdn.elifesciences.org/elife-articles/",
+      state.doc.id,
+      "/svg/",
+      url,
+      ".svg"
+    ].join('');
+  };
 
   this.enhanceSupplement = function(state, node, element) {
     node.url = [
@@ -50,7 +60,6 @@ ElifeConfiguration.Prototype = function() {
       node.url
     ].join('');
   };
-
 
   this.extractPublicationInfo = function(converter, state, article) {
     var doc = state.doc;

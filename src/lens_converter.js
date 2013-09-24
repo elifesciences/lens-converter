@@ -78,6 +78,7 @@ LensImporter.Prototype = function() {
 
   var _viewMapping = {
     // "image": "figures",
+    "box": "content",
     "supplement": "figures",
     "figure": "figures",
     "table": "figures",
@@ -233,7 +234,6 @@ LensImporter.Prototype = function() {
       doc.nodes.document.authors.push(id);
     }
 
-    // console.log("PERSONNODE", personNode);
 
     doc.create(personNode);
     doc.show("info", personNode.id);
@@ -872,9 +872,9 @@ LensImporter.Prototype = function() {
     }
   };
 
-
   // Top-level elements as they can be found in the body or
   // in a section
+  // NEW: Also used for boxed-text elements
   this.bodyNodes = function(state, children, startIndex) {
     var nodes = [];
     var node;
@@ -898,9 +898,15 @@ LensImporter.Prototype = function() {
         node = this.formula(state, child);
         if (node) nodes.push(node);
       }
+      else if (type === "caption") {
+        node = this.caption(state, child);
+        if (node) nodes.push(node);
+      }
       else if (type === "boxed-text") {
         // Just treat as another container
-        nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(child)));
+        var node = this.boxedText(state, child);
+        if (node) nodes.push(node);
+        // nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(child)));
       }
       // Note: here are some node types ignored which are
       // processed in an extra pass (figures, tables, etc.)
@@ -912,16 +918,45 @@ LensImporter.Prototype = function() {
         // console.error("Node not yet supported as top-level node: " + type);
       }
     }
-
     return nodes;
   };
-  this.datasets = function(state, datasets){
+
+
+  this.boxedText = function(state, box) {
+    var doc = state.doc;
+
+    // Assuming that there are no nested <boxed-text> elements
+    var childNodes = this.bodyNodes(state, util.dom.getChildren(box));
+
+    var label = box.querySelector("label");
+    var boxId = state.nextId("box");
+
+    var boxNode = {
+      "type": "box",
+      "id": boxId,
+      "source_id": box.getAttribute("id"),
+      "label": label ? label.textContent : boxId.replace("_", " "),
+      "children": _.pluck(childNodes, 'id')
+    };
+    doc.create(boxNode);
+
+    // Boxes go into the figures view if these conditions are met
+    // 1. box has a label (e.g. elife 00288) 
+    if (label) {
+      doc.show("figures", boxId, -1);
+      return null;
+    }
+    return boxNode;
+
+  };
+
+  this.datasets = function(state, datasets) {
     var nodes = [];
 
     for (var i=0;i<datasets.length;i++) {
       var data = datasets[i];
       var type = util.dom.getNodeType(data);
-      if (type === 'p'){
+      if (type === 'p') {
         var obj = data.querySelector('related-object');
         if (obj) {
           nodes = nodes.concat(this.indivdata(state,obj));
@@ -930,10 +965,11 @@ LensImporter.Prototype = function() {
           var par = this.paragraphGroup(state, data);
           nodes.push(par[0].id);
         }
-      } 
+      }
     }
     return nodes;
   };
+
   this.indivdata = function(state,indivdata) {
     var p1 = {
       "type" : "paragraph",
@@ -1017,6 +1053,7 @@ LensImporter.Prototype = function() {
   };
 
   this.acceptedParagraphElements = {
+    "boxed-text": {handler: "boxedText"},
     "list": { handler: "list" },
     "disp-formula": { handler: "formula" },
   };
@@ -1099,6 +1136,7 @@ LensImporter.Prototype = function() {
     };
     var nodes = [];
 
+
     var iterator = new util.dom.ChildNodeIterator(children);
     while (iterator.hasNext()) {
       var child = iterator.next();
@@ -1140,12 +1178,11 @@ LensImporter.Prototype = function() {
         var img = {
           id: state.nextId("image"),
           type: "image",
-          url: url
+          url: state.config.resolveURL(state, url)
         };
         doc.create(img);
         nodes.push(img);
       }
-
       else if (type === "inline-formula") {
         var formula = this.formula(state, child, "inline");
         if (formula) {

@@ -28,6 +28,10 @@ DefaultConfiguration.Prototype = function() {
   this.extractPublicationInfo = function() {
     // Noop - override in your configuration
   };
+
+  this.resolveURL = function(url) {
+    return url;
+  };
 };
 
 DefaultConfiguration.prototype = new DefaultConfiguration.Prototype();
