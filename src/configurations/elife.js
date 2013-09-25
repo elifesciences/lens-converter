@@ -139,9 +139,7 @@ ElifeConfiguration.Prototype = function() {
     //
     // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
     
-    var pdfURI = article.querySelector("self-uri[content-type=pdf]");
-    console.log('PDFURI', pdfURI);
-    
+    var pdfURI = article.querySelector("self-uri[content-type=pdf]");    
 
     var pdfLink = [
       "http://cdn.elifesciences.org/elife-articles/",
@@ -168,7 +166,6 @@ ElifeConfiguration.Prototype = function() {
       "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml", // "http://mickey.com/mouse.xml",
       "json_link": "http://mickey.com/mouse.json",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
-      // TODO add actual properties
     };
 
 
@@ -307,9 +304,7 @@ ElifeConfiguration.Prototype = function() {
       
     }
     
-    //nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
     doc.create(articleInfo);
-    console.log(JSON.stringify(articleInfo))
     doc.show("info", articleInfo.id);
   };
 
