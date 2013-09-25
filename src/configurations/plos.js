@@ -21,6 +21,7 @@ PLOSConfiguration.Prototype = function() {
     ].join('');
 
     node.url = url;
+    node.large_url = url.replace("PNG_M","PNG_L");
   };
 
   // Assign video url

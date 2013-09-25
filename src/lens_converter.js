@@ -12,6 +12,7 @@ var ElifeConfiguration = require("./configurations/elife");
 var LandesConfiguration = require("./configurations/landes");
 var DefaultConfiguration = require("./configurations/default");
 var PLOSConfiguration = require("./configurations/plos");
+var PeerJConfiguration = require("./configurations/peerj");
 
 var LensImporter = function(options) {
   this.options = options;
@@ -379,6 +380,8 @@ LensImporter.Prototype = function() {
       state.config = new ElifeConfiguration();
     } else if (publisherName === "Public Library of Science") {
       state.config = new PLOSConfiguration();
+    } else if (publisherName === 'PeerJ') {
+      state.config = new PeerJConfiguration();
     } else {
       state.config = new DefaultConfiguration();
     }
