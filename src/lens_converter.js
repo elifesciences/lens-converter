@@ -489,7 +489,7 @@ LensImporter.Prototype = function() {
       "type": "figure",
       "id": state.nextId("figure"),
       "source_id": figure.getAttribute("id"),
-      "label": label ? label.textContent : "",
+      "label": label ? label.textContent : "Figure",
       "url": "http://images.wisegeek.com/young-calico-cat.jpg",
       "caption": null
     };
@@ -499,6 +499,11 @@ LensImporter.Prototype = function() {
     if (caption) {
       var captionNode = this.caption(state, caption);
       if (captionNode) figureNode.caption = captionNode.id;
+    }
+
+    var attrib = figure.querySelector("attrib");
+    if (attrib) {
+      figureNode.attrib = attrib.textContent;
     }
 
     // Lets the configuration patch the figure node properties
@@ -882,7 +887,18 @@ LensImporter.Prototype = function() {
   //
 
   this.body = function(state, body) {
-    var nodes = this.bodyNodes(state, util.dom.getChildren(body));
+
+    var heading = {
+      id: state.nextId("heading"),
+      type: "heading",
+      level: 1,
+      content: "Main Text"
+    };
+    doc.create(heading);
+
+
+    var nodes = [heading].concat(this.bodyNodes(state, util.dom.getChildren(body)));
+
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -1484,7 +1500,7 @@ LensImporter.State = function(xmlDoc, doc, options) {
   // of processed nodes to be able to associate other things (e.g., annotations) correctly.
   this.stack = [];
 
-  this.sectionLevel = 0;
+  this.sectionLevel = 1;
 
   // an id generator for different types
   var ids = {};
