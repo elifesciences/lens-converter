@@ -924,6 +924,11 @@ LensImporter.Prototype = function() {
         if (node) nodes.push(node);
         // nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(child)));
       }
+      else if (type === "disp-quote") {
+        // Just treat as another container
+        var node = this.boxedText(state, child);
+        if (node) nodes.push(node);
+      }
       // Note: here are some node types ignored which are
       // processed in an extra pass (figures, tables, etc.)
       else if (type === "comment") {
