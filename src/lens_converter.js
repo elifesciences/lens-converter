@@ -145,6 +145,14 @@ LensImporter.Prototype = function() {
       this.affiliation(state, affiliations[i]);
     }
 
+    // Extract equal contributors
+    var equalContribs = contribGroup.querySelectorAll("contrib[equal-contrib=yes]");
+
+    state.equalContribs = _.map(equalContribs, function(c) {
+      return _getName(c);
+    });
+
+
     var contribs = contribGroup.querySelectorAll("contrib");
     for (i = 0; i < contribs.length; i++) {
       this.contributor(state, contribs[i]);
@@ -194,8 +202,12 @@ LensImporter.Prototype = function() {
     };
 
 
+    // Extracting equal contributions
     var nameEl = contrib.querySelector("name");
     personNode.name = _getName(nameEl);
+    if (_.include(state.equalContribs, personNode.name)) {
+      personNode.equal_contrib = _.without(state.equalContribs, personNode.name);
+    }
 
     // extract affiliations stored as xrefs
     var xrefs = contrib.querySelectorAll("xref");
@@ -220,11 +232,12 @@ LensImporter.Prototype = function() {
         if (!email) return;
         personNode.emails.push(email.textContent);
       } else if (xref.getAttribute("ref-type") === "fn") {
-        // Extract contribution
         var elem = state.xmlDoc.getElementById(xref.getAttribute("rid"));
+
         if (elem && elem.getAttribute("fn-type") === "con") {
           personNode.contribution = elem.textContent;
         } else {
+          console.log(elem);
           // skipping...
         }
       }
