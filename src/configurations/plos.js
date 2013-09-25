@@ -17,11 +17,10 @@ PLOSConfiguration.Prototype = function() {
     url = [
       "http://www.plosone.org/article/fetchObject.action?uri=",
       url,
-      "&representation=PNG_M"
+      "&representation=PNG_L"
     ].join('');
 
     node.url = url;
-    node.large_url = url.replace("PNG_M","PNG_L");
   };
 
   // Assign video url

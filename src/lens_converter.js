@@ -380,7 +380,7 @@ LensImporter.Prototype = function() {
       state.config = new ElifeConfiguration();
     } else if (publisherName === "Public Library of Science") {
       state.config = new PLOSConfiguration();
-    } else if (publisherName === 'PeerJ') {
+    } else if (publisherName === 'PeerJ Inc.') {
       state.config = new PeerJConfiguration();
     } else {
       state.config = new DefaultConfiguration();
