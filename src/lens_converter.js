@@ -1028,7 +1028,7 @@ LensImporter.Prototype = function() {
         for (var j = 0;j<children.length;j++) {
           var name = children[j];
           if (j === 0) {
-            var par = this.paragraphGroup(state,info);
+            var par = this.paragraphGroup(state,name);
             console.log(par)
             p1.children.push(par[0].children[0]);
           }
@@ -1040,7 +1040,7 @@ LensImporter.Prototype = function() {
             };
             doc.create(text2)
             p1.children.push(text2.id)
-            var par = this.paragraphGroup(state,info);
+            var par = this.paragraphGroup(state,name);
             p1.children.push(par[0].children[0]);
           }
         }
