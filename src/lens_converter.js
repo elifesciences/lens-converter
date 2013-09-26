@@ -1035,12 +1035,9 @@ LensImporter.Prototype = function() {
           }
         }
       }
-      else if (type === 'comment'){
+      else {
         var par = this.paragraphGroup(state,info);
         p1.children.push(par[0].children[0]);
-      }
-      else {
-        text1.content += info.textContent;
       }
     }    
     doc.create(p1);
