@@ -1037,6 +1037,7 @@ LensImporter.Prototype = function() {
       }
       else {
         var par = this.paragraphGroup(state,info);
+        console.log(par)
         p1.children.push(par[0].children[0]);
       }
     }    
