@@ -1028,16 +1028,24 @@ LensImporter.Prototype = function() {
         for (var j = 0;j<children.length;j++) {
           var name = children[j];
           if (j === 0) {
-            text1.content += name.textContent+", ";
+            var par = this.paragraphGroup(state,info);
+            p1.children.push(par[0].children[0]);
           }
           else {
-            text1.content += name.textContent;
+            var text2 = {
+              "type" : "text",
+              "id" : state.nextId("text"),
+              "content" : ", "
+            };
+            doc.create(text2)
+            p1.children.push(text2.id)
+            var par = this.paragraphGroup(state,info);
+            p1.children.push(par[0].children[0]);
           }
         }
       }
       else {
         var par = this.paragraphGroup(state,info);
-        console.log(par)
         p1.children.push(par[0].children[0]);
       }
     }    

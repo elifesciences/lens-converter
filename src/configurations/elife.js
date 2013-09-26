@@ -289,11 +289,10 @@ ElifeConfiguration.Prototype = function() {
       var copyright = license.querySelector("copyright-statement");
       if (copyright) {
         var par = converter.paragraphGroup(state, copyright);
-        var parid = par[0];
-        var textid = parid.chidren[0];
-        console.log(textid.id)
-        textid.content += ". ";
-        doc.create(textid)
+        var parid = par[0].children[0];
+        console.log(parid)
+        //textid.content += ". ";
+        //doc.create(textid)
         nodes.push(par[0].id);
       }
       var lic = license.querySelector("license");
