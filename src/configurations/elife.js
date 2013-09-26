@@ -291,7 +291,7 @@ ElifeConfiguration.Prototype = function() {
         var par = converter.paragraphGroup(state, copyright);
         var textid = par[0].children[0];
         console.log(textid)
-        console.log(doc)
+        console.log(doc.nodes[textid].content)
         //textid.content += ". ";
         //doc.create(textid)
         nodes.push(par[0].id);
