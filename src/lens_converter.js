@@ -1029,6 +1029,7 @@ LensImporter.Prototype = function() {
           var name = children[j];
           if (j === 0) {
             var par = this.paragraphGroup(state,info);
+            console.log(par)
             p1.children.push(par[0].children[0]);
           }
           else {
