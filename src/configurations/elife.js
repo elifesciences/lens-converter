@@ -240,7 +240,6 @@ ElifeConfiguration.Prototype = function() {
       var data = datasets[i];
       var type = data.getAttribute('sec-type');
       if (type === 'datasets') {
-        console.log('getting data');
         var h1 = {
           "type" : "heading",
           "id" : state.nextId("heading"),

@@ -238,7 +238,6 @@ LensImporter.Prototype = function() {
         if (elem && elem.getAttribute("fn-type") === "con") {
           personNode.contribution = elem.textContent;
         } else {
-          console.log(elem);
           // skipping...
         }
       }
@@ -271,8 +270,6 @@ LensImporter.Prototype = function() {
     return _annotationTypes[type] !== undefined;
   };
 
-
-
   this.createAnnotation = function(state, el, start, end) {
     var type = el.tagName.toLowerCase();
     var anno = {
@@ -285,10 +282,11 @@ LensImporter.Prototype = function() {
       var sourceId = el.getAttribute("rid");
       if (refType === "bibr") {
         anno.type = "citation_reference";
-      } else if (refType === "fig" || refType === "table" || refType === "supplementary-material") {
+      } else if (refType === "fig" || refType === "table" || refType === "supplementary-material" || refType === "other") {
         anno.type = "figure_reference";
       } else {
-        anno.type = "figure_reference";
+        // Treat everything else as cross reference
+        anno.type = "cross_reference";
         // console.log("Ignoring xref: ", refType, el);
         // return;
       }
