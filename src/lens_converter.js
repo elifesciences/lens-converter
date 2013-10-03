@@ -1044,7 +1044,10 @@ LensImporter.Prototype = function() {
       }
       else {
         var par = this.paragraphGroup(state,info);
-        p1.children.push(par[0].children[0]);
+        // Smarter null reference check?
+        if (par && par[0] && par[0].children) {
+          p1.children.push(par[0].children[0]);  
+        }
       }
     }    
     doc.create(p1);
