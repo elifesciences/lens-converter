@@ -18,15 +18,6 @@ ElifeConfiguration.Prototype = function() {
     var graphic = element.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
 
-    // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
-    // url = [
-    //   "http://cdn.elifesciences.org/elife-articles/",
-    //   state.doc.id,
-    //   "/svg/",
-    //   url,
-    //   ".svg"
-    // ].join('');
-
     node.url = this.resolveURL(state, url);
   };
 
@@ -56,7 +47,7 @@ ElifeConfiguration.Prototype = function() {
     node.url = [
       "http://cdn.elifesciences.org/elife-articles/",
       state.doc.id,
-      "/supplements/",
+      "/suppl/",
       node.url
     ].join('');
   };
