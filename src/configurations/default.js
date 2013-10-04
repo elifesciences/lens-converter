@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 
 var DefaultConfiguration = function() {
 
@@ -24,14 +26,19 @@ DefaultConfiguration.Prototype = function() {
     var url = element.getAttribute("xlink:href");
     // Just return absolute urls
     if (url.match(/http:/)) {
-      node.url = url;
+      var lastdotIdx = url.lastIndexOf(".");
+      var name = url.substring(0, lastdotIdx);
+      node.url = name+".mp4";
+      node.url_ogv = name+".ogv";
+      node.url_webm = name+".webm";
+      node.poster = name+".png";
       return;
     } else {
       var name = url.split(".")[0];
       node.url = state.options.baseURL+name+".mp4";
       node.url_ogv = state.options.baseURL+name+".ogv";
       node.url_webm = state.options.baseURL+name+".webm";
-      node.poster = state.options.baseURL+name+".jpg";
+      node.poster = state.options.baseURL+name+".png";
     }
   };
 
@@ -39,7 +46,6 @@ DefaultConfiguration.Prototype = function() {
   this.enhanceFigure = function(state, node, element) {
     var graphic = element.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
-
     node.url = this.resolveURL(state, url);
   };
 
