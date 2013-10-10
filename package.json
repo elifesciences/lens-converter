@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "underscore": "1.5.x",
-    "substance-converter": "master"
+    "substance-converter": "0.1.0"
   },
   "version": "0.1.0",
   "engines": {
