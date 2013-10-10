@@ -1,6 +1,5 @@
 {
   "name":"lens-converter",
-  "private":true,
   "repository": {
     "type": "git",
     "url": "https://github.com/elifesciences/lens-converter.git"
