@@ -34,6 +34,8 @@ ElifeConfiguration.Prototype = function() {
 
   // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
   this.resolveURL = function(state, url) {
+    if (url.match(/http:\/\//)) return url;
+
     return [
       "http://cdn.elifesciences.org/elife-articles/",
       state.doc.id,
