@@ -133,6 +133,24 @@ LensImporter.Prototype = function() {
       doc.create(anno);
     }, this);
 
+    // Move to elife configuration
+    // -------------------
+    // <article-categories>
+    // <subj-group subj-group-type="display-channel">...</subj-group>
+    // <subj-group subj-group-type="heading">...</subj-group>
+    // </article-categories>
+
+    // <article-categories>
+    //   <subj-group subj-group-type="display-channel">
+    //     <subject>Research article</subject>
+    //   </subj-group>
+    //   <subj-group subj-group-type="heading">
+    //     <subject>Biophysics and structural biology</subject>
+    //   </subj-group>
+    // </article-categories>
+
+    state.config.enhanceCover(state, cover, article);
+
     doc.create(cover);
     doc.show("content", cover.id, 0);
   };

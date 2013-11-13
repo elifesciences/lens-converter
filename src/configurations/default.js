@@ -15,6 +15,10 @@ DefaultConfiguration.Prototype = function() {
     // Noop - override in your configuration
   };
 
+  this.enhanceCover = function(state, node, element) {
+    // Noop - override in your configuration
+  };
+
   // Default video resolver
   // --------
   // 
