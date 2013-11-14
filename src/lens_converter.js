@@ -1457,7 +1457,12 @@ LensImporter.Prototype = function() {
       if (articleTitle) {
         citationNode.title = articleTitle.textContent;
       } else {
-        console.error("FIXME: this citation has no title", citation);
+        var comment = citation.querySelector("comment");
+        if (comment) {
+          citationNode.title = comment.textContent;
+        } else {
+          console.error("FIXME: this citation has no title", citation);  
+        }
       }
 
       var source = citation.querySelector("source");
@@ -1465,6 +1470,12 @@ LensImporter.Prototype = function() {
 
       var volume = citation.querySelector("volume");
       if (volume) citationNode.volume = volume.textContent;
+
+      var publisherLoc = citation.querySelector("publisher-loc");
+      if (publisherLoc) citationNode.publisher_location = publisherLoc.textContent;
+
+      var publisherName = citation.querySelector("publisher-name");
+      if (publisherName) citationNode.publisher_name = publisherName.textContent;
 
       var fpage = citation.querySelector("fpage");
       if (fpage) citationNode.fpage = fpage.textContent;
