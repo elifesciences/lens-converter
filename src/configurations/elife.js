@@ -15,7 +15,7 @@ ElifeConfiguration.Prototype = function() {
     var category = element.querySelector("subj-group[subj-group-type=heading] subject").textContent;
 
     node.breadcrumbs = [
-      { name: "eLife", url: "http://elife.elifesciences.org/", image: "images/elife.png" },
+      { name: "eLife", url: "http://elife.elifesciences.org/", image: "styles/elife.png" },
       { name: dispChannel, url: "http://elife.elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase() },
       { name: category, url: "http://elife.elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() },
     ];
@@ -43,16 +43,16 @@ ElifeConfiguration.Prototype = function() {
     node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
   };
 
-  // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
+  // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
   this.resolveURL = function(state, url) {
     if (url.match(/http:\/\//)) return url;
 
     return [
       "http://cdn.elifesciences.org/elife-articles/",
       state.doc.id,
-      "/svg/",
+      "/jpg/",
       url,
-      ".svg"
+      ".jpg"
     ].join('');
   };
 
