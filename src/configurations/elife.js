@@ -10,15 +10,14 @@ var ElifeConfiguration = function() {
 
 ElifeConfiguration.Prototype = function() {
 
-
   this.enhanceCover = function(state, node, element) {
     var dispChannel = element.querySelector("subj-group[subj-group-type=display-channel] subject").textContent;
     var category = element.querySelector("subj-group[subj-group-type=heading] subject").textContent;
 
     node.breadcrumbs = [
-      {name: "eLife", url: "http://elife.elifesciences.org/"},
-      {name: dispChannel, url: "http://elife.elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase()},
-      {name: category, url: "http://elife.elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase()},
+      { name: "eLife", url: "http://elife.elifesciences.org/", image: "images/elife.png" },
+      { name: dispChannel, url: "http://elife.elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase() },
+      { name: category, url: "http://elife.elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() },
     ];
   };
 
