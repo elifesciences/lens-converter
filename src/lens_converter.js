@@ -1555,17 +1555,7 @@ LensImporter.State = function(xmlDoc, doc, options) {
   // Note: it happens that some XML files are edited without considering the meaning of whitespaces
   // to increase readability.
   // This *hack* eliminates multiple whitespaces at the begin and end of textish elements.
-  // However, there may be cases where two spaces would remain, e.g.,
-  // <p>Text and trailing space
-  //    <ref>
-  //        Ref content
-  //    </ref>
-  // </p>
-  //
-  // Although, this is nicely readable, there are lots of undesired whitespaces here,
-  // and in general it is not clear when it is appropriate to eliminate these.
-  // If the two spaces are a problem we could still try to add some more sniffing when processing annotations.
-  // I.e., that leading WS would be eliminated completely if the current plain-text ends with a SPACE.
+
   var WS_LEFT = /^\s+/g;
   var WS_LEFT_ALL = /^\s*/g;
   var WS_RIGHT = /\s+$/g;
