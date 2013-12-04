@@ -360,7 +360,9 @@ LensImporter.Prototype = function() {
           var annotatedText = this.annotatedText(state, childIterator, charPos, "nested");
           plainText += annotatedText;
           charPos += annotatedText.length;
-          this.createAnnotation(state, el, start, charPos);
+          if (!state.ignoreAnnotations) {
+            this.createAnnotation(state, el, start, charPos);
+          }
         }
 
         // Unsupported...
@@ -1090,12 +1092,21 @@ LensImporter.Prototype = function() {
     // create a heading
     // TODO: headings can contain annotations too
     var title = children[0];
+
+    // HACK: parsing the title text in the same way as annotated text
+    // however, the document model does not allow this currently
+    state.ignoreAnnotations = true;
+    var titleIterator = new util.dom.ChildNodeIterator(title);
+    var titleText = this.annotatedText(state, titleIterator);
+    state.ignoreAnnotations = false;
+
     var heading = {
       id: state.nextId("heading"),
       source_id: section.getAttribute("id"),
       type: "heading",
       level: state.sectionLevel,
-      content: title.textContent
+      // TODO: it can happen that there are annotations in the title
+      content: titleText
     };
     doc.create(heading);
 
