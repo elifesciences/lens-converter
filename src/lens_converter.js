@@ -15,7 +15,7 @@ var PLOSConfiguration = require("./configurations/plos");
 var PeerJConfiguration = require("./configurations/peerj");
 
 var LensImporter = function(options) {
-  this.options = options;
+  this.options = options || {};
 };
 
 LensImporter.Prototype = function() {
@@ -42,6 +42,9 @@ LensImporter.Prototype = function() {
   };
 
   // ### The main entry point for starting an import
+  // options:
+  //   - TRIM_WHITESPACES : eliminates any succeeding white-spaces; Use this to prettify the output for
+  //     prettified XML containing indentation for readability. (Default: undefined)
 
   this.import = function(input, options) {
     var xmlDoc;
@@ -341,8 +344,9 @@ LensImporter.Prototype = function() {
       var el = iterator.next();
       // Plain text nodes...
       if (el.nodeType === Node.TEXT_NODE) {
-        plainText += el.textContent;
-        charPos += el.textContent.length;
+        var text = state.acceptText(el.textContent);
+        plainText += text;
+        charPos += text.length;
       }
       // Annotations...
       else {
@@ -903,6 +907,7 @@ LensImporter.Prototype = function() {
   //
 
   this.body = function(state, body) {
+    var doc = state.doc;
 
     var heading = {
       id: state.nextId("heading"),
@@ -911,7 +916,6 @@ LensImporter.Prototype = function() {
       content: "Main Text"
     };
     doc.create(heading);
-
 
     var nodes = [heading].concat(this.bodyNodes(state, util.dom.getChildren(body)));
 
@@ -994,7 +998,7 @@ LensImporter.Prototype = function() {
     doc.create(boxNode);
 
     // Boxes go into the figures view if these conditions are met
-    // 1. box has a label (e.g. elife 00288) 
+    // 1. box has a label (e.g. elife 00288)
     if (label) {
       doc.show("figures", boxId, -1);
       return null;
@@ -1024,6 +1028,8 @@ LensImporter.Prototype = function() {
   };
 
   this.indivdata = function(state,indivdata) {
+    var doc = state.doc;
+
     var p1 = {
       "type" : "paragraph",
       "id" : state.nextId("paragraph"),
@@ -1053,8 +1059,8 @@ LensImporter.Prototype = function() {
               "id" : state.nextId("text"),
               "content" : ", "
             };
-            doc.create(text2)
-            p1.children.push(text2.id)
+            doc.create(text2);
+            p1.children.push(text2.id);
             var par = this.paragraphGroup(state,name);
             p1.children.push(par[0].children[0]);
           }
@@ -1064,10 +1070,10 @@ LensImporter.Prototype = function() {
         var par = this.paragraphGroup(state,info);
         // Smarter null reference check?
         if (par && par[0] && par[0].children) {
-          p1.children.push(par[0].children[0]);  
+          p1.children.push(par[0].children[0]);
         }
       }
-    }    
+    }
     doc.create(p1);
     doc.create(text1);
     return p1.id;
@@ -1461,7 +1467,7 @@ LensImporter.Prototype = function() {
         if (comment) {
           citationNode.title = comment.textContent;
         } else {
-          console.error("FIXME: this citation has no title", citation);  
+          console.error("FIXME: this citation has no title", citation);
         }
       }
 
@@ -1545,6 +1551,44 @@ LensImporter.State = function(xmlDoc, doc, options) {
     ids[type]++;
     return type +"_"+ids[type];
   };
+
+  // Note: it happens that some XML files are edited without considering the meaning of whitespaces
+  // to increase readability.
+  // This *hack* eliminates multiple whitespaces at the begin and end of textish elements.
+  // However, there may be cases where two spaces would remain, e.g.,
+  // <p>Text and trailing space
+  //    <ref>
+  //        Ref content
+  //    </ref>
+  // </p>
+  //
+  // Although, this is nicely readable, there are lots of undesired whitespaces here,
+  // and in general it is not clear when it is appropriate to eliminate these.
+  // If the two spaces are a problem we could still try to add some more sniffing when processing annotations.
+  // I.e., that leading WS would be eliminated completely if the current plain-text ends with a SPACE.
+  var WS_LEFT = /^\s+/g;
+  var WS_LEFT_ALL = /^\s*/g;
+  var WS_RIGHT = /\s+$/g;
+  var SPACE = " ";
+
+  this.lastChar = "";
+  this.acceptText = function(text) {
+    if (!this.options.TRIM_WHITESPACES) {
+      return text;
+    }
+
+    if (this.lastChar === SPACE) {
+      text = text.replace(WS_LEFT_ALL, "");
+    } else {
+      text = text.replace(WS_LEFT, SPACE);
+    }
+
+    text = text.replace(WS_RIGHT, SPACE);
+
+    this.lastChar = text[text.length-1] || this.lastChar;
+    return text;
+  };
+
 };
 
 // LensImporter.Prototype.prototype = NLMImporter.prototype;
