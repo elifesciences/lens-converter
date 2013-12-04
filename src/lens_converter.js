@@ -1559,6 +1559,8 @@ LensImporter.State = function(xmlDoc, doc, options) {
   var WS_LEFT = /^\s+/g;
   var WS_LEFT_ALL = /^\s*/g;
   var WS_RIGHT = /\s+$/g;
+  var ALL_WS_NOTSPACE_LEFT = /^[\t\n]+/g;
+  var ALL_WS_NOTSPACE_RIGHT = /[\t\n]+$/g;
   var SPACE = " ";
 
   this.lastChar = "";
@@ -1566,13 +1568,14 @@ LensImporter.State = function(xmlDoc, doc, options) {
     if (!this.options.TRIM_WHITESPACES) {
       return text;
     }
-
+    text = text.replace(ALL_WS_NOTSPACE_LEFT, "");
     if (this.lastChar === SPACE) {
       text = text.replace(WS_LEFT_ALL, "");
     } else {
       text = text.replace(WS_LEFT, SPACE);
     }
 
+    text = text.replace(ALL_WS_NOTSPACE_RIGHT, "");
     text = text.replace(WS_RIGHT, SPACE);
 
     this.lastChar = text[text.length-1] || this.lastChar;
