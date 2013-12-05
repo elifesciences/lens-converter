@@ -110,27 +110,27 @@ LensImporter.Prototype = function() {
       abstract: docNode.abstract
     };
 
-    // Create authors paragraph that has person_reference annotations
+    // Create authors paragraph that has contributor_reference annotations
     // to activate the author cards
 
-    _.each(docNode.authors, function(personId) {
-      var person = doc.get(personId);
+    _.each(docNode.authors, function(contributorId) {
+      var contributor = doc.get(contributorId);
 
       var authorsPara = {
-        "id": "text_"+personId+"_reference",
+        "id": "text_"+contributorId+"_reference",
         "type": "text",
-        "content": person.name
+        "content": contributor.name
       };
 
       doc.create(authorsPara);
       cover.authors.push(authorsPara.id);
 
       var anno = {
-        id: state.nextId("person_reference"),
-        type: "person_reference",
-        path: ["text_" + personId + "_reference", "content"],
-        range: [0, person.name.length],
-        target: personId
+        id: state.nextId("contributor_reference"),
+        type: "contributor_reference",
+        path: ["text_" + contributorId + "_reference", "content"],
+        range: [0, contributor.name.length],
+        target: contributorId
       };
 
       doc.create(anno);
@@ -209,11 +209,11 @@ LensImporter.Prototype = function() {
   this.contributor = function(state, contrib) {
     var doc = state.doc;
 
-    var id = state.nextId("person");
-    var personNode = {
+    var id = state.nextId("contributor");
+    var contribNode = {
       id: id,
       source_id: contrib.getAttribute("id"),
-      type: "person",
+      type: "contributor",
       name: "",
       affiliations: [],
       fundings: [],
@@ -227,19 +227,19 @@ LensImporter.Prototype = function() {
     // Extracting equal contributions
     var nameEl = contrib.querySelector("name");
     if (nameEl) {
-      personNode.name = _getName(nameEl);  
+      contribNode.name = _getName(nameEl);  
     } else {
       var collab = contrib.querySelector("collab");
       // Assuming this is an author group
       if (collab) {
-        personNode.name = collab.textContent;  
+        contribNode.name = collab.textContent;  
       } else {
-        personNode.name = "N/A";
+        contribNode.name = "N/A";
       }
     }
     
-    if (_.include(state.equalContribs, personNode.name)) {
-      personNode.equal_contrib = _.without(state.equalContribs, personNode.name);
+    if (_.include(state.equalContribs, contribNode.name)) {
+      contribNode.equal_contrib = _.without(state.equalContribs, contribNode.name);
     }
 
     // extract affiliations stored as xrefs
@@ -250,25 +250,25 @@ LensImporter.Prototype = function() {
         var affId = xref.getAttribute("rid");
         var affNode = doc.getNodeBySourceId(affId);
         if (affNode) {
-          personNode.affiliations.push(affNode.id);
+          contribNode.affiliations.push(affNode.id);
         }
       } else if (xref.getAttribute("ref-type") === "other") {
         var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!awardGroup) return;
         var fundingSource = awardGroup.querySelector("funding-source");
         if (!fundingSource) return;
-        personNode.fundings.push(fundingSource.textContent);
+        contribNode.fundings.push(fundingSource.textContent);
       } else if (xref.getAttribute("ref-type") === "corresp") {
         var corresp = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!corresp) return;
         var email = corresp.querySelector("email");
         if (!email) return;
-        personNode.emails.push(email.textContent);
+        contribNode.emails.push(email.textContent);
       } else if (xref.getAttribute("ref-type") === "fn") {
         var elem = state.xmlDoc.getElementById(xref.getAttribute("rid"));
 
         if (elem && elem.getAttribute("fn-type") === "con") {
-          personNode.contribution = elem.textContent;
+          contribNode.contribution = elem.textContent;
         } else {
           // skipping...
         }
@@ -279,8 +279,8 @@ LensImporter.Prototype = function() {
       doc.nodes.document.authors.push(id);
     }
 
-    doc.create(personNode);
-    doc.show("info", personNode.id);
+    doc.create(contribNode);
+    doc.show("info", contribNode.id);
   };
 
   // Annotations
