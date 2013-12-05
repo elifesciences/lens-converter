@@ -226,7 +226,18 @@ LensImporter.Prototype = function() {
 
     // Extracting equal contributions
     var nameEl = contrib.querySelector("name");
-    personNode.name = _getName(nameEl);
+    if (nameEl) {
+      personNode.name = _getName(nameEl);  
+    } else {
+      var collab = contrib.querySelector("collab");
+      // Assuming this is an author group
+      if (collab) {
+        personNode.name = collab.textContent;  
+      } else {
+        personNode.name = "N/A";
+      }
+    }
+    
     if (_.include(state.equalContribs, personNode.name)) {
       personNode.equal_contrib = _.without(state.equalContribs, personNode.name);
     }
@@ -267,7 +278,6 @@ LensImporter.Prototype = function() {
     if (contrib.getAttribute("contrib-type") === "author") {
       doc.nodes.document.authors.push(id);
     }
-
 
     doc.create(personNode);
     doc.show("info", personNode.id);
