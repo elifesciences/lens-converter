@@ -227,17 +227,17 @@ LensImporter.Prototype = function() {
     // Extracting equal contributions
     var nameEl = contrib.querySelector("name");
     if (nameEl) {
-      contribNode.name = _getName(nameEl);  
+      contribNode.name = _getName(nameEl);
     } else {
       var collab = contrib.querySelector("collab");
       // Assuming this is an author group
       if (collab) {
-        contribNode.name = collab.textContent;  
+        contribNode.name = collab.textContent;
       } else {
         contribNode.name = "N/A";
       }
     }
-    
+
     if (_.include(state.equalContribs, contribNode.name)) {
       contribNode.equal_contrib = _.without(state.equalContribs, contribNode.name);
     }
@@ -1576,6 +1576,9 @@ LensImporter.State = function(xmlDoc, doc, options) {
   // Note: it happens that some XML files are edited without considering the meaning of whitespaces
   // to increase readability.
   // This *hack* eliminates multiple whitespaces at the begin and end of textish elements.
+  // Tabs and New Lines are eliminated completely. So with this, the preferred way to prettify your XML
+  // is to use Tabuators and New Lines. At the same time, it is not possible anymore to have soft breaks within
+  // a text.
 
   var WS_LEFT = /^\s+/g;
   var WS_LEFT_ALL = /^\s*/g;
@@ -1583,20 +1586,26 @@ LensImporter.State = function(xmlDoc, doc, options) {
   var ALL_WS_NOTSPACE_LEFT = /^[\t\n]+/g;
   var ALL_WS_NOTSPACE_RIGHT = /[\t\n]+$/g;
   var SPACE = " ";
+  var TABS_OR_NL = /[\t\n\r]+/g;
 
   this.lastChar = "";
   this.acceptText = function(text) {
     if (!this.options.TRIM_WHITESPACES) {
       return text;
     }
-    text = text.replace(ALL_WS_NOTSPACE_LEFT, "");
+
+    // EXPERIMENTAL: drop all 'formatting' white-spaces (e.g., tabs and new lines)
+    // (instead of doing so only at the left and right end)
+    //text = text.replace(ALL_WS_NOTSPACE_LEFT, "");
+    //text = text.replace(ALL_WS_NOTSPACE_RIGHT, "");
+    text = text.replace(TABS_OR_NL, "")
+
     if (this.lastChar === SPACE) {
       text = text.replace(WS_LEFT_ALL, "");
     } else {
       text = text.replace(WS_LEFT, SPACE);
     }
 
-    text = text.replace(ALL_WS_NOTSPACE_RIGHT, "");
     text = text.replace(WS_RIGHT, SPACE);
 
     this.lastChar = text[text.length-1] || this.lastChar;
