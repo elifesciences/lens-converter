@@ -233,6 +233,16 @@ LensImporter.Prototype = function() {
       contribNode.deceased = true;
     }
 
+    // Extract ORCID
+    // -----------------
+    // 
+    // <uri content-type="orcid" xlink:href="http://orcid.org/0000-0002-7361-560X"/>
+
+    var orcidURI = contrib.querySelector("uri[content-type=orcid]");
+    if (orcidURI) {
+      contribNode.orcid = orcidURI.getAttribute("xlink:href");
+    }
+
     // Extracting equal contributions
     var nameEl = contrib.querySelector("name");
     if (nameEl) {
@@ -265,7 +275,7 @@ LensImporter.Prototype = function() {
 
     // extract affiliations stored as xrefs
     var xrefs = contrib.querySelectorAll("xref");
-
+    var compInterests = [];
     _.each(xrefs, function(xref) {
       if (xref.getAttribute("ref-type") === "aff") {
         var affId = xref.getAttribute("rid");
@@ -290,11 +300,17 @@ LensImporter.Prototype = function() {
 
         if (elem && elem.getAttribute("fn-type") === "con") {
           contribNode.contribution = elem.textContent;
+        } else if (elem && elem.getAttribute("fn-type") === "conflict") {
+          // skipping...
+          compInterests.push(elem.textContent.trim());
         } else {
           // skipping...
         }
       }
     });
+    
+
+    contribNode.competing_interests = compInterests;
 
     if (contrib.getAttribute("contrib-type") === "author") {
       doc.nodes.document.authors.push(id);
