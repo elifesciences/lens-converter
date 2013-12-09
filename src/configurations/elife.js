@@ -211,29 +211,28 @@ ElifeConfiguration.Prototype = function() {
 
     if (impact) {
       var par = converter.paragraphGroup(state, impact);
-      nodes.push(par[0].id);      
+      nodes.push(par[0].id);
     }
-
 
     // Get conflict of interest
 
-    var conflict = article.querySelectorAll("fn");
-    for (var i = 0; i < conflict.length;i++) {
-      var indiv = conflict[i];
-      var type = indiv.getAttribute("fn-type");
-        if (type === 'conflict') {
-          var h1 = {
-          "type" : "heading",
-          "id" : state.nextId("heading"),
-          "level" : 1,
-          "content" : "Competing Interests"
-        };
-        doc.create(h1);
-        nodes.push(h1.id);
-        var par = converter.bodyNodes(state, util.dom.getChildren(indiv));
-        nodes.push(par[0].id);
-      }
-    }
+    // var conflict = article.querySelectorAll("fn");
+    // for (var i = 0; i < conflict.length;i++) {
+    //   var indiv = conflict[i];
+    //   var type = indiv.getAttribute("fn-type");
+    //     if (type === 'conflict') {
+    //       var h1 = {
+    //       "type" : "heading",
+    //       "id" : state.nextId("heading"),
+    //       "level" : 1,
+    //       "content" : "Competing Interests"
+    //     };
+    //     doc.create(h1);
+    //     nodes.push(h1.id);
+    //     var par = converter.bodyNodes(state, util.dom.getChildren(indiv));
+    //     nodes.push(par[0].id);
+    //   }
+    // }
 
     // Get major datasets
 
