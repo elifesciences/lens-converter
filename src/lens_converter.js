@@ -294,7 +294,8 @@ LensImporter.Prototype = function() {
     "sup": "superscript",
     "underline": "underline",
     "ext-link": "link",
-    "xref": ""
+    "xref": "",
+    "named-content": "ignore"
   };
 
   this.isAnnotation = function(type) {
@@ -323,6 +324,9 @@ LensImporter.Prototype = function() {
       }
 
       if (sourceId) anno.target = sourceId.split(" ")[0];
+    }
+    else if (_annotationTypes[type] === "ignore") {
+      return;
     }
     // Common annotations (e.g., emphasis)
     else if (_annotationTypes[type] !== undefined) {
