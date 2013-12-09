@@ -28,9 +28,11 @@ LensImporter.Prototype = function() {
 
     var surnameEl = nameEl.querySelector("surname");
     var givenNamesEl = nameEl.querySelector("given-names");
+    var suffix = nameEl.querySelector("suffix");
 
     if (givenNamesEl) names.push(givenNamesEl.textContent);
     if (surnameEl) names.push(surnameEl.textContent);
+    if (suffix) return [names.join(" "), suffix.textContent].join(", ");
 
     return names.join(" ");
   };
@@ -219,10 +221,17 @@ LensImporter.Prototype = function() {
       fundings: [],
       // Not yet supported... need examples
       image: "",
+      deceased: false,
       emails: [],
       contribution: ""
     };
 
+
+    // Deceased?
+
+    if (contrib.getAttribute("deceased") === "yes") {
+      contribNode.deceased = true;
+    }
 
     // Extracting equal contributions
     var nameEl = contrib.querySelector("name");
