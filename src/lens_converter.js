@@ -315,7 +315,6 @@ LensImporter.Prototype = function() {
         } else if (elem && elem.getAttribute("fn-type") === "present-address") {
           // Extract present address
           contribNode.present_address = elem.querySelector("p").textContent;
-          console.log('PA', contribNode.present_address);
         } else {
           // skipping...
         }

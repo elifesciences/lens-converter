@@ -196,8 +196,6 @@ ElifeConfiguration.Prototype = function() {
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
     };
 
-
-
     doc.create(pubInfoNode);
     doc.show("info", pubInfoNode.id, 0);
   };
