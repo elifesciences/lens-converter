@@ -168,6 +168,7 @@ LensImporter.Prototype = function() {
   this.contribGroup = function(state, contribGroup) {
     var i;
     var affiliations = contribGroup.querySelectorAll("aff");
+
     for (i = 0; i < affiliations.length; i++) {
       this.affiliation(state, affiliations[i]);
     }
@@ -179,11 +180,17 @@ LensImporter.Prototype = function() {
       return _getName(c);
     });
 
-
     var contribs = contribGroup.querySelectorAll("contrib");
     for (i = 0; i < contribs.length; i++) {
       this.contributor(state, contribs[i]);
     }
+
+    // Extract on-behalf-of element and stick it to the document
+    var doc = state.doc;
+    var onBehalfOf = contribGroup.querySelector("on-behalf-of");
+    if (onBehalfOf) doc.on_behalf_of = onBehalfOf.textContent.trim();
+    // doc.nodes.document.onBehalfOf
+    // console.log("ONBEHALFOF", onBehalfOf.textContent.trim());
   };
 
   this.affiliation = function(state, aff) {
@@ -205,7 +212,6 @@ LensImporter.Prototype = function() {
       institution: institution ? institution.textContent : null,
       country: country ? country.textContent: null
     };
-
     doc.create(affiliationNode);
   };
 

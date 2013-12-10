@@ -166,6 +166,15 @@ ElifeConfiguration.Prototype = function() {
       pdfURI ? pdfURI.getAttribute("xlink:href") : "#"
     ].join('');
 
+
+    // Related article if exists
+    // -----------
+
+    var relatedArticle = article.querySelector("related-article");
+
+
+    // if (relatedArticle) relatedArticle = relatedArticle.getAttribute("xlink:href");
+
     // Create PublicationInfo node
     // ---------------
     
@@ -181,10 +190,12 @@ ElifeConfiguration.Prototype = function() {
       "article_type": articleType ? articleType.textContent : "",
       "journal": journalTitle ? journalTitle.textContent : "",
       "pdf_link": pdfLink,
+      "related_article": relatedArticle ? ["http://dx.doi.org/", relatedArticle.getAttribute("xlink:href")].join("") : "",
       "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml", // "http://mickey.com/mouse.xml",
       "json_link": "http://mickey.com/mouse.json",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
     };
+
 
 
     doc.create(pubInfoNode);
@@ -219,7 +230,7 @@ ElifeConfiguration.Prototype = function() {
     var h1 = {
       "type": "heading",
       "id": state.nextId("heading"),
-      "level": 1,
+      "level": 3,
       "content": "Impact",
     };
     doc.create(h1);
@@ -263,7 +274,7 @@ ElifeConfiguration.Prototype = function() {
     var h1 = {
       "type": "heading",
       "id": state.nextId("heading"),
-      "level": 1,
+      "level": 3,
       "content": "Reviewing Editor"
     };
     
@@ -292,7 +303,7 @@ ElifeConfiguration.Prototype = function() {
         var h1 = {
           "type" : "heading",
           "id" : state.nextId("heading"),
-          "level" : 1,
+          "level" : 3,
           "content" : "Major Datasets"
         };
         doc.create(h1);
@@ -313,7 +324,7 @@ ElifeConfiguration.Prototype = function() {
       var h1 = {
         "type" : "heading",
         "id" : state.nextId("heading"),
-        "level" : 1,
+        "level" : 3,
         "content" : "Acknowledgements"
       };
       doc.create(h1);
@@ -328,7 +339,7 @@ ElifeConfiguration.Prototype = function() {
       var h1 = {
         "type" : "heading",
         "id" : state.nextId("heading"),
-        "level" : 1,
+        "level" : 3,
         "content" : "Copyright and License"
       };
       doc.create(h1);
