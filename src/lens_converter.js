@@ -303,13 +303,16 @@ LensImporter.Prototype = function() {
         } else if (elem && elem.getAttribute("fn-type") === "conflict") {
           // skipping...
           compInterests.push(elem.textContent.trim());
+        } else if (elem && elem.getAttribute("fn-type") === "present-address") {
+          // Extract present address
+          contribNode.present_address = elem.querySelector("p").textContent;
+          console.log('PA', contribNode.present_address);
         } else {
           // skipping...
         }
       }
     });
     
-
     contribNode.competing_interests = compInterests;
 
     if (contrib.getAttribute("contrib-type") === "author") {
@@ -538,7 +541,6 @@ LensImporter.Prototype = function() {
       this.show(state, figureNodes);
     }
   };
-
 
 
   this.extractCitations = function(state, xmlDoc) {
