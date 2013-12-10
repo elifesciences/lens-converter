@@ -196,6 +196,7 @@ ElifeConfiguration.Prototype = function() {
   // ---------
   //
   // Impact
+  // Reviewing Editor
   // Major datasets
   // Acknowledgements
   // Copyright
@@ -248,6 +249,37 @@ ElifeConfiguration.Prototype = function() {
     //     nodes.push(par[0].id);
     //   }
     // }
+
+    // Get reviewing editor
+    // --------------
+
+    var editor = article.querySelector("contrib[contrib-type=editor]");
+
+    var name = converter.getName(editor.querySelector('name'));
+    var inst = editor.querySelector("institution").textContent;
+    var role = editor.querySelector("role").textContent;
+    var country = editor.querySelector("country").textContent;
+
+    var h1 = {
+      "type": "heading",
+      "id": state.nextId("heading"),
+      "level": 1,
+      "content": "Reviewing Editor"
+    };
+    
+    doc.create(h1);
+    nodes.push(h1.id);
+
+    var t1 = {
+      "type": "text",
+      "id": state.nextId("text"),
+      "content": [name, role, inst, country].join(", ")
+    };
+
+    doc.create(t1);
+    nodes.push(t1.id);
+
+
 
     // Get major datasets
 

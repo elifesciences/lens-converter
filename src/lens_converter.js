@@ -37,6 +37,9 @@ LensImporter.Prototype = function() {
     return names.join(" ");
   };
 
+  // Expose getName helper to public API
+  this.getName = _getName;
+
   var _toHtml = function(el) {
     var tmp = document.createElement("DIV");
     tmp.appendChild(el.cloneNode(true));
