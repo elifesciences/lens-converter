@@ -44,24 +44,39 @@ ElifeConfiguration.Prototype = function() {
 
   // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
   this.resolveURL = function(state, url) {
+    // Use absolute URL
     if (url.match(/http:\/\//)) return url;
 
-    return [
-      "http://cdn.elifesciences.org/elife-articles/",
-      state.doc.id,
-      "/jpg/",
-      url,
-      ".jpg"
-    ].join('');
+    // Look up base url
+    var baseURL = this.getBaseURL(state);
+    
+    if (baseURL) {
+      return [baseURL, url].join('');
+    } else {
+      // Use special URL resolving for production articles
+      return [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/jpg/",
+        url,
+        ".jpg"
+      ].join('');
+    }
+
   };
 
   this.enhanceSupplement = function(state, node, element) {
-    node.url = [
-      "http://cdn.elifesciences.org/elife-articles/",
-      state.doc.id,
-      "/suppl/",
-      node.url
-    ].join('');
+    var baseURL = this.getBaseURL(state);
+    if (baseURL) {
+      return [baseURL, node.url].join('');
+    } else {
+      node.url = [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/suppl/",
+        node.url
+      ].join('');
+    }
   };
 
   this.extractPublicationInfo = function(converter, state, article) {
@@ -304,7 +319,6 @@ ElifeConfiguration.Prototype = function() {
           nodes.push(par[0].id)
         }
       }
-      
     }
     
     doc.create(articleInfo);
