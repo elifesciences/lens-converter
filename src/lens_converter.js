@@ -14,6 +14,8 @@ var DefaultConfiguration = require("./configurations/default");
 var PLOSConfiguration = require("./configurations/plos");
 var PeerJConfiguration = require("./configurations/peerj");
 
+
+
 var LensImporter = function(options) {
   this.options = options || {};
 };
@@ -326,6 +328,17 @@ LensImporter.Prototype = function() {
         }
       }
     });
+
+    // HACK: if author is assigned a conflict, remove the redundant
+    // conflict entry "The authors have no competing interests to declare"
+    // This is a data-modelling problem on the end of our input XML
+    // so we need to be smart about it in the converter
+
+    if (compInterests.length > 1) {
+      compInterests = _.filter(compInterests, function(confl) {
+        return confl.indexOf("no competing") < 0;
+      });
+    }
     
     contribNode.competing_interests = compInterests;
 
@@ -1536,6 +1549,15 @@ LensImporter.Prototype = function() {
         citationNode.authors.push(_getName(nameElements[i]));
       }
 
+      // Consider collab elements (treat them as authors)
+      var collabElements = personGroup.querySelectorAll("collab");
+      for (i = 0; i < collabElements.length; i++) {
+        citationNode.authors.push(collabElements[i].textContent);
+      }
+
+      var source = citation.querySelector("source");
+      if (source) citationNode.source = source.textContent;
+
       var articleTitle = citation.querySelector("article-title");
       if (articleTitle) {
         citationNode.title = articleTitle.textContent;
@@ -1544,12 +1566,16 @@ LensImporter.Prototype = function() {
         if (comment) {
           citationNode.title = comment.textContent;
         } else {
-          console.error("FIXME: this citation has no title", citation);
+          // 3rd fallback -> use source
+          if (source) {
+            citationNode.title = source.textContent;
+          } else {
+            console.error("FIXME: this citation has no title", citation);  
+          }
         }
       }
 
-      var source = citation.querySelector("source");
-      if (source) citationNode.source = source.textContent;
+
 
       var volume = citation.querySelector("volume");
       if (volume) citationNode.volume = volume.textContent;
