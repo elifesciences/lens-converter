@@ -44,24 +44,39 @@ ElifeConfiguration.Prototype = function() {
 
   // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
   this.resolveURL = function(state, url) {
+    // Use absolute URL
     if (url.match(/http:\/\//)) return url;
 
-    return [
-      "http://cdn.elifesciences.org/elife-articles/",
-      state.doc.id,
-      "/jpg/",
-      url,
-      ".jpg"
-    ].join('');
+    // Look up base url
+    var baseURL = this.getBaseURL(state);
+    
+    if (baseURL) {
+      return [baseURL, url].join('');
+    } else {
+      // Use special URL resolving for production articles
+      return [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/jpg/",
+        url,
+        ".jpg"
+      ].join('');
+    }
+
   };
 
   this.enhanceSupplement = function(state, node, element) {
-    node.url = [
-      "http://cdn.elifesciences.org/elife-articles/",
-      state.doc.id,
-      "/suppl/",
-      node.url
-    ].join('');
+    var baseURL = this.getBaseURL(state);
+    if (baseURL) {
+      return [baseURL, node.url].join('');
+    } else {
+      node.url = [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/suppl/",
+        node.url
+      ].join('');
+    }
   };
 
   this.extractPublicationInfo = function(converter, state, article) {
@@ -151,6 +166,15 @@ ElifeConfiguration.Prototype = function() {
       pdfURI ? pdfURI.getAttribute("xlink:href") : "#"
     ].join('');
 
+
+    // Related article if exists
+    // -----------
+
+    var relatedArticle = article.querySelector("related-article");
+
+
+    // if (relatedArticle) relatedArticle = relatedArticle.getAttribute("xlink:href");
+
     // Create PublicationInfo node
     // ---------------
     
@@ -166,11 +190,11 @@ ElifeConfiguration.Prototype = function() {
       "article_type": articleType ? articleType.textContent : "",
       "journal": journalTitle ? journalTitle.textContent : "",
       "pdf_link": pdfLink,
+      "related_article": relatedArticle ? ["http://dx.doi.org/", relatedArticle.getAttribute("xlink:href")].join("") : "",
       "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml", // "http://mickey.com/mouse.xml",
       "json_link": "http://mickey.com/mouse.json",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
     };
-
 
     doc.create(pubInfoNode);
     doc.show("info", pubInfoNode.id, 0);
@@ -181,6 +205,7 @@ ElifeConfiguration.Prototype = function() {
   // ---------
   //
   // Impact
+  // Reviewing Editor
   // Major datasets
   // Acknowledgements
   // Copyright
@@ -203,7 +228,7 @@ ElifeConfiguration.Prototype = function() {
     var h1 = {
       "type": "heading",
       "id": state.nextId("heading"),
-      "level": 1,
+      "level": 3,
       "content": "Impact",
     };
     doc.create(h1);
@@ -234,6 +259,37 @@ ElifeConfiguration.Prototype = function() {
     //   }
     // }
 
+    // Get reviewing editor
+    // --------------
+
+    var editor = article.querySelector("contrib[contrib-type=editor]");
+
+    var name = converter.getName(editor.querySelector('name'));
+    var inst = editor.querySelector("institution").textContent;
+    var role = editor.querySelector("role").textContent;
+    var country = editor.querySelector("country").textContent;
+
+    var h1 = {
+      "type": "heading",
+      "id": state.nextId("heading"),
+      "level": 3,
+      "content": "Reviewing Editor"
+    };
+    
+    doc.create(h1);
+    nodes.push(h1.id);
+
+    var t1 = {
+      "type": "text",
+      "id": state.nextId("text"),
+      "content": [name, role, inst, country].join(", ")
+    };
+
+    doc.create(t1);
+    nodes.push(t1.id);
+
+
+
     // Get major datasets
 
     var datasets = article.querySelectorAll('sec');
@@ -245,7 +301,7 @@ ElifeConfiguration.Prototype = function() {
         var h1 = {
           "type" : "heading",
           "id" : state.nextId("heading"),
-          "level" : 1,
+          "level" : 3,
           "content" : "Major Datasets"
         };
         doc.create(h1);
@@ -266,7 +322,7 @@ ElifeConfiguration.Prototype = function() {
       var h1 = {
         "type" : "heading",
         "id" : state.nextId("heading"),
-        "level" : 1,
+        "level" : 3,
         "content" : "Acknowledgements"
       };
       doc.create(h1);
@@ -281,7 +337,7 @@ ElifeConfiguration.Prototype = function() {
       var h1 = {
         "type" : "heading",
         "id" : state.nextId("heading"),
-        "level" : 1,
+        "level" : 3,
         "content" : "Copyright and License"
       };
       doc.create(h1);
@@ -304,7 +360,6 @@ ElifeConfiguration.Prototype = function() {
           nodes.push(par[0].id)
         }
       }
-      
     }
     
     doc.create(articleInfo);

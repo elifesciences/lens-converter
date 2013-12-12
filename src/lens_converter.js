@@ -14,6 +14,8 @@ var DefaultConfiguration = require("./configurations/default");
 var PLOSConfiguration = require("./configurations/plos");
 var PeerJConfiguration = require("./configurations/peerj");
 
+
+
 var LensImporter = function(options) {
   this.options = options || {};
 };
@@ -28,12 +30,17 @@ LensImporter.Prototype = function() {
 
     var surnameEl = nameEl.querySelector("surname");
     var givenNamesEl = nameEl.querySelector("given-names");
+    var suffix = nameEl.querySelector("suffix");
 
     if (givenNamesEl) names.push(givenNamesEl.textContent);
     if (surnameEl) names.push(surnameEl.textContent);
+    if (suffix) return [names.join(" "), suffix.textContent].join(", ");
 
     return names.join(" ");
   };
+
+  // Expose getName helper to public API
+  this.getName = _getName;
 
   var _toHtml = function(el) {
     var tmp = document.createElement("DIV");
@@ -163,6 +170,7 @@ LensImporter.Prototype = function() {
   this.contribGroup = function(state, contribGroup) {
     var i;
     var affiliations = contribGroup.querySelectorAll("aff");
+
     for (i = 0; i < affiliations.length; i++) {
       this.affiliation(state, affiliations[i]);
     }
@@ -174,11 +182,17 @@ LensImporter.Prototype = function() {
       return _getName(c);
     });
 
-
     var contribs = contribGroup.querySelectorAll("contrib");
     for (i = 0; i < contribs.length; i++) {
       this.contributor(state, contribs[i]);
     }
+
+    // Extract on-behalf-of element and stick it to the document
+    var doc = state.doc;
+    var onBehalfOf = contribGroup.querySelector("on-behalf-of");
+    if (onBehalfOf) doc.on_behalf_of = onBehalfOf.textContent.trim();
+    // doc.nodes.document.onBehalfOf
+    // console.log("ONBEHALFOF", onBehalfOf.textContent.trim());
   };
 
   this.affiliation = function(state, aff) {
@@ -200,7 +214,6 @@ LensImporter.Prototype = function() {
       institution: institution ? institution.textContent : null,
       country: country ? country.textContent: null
     };
-
     doc.create(affiliationNode);
   };
 
@@ -219,10 +232,27 @@ LensImporter.Prototype = function() {
       fundings: [],
       // Not yet supported... need examples
       image: "",
+      deceased: false,
       emails: [],
       contribution: ""
     };
 
+
+    // Deceased?
+
+    if (contrib.getAttribute("deceased") === "yes") {
+      contribNode.deceased = true;
+    }
+
+    // Extract ORCID
+    // -----------------
+    // 
+    // <uri content-type="orcid" xlink:href="http://orcid.org/0000-0002-7361-560X"/>
+
+    var orcidURI = contrib.querySelector("uri[content-type=orcid]");
+    if (orcidURI) {
+      contribNode.orcid = orcidURI.getAttribute("xlink:href");
+    }
 
     // Extracting equal contributions
     var nameEl = contrib.querySelector("name");
@@ -256,7 +286,7 @@ LensImporter.Prototype = function() {
 
     // extract affiliations stored as xrefs
     var xrefs = contrib.querySelectorAll("xref");
-
+    var compInterests = [];
     _.each(xrefs, function(xref) {
       if (xref.getAttribute("ref-type") === "aff") {
         var affId = xref.getAttribute("rid");
@@ -267,9 +297,15 @@ LensImporter.Prototype = function() {
       } else if (xref.getAttribute("ref-type") === "other") {
         var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!awardGroup) return;
+
         var fundingSource = awardGroup.querySelector("funding-source");
+
         if (!fundingSource) return;
-        contribNode.fundings.push(fundingSource.textContent);
+
+        var awardId = awardGroup.querySelector("award-id");
+        awardId = awardId ? ", "+awardId.textContent : "";
+
+        contribNode.fundings.push([fundingSource.textContent, awardId].join(''));
       } else if (xref.getAttribute("ref-type") === "corresp") {
         var corresp = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!corresp) return;
@@ -281,11 +317,30 @@ LensImporter.Prototype = function() {
 
         if (elem && elem.getAttribute("fn-type") === "con") {
           contribNode.contribution = elem.textContent;
+        } else if (elem && elem.getAttribute("fn-type") === "conflict") {
+          // skipping...
+          compInterests.push(elem.textContent.trim());
+        } else if (elem && elem.getAttribute("fn-type") === "present-address") {
+          // Extract present address
+          contribNode.present_address = elem.querySelector("p").textContent;
         } else {
           // skipping...
         }
       }
     });
+
+    // HACK: if author is assigned a conflict, remove the redundant
+    // conflict entry "The authors have no competing interests to declare"
+    // This is a data-modelling problem on the end of our input XML
+    // so we need to be smart about it in the converter
+
+    if (compInterests.length > 1) {
+      compInterests = _.filter(compInterests, function(confl) {
+        return confl.indexOf("no competing") < 0;
+      });
+    }
+    
+    contribNode.competing_interests = compInterests;
 
     if (contrib.getAttribute("contrib-type") === "author") {
       doc.nodes.document.authors.push(id);
@@ -521,7 +576,6 @@ LensImporter.Prototype = function() {
       this.show(state, figureNodes);
     }
   };
-
 
 
   this.extractCitations = function(state, xmlDoc) {
@@ -1504,6 +1558,15 @@ LensImporter.Prototype = function() {
         citationNode.authors.push(_getName(nameElements[i]));
       }
 
+      // Consider collab elements (treat them as authors)
+      var collabElements = personGroup.querySelectorAll("collab");
+      for (i = 0; i < collabElements.length; i++) {
+        citationNode.authors.push(collabElements[i].textContent);
+      }
+
+      var source = citation.querySelector("source");
+      if (source) citationNode.source = source.textContent;
+
       var articleTitle = citation.querySelector("article-title");
       if (articleTitle) {
         citationNode.title = articleTitle.textContent;
@@ -1512,12 +1575,16 @@ LensImporter.Prototype = function() {
         if (comment) {
           citationNode.title = comment.textContent;
         } else {
-          console.error("FIXME: this citation has no title", citation);
+          // 3rd fallback -> use source
+          if (source) {
+            citationNode.title = source.textContent;
+          } else {
+            console.error("FIXME: this citation has no title", citation);  
+          }
         }
       }
 
-      var source = citation.querySelector("source");
-      if (source) citationNode.source = source.textContent;
+
 
       var volume = citation.querySelector("volume");
       if (volume) citationNode.volume = volume.textContent;

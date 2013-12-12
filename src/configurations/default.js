@@ -19,14 +19,24 @@ DefaultConfiguration.Prototype = function() {
     // Noop - override in your configuration
   };
 
+  // Get baseURL either from XML or from the converter options
+  // --------
+  // 
+
+  this.getBaseURL = function(state) {
+    // Use xml:base attribute if present
+    var baseURL = state.xmlDoc.querySelector("article").getAttribute("xml:base");
+    return baseURL || state.options.baseURL;
+  };
+
   // Default video resolver
   // --------
   // 
 
   this.enhanceVideo = function(state, node, element) {
     var el = element.querySelector("media") || element;
-
     // xlink:href example: elife00778v001.mov
+    
     var url = element.getAttribute("xlink:href");
     // Just return absolute urls
     if (url.match(/http:/)) {
@@ -38,15 +48,16 @@ DefaultConfiguration.Prototype = function() {
       node.poster = name+".png";
       return;
     } else {
+      var baseURL = this.getBaseURL(state);
       var name = url.split(".")[0];
-      node.url = state.options.baseURL+name+".mp4";
-      node.url_ogv = state.options.baseURL+name+".ogv";
-      node.url_webm = state.options.baseURL+name+".webm";
-      node.poster = state.options.baseURL+name+".png";
+      node.url = baseURL+name+".mp4";
+      node.url_ogv = baseURL+name+".ogv";
+      node.url_webm = baseURL+name+".webm";
+      node.poster = baseURL+name+".png";
     }
   };
 
-  // Implements resloving of relative urls
+  // Implements resolving of relative urls
   this.enhanceFigure = function(state, node, element) {
     var graphic = element.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
