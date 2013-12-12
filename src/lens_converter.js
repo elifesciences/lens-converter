@@ -307,12 +307,14 @@ LensImporter.Prototype = function() {
     "underline": "underline",
     "ext-link": "link",
     "xref": "",
-    "named-content": "ignore"
+    "named-content": ""
   };
 
   this.isAnnotation = function(type) {
     return _annotationTypes[type] !== undefined;
   };
+
+  var AUTHOR_CALLOUT = /author-callout-style/;
 
   this.createAnnotation = function(state, el, start, end) {
     var type = el.tagName.toLowerCase();
@@ -337,8 +339,14 @@ LensImporter.Prototype = function() {
 
       if (sourceId) anno.target = sourceId.split(" ")[0];
     }
-    else if (_annotationTypes[type] === "ignore") {
-      return;
+    else if (type === "named-content") {
+      var contentType = el.getAttribute("content-type");
+      if (AUTHOR_CALLOUT.test(contentType)) {
+        anno.type = "author_callout";
+        anno.style = contentType;
+      } else {
+        return;
+      }
     }
     // Common annotations (e.g., emphasis)
     else if (_annotationTypes[type] !== undefined) {
