@@ -603,7 +603,6 @@ LensImporter.Prototype = function() {
     //get supplement info
     var label = supplement.querySelector("label");
 
-    var url = "http://meh.com";
     var mediaEl = supplement.querySelector("media");
     var url = mediaEl ? mediaEl.getAttribute("xlink:href") : null;
     var doi = supplement.querySelector("object-id[pub-id-type='doi']");
@@ -992,13 +991,13 @@ LensImporter.Prototype = function() {
       }
       else if (type === "boxed-text") {
         // Just treat as another container
-        var node = this.boxedText(state, child);
+        node = this.boxedText(state, child);
         if (node) nodes.push(node);
         // nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(child)));
       }
       else if (type === "disp-quote") {
         // Just treat as another container
-        var node = this.boxedText(state, child);
+        node = this.boxedText(state, child);
         if (node) nodes.push(node);
       }
       // Note: here are some node types ignored which are
@@ -1081,12 +1080,13 @@ LensImporter.Prototype = function() {
     for (var i = 0;i<input.length;i++) {
       var info = input[i];
       var type = util.dom.getNodeType(info);
+      var par;
       if (type === "name") {
         var children = util.dom.getChildren(info);
         for (var j = 0;j<children.length;j++) {
           var name = children[j];
           if (j === 0) {
-            var par = this.paragraphGroup(state,name);
+            par = this.paragraphGroup(state,name);
             p1.children.push(par[0].children[0]);
           }
           else {
@@ -1097,13 +1097,13 @@ LensImporter.Prototype = function() {
             };
             doc.create(text2);
             p1.children.push(text2.id);
-            var par = this.paragraphGroup(state,name);
+            par = this.paragraphGroup(state,name);
             p1.children.push(par[0].children[0]);
           }
         }
       }
       else {
-        var par = this.paragraphGroup(state,info);
+        par = this.paragraphGroup(state,info);
         // Smarter null reference check?
         if (par && par[0] && par[0].children) {
           p1.children.push(par[0].children[0]);
@@ -1607,8 +1607,8 @@ LensImporter.State = function(xmlDoc, doc, options) {
   var WS_LEFT = /^\s+/g;
   var WS_LEFT_ALL = /^\s*/g;
   var WS_RIGHT = /\s+$/g;
-  var ALL_WS_NOTSPACE_LEFT = /^[\t\n]+/g;
-  var ALL_WS_NOTSPACE_RIGHT = /[\t\n]+$/g;
+  // var ALL_WS_NOTSPACE_LEFT = /^[\t\n]+/g;
+  // var ALL_WS_NOTSPACE_RIGHT = /[\t\n]+$/g;
   var SPACE = " ";
   var TABS_OR_NL = /[\t\n\r]+/g;
 
@@ -1622,7 +1622,7 @@ LensImporter.State = function(xmlDoc, doc, options) {
     // (instead of doing so only at the left and right end)
     //text = text.replace(ALL_WS_NOTSPACE_LEFT, "");
     //text = text.replace(ALL_WS_NOTSPACE_RIGHT, "");
-    text = text.replace(TABS_OR_NL, "")
+    text = text.replace(TABS_OR_NL, "");
 
     if (this.lastChar === SPACE) {
       text = text.replace(WS_LEFT_ALL, "");
