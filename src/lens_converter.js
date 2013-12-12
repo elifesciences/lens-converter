@@ -295,9 +295,15 @@ LensImporter.Prototype = function() {
       } else if (xref.getAttribute("ref-type") === "other") {
         var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!awardGroup) return;
+
         var fundingSource = awardGroup.querySelector("funding-source");
+
         if (!fundingSource) return;
-        contribNode.fundings.push(fundingSource.textContent);
+
+        var awardId = awardGroup.querySelector("award-id");
+        awardId = awardId ? ", "+awardId.textContent : "";
+
+        contribNode.fundings.push([fundingSource.textContent, awardId].join(''));
       } else if (xref.getAttribute("ref-type") === "corresp") {
         var corresp = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!corresp) return;
