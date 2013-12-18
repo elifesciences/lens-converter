@@ -26,6 +26,7 @@ LensImporter.Prototype = function() {
   // --------
 
   var _getName = function(nameEl) {
+    if (!nameEl) return "N/A";
     var names = [];
 
     var surnameEl = nameEl.querySelector("surname");
@@ -175,13 +176,6 @@ LensImporter.Prototype = function() {
       this.affiliation(state, affiliations[i]);
     }
 
-    // Extract equal contributors
-    var equalContribs = contribGroup.querySelectorAll("contrib[equal-contrib=yes]");
-
-    state.equalContribs = _.map(equalContribs, function(c) {
-      return _getName(c);
-    });
-
     var contribs = contribGroup.querySelectorAll("contrib");
     for (i = 0; i < contribs.length; i++) {
       this.contributor(state, contribs[i]);
@@ -191,8 +185,6 @@ LensImporter.Prototype = function() {
     var doc = state.doc;
     var onBehalfOf = contribGroup.querySelector("on-behalf-of");
     if (onBehalfOf) doc.on_behalf_of = onBehalfOf.textContent.trim();
-    // doc.nodes.document.onBehalfOf
-    // console.log("ONBEHALFOF", onBehalfOf.textContent.trim());
   };
 
   this.affiliation = function(state, aff) {
@@ -280,9 +272,22 @@ LensImporter.Prototype = function() {
       });
     }
 
-    if (_.include(state.equalContribs, contribNode.name)) {
-      contribNode.equal_contrib = _.without(state.equalContribs, contribNode.name);
-    }
+
+    function _getEqualContribs(contribId) {
+      var result = [];
+      var refs = state.xmlDoc.querySelectorAll("xref[rid="+contribId+"]");
+
+      // Find xrefs within contrib elements
+      _.each(refs, function(ref) {
+        var c = ref.parentNode;
+        if (c !== contrib) result.push(_getName(c.querySelector("name")))
+      });
+      return result;
+    };
+
+
+    // Extract equal contributors
+    var equalContribs = [];
 
     // extract affiliations stored as xrefs
     var xrefs = contrib.querySelectorAll("xref");
@@ -295,17 +300,29 @@ LensImporter.Prototype = function() {
           contribNode.affiliations.push(affNode.id);
         }
       } else if (xref.getAttribute("ref-type") === "other") {
+
         var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!awardGroup) return;
 
         var fundingSource = awardGroup.querySelector("funding-source");
-
         if (!fundingSource) return;
 
         var awardId = awardGroup.querySelector("award-id");
         awardId = awardId ? ", "+awardId.textContent : "";
 
-        contribNode.fundings.push([fundingSource.textContent, awardId].join(''));
+
+        // Funding source nodes are looking like this
+        // 
+        // <funding-source>
+        //   National Institutes of Health
+        //   <named-content content-type="funder-id">http://dx.doi.org/10.13039/100000002</named-content>
+        // </funding-source>
+        // 
+        // and we only want to display the first text node, excluding the funder id
+
+        var fundingSourceName = fundingSource.childNodes[0].textContent;
+
+        contribNode.fundings.push([fundingSourceName, awardId].join(''));
       } else if (xref.getAttribute("ref-type") === "corresp") {
         var corresp = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!corresp) return;
@@ -323,11 +340,19 @@ LensImporter.Prototype = function() {
         } else if (elem && elem.getAttribute("fn-type") === "present-address") {
           // Extract present address
           contribNode.present_address = elem.querySelector("p").textContent;
-        } else {
+        } else if (elem && elem.getAttribute("fn-type") === "equal") {
+          // Extract equal contributors
+          equalContribs = _getEqualContribs(elem.id);
+        } else if (elem && elem.getAttribute("fn-type") === "other" && elem.id.indexOf("equal-contrib")>=0) {
           // skipping...
+          equalContribs = _getEqualContribs(elem.id);
+        } else {
+          // skipping...          
         }
       }
     });
+
+    contribNode.equal_contrib = equalContribs;
 
     // HACK: if author is assigned a conflict, remove the redundant
     // conflict entry "The authors have no competing interests to declare"
