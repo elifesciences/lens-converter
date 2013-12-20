@@ -342,12 +342,12 @@ LensImporter.Prototype = function() {
           contribNode.present_address = elem.querySelector("p").textContent;
         } else if (elem && elem.getAttribute("fn-type") === "equal") {
           // Extract equal contributors
-          equalContribs = _getEqualContribs(elem.id);
-        } else if (elem && elem.getAttribute("fn-type") === "other" && elem.id.indexOf("equal-contrib")>=0) {
+          equalContribs = _getEqualContribs(elem.getAttribute("id"));
+        } else if (elem && elem.getAttribute("fn-type") === "other" && elem.getAttribute("id").indexOf("equal-contrib")>=0) {
           // skipping...
-          equalContribs = _getEqualContribs(elem.id);
+          equalContribs = _getEqualContribs(elem.getAttribute("id"));
         } else {
-          // skipping...          
+          // skipping...
         }
       }
     });
