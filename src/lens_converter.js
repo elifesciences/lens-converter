@@ -13,6 +13,8 @@ var LandesConfiguration = require("./configurations/landes");
 var DefaultConfiguration = require("./configurations/default");
 var PLOSConfiguration = require("./configurations/plos");
 var PeerJConfiguration = require("./configurations/peerj");
+var BMCConfiguration = require("./configurations/bmc");
+var HindawiConfiguration = require("./configurations/hindawi");
 
 
 
@@ -518,6 +520,10 @@ LensImporter.Prototype = function() {
       state.config = new PLOSConfiguration();
     } else if (publisherName === 'PeerJ Inc.') {
       state.config = new PeerJConfiguration();
+    } else if (publisherName === 'BioMed Central'){
+      state.config = new BMCConfiguration();
+    } else if (publisherName === 'Hindawi Publishing Corporation'){
+      state.config = new HindawiConfiguration();
     } else {
       state.config = new DefaultConfiguration();
     }
@@ -1507,7 +1513,7 @@ LensImporter.Prototype = function() {
       var child = children[i];
       var type = util.dom.getNodeType(child);
 
-      if (type === "mixed-citation" || type === "element-citation") {
+      if (type === "mixed-citation" || type === "element-citation" || type === "nlm-citation") {
         this.citation(state, ref, child);
       } else if (type === "label") {
         // ignoring it here...
