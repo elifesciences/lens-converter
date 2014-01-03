@@ -89,8 +89,8 @@ BMCConfiguration.Prototype = function() {
 
     // <article-id pub-id-type="doi">10.1371/journal.pcbi.1002724</article-id>
     var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
-
-
+    var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
+    var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
     // Extract PDF link
     // ---------------
     //
@@ -99,14 +99,16 @@ BMCConfiguration.Prototype = function() {
     var pdfURI = article.querySelector("self-uri[content-type=pdf]");    
 
     var pdfLink = [
-      "http://www.BMCone.org/article/fetchObject.action?uri=info%3Adoi%2F",
-      articleDOI.textContent,
-      "&representation=PDF"
+      "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+      pmcID,
+      "/pdf/",
+      pubid,
+      ".pdf"
     ].join('');
 
     var xmlLink = [
       "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=",
-      article.querySelector("article-id[pub-id-type=pmc]").textContent
+      pmcID
     ].join('');
 
     // Related article if exists

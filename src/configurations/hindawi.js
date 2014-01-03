@@ -89,24 +89,24 @@ HindawiConfiguration.Prototype = function() {
 
     // <article-id pub-id-type="doi">10.1371/journal.pcbi.1002724</article-id>
     var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
-
-
+    var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
+    var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
     // Extract PDF link
     // ---------------
     //
     // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
     
-    var pdfURI = article.querySelector("self-uri[content-type=pdf]");    
-
     var pdfLink = [
-      "http://www.Hindawione.org/article/fetchObject.action?uri=info%3Adoi%2F",
-      articleDOI.textContent,
-      "&representation=PDF"
+      "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+      pmcID,
+      "/pdf/",
+      pubid,
+      ".pdf"
     ].join('');
 
     var xmlLink = [
       "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=",
-      article.querySelector("article-id[pub-id-type=pmc]").textContent
+      pmcID
     ].join('');
 
     // Related article if exists
@@ -381,9 +381,7 @@ HindawiConfiguration.Prototype = function() {
   // 
 
   this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-    var jid = article.querySelector("journal-id[journal-id-type=publisher-id]").textContent;
+    var jid = article.querySelector("journal-id[journal-id-type=publisher-id]").textContent.toLowerCase();
     var articleDOI = article.querySelector("article-id[pub-id-type=doi]").textContent;
     var newurl = articleDOI.split("/")
     url = [
@@ -398,6 +396,7 @@ HindawiConfiguration.Prototype = function() {
     ].join('');
 
     node.url = url;
+    node.caption = "";
   };
 
 };
