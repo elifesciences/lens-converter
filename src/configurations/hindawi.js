@@ -105,9 +105,8 @@ HindawiConfiguration.Prototype = function() {
     ].join('');
 
     var xmlLink = [
-      "http://www.Hindawione.org/article/fetchObject.action?uri=info%3Adoi%2F",
-      articleDOI.textContent,
-      "&representation=XML"
+      "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=",
+      article.querySelector("article-id[pub-id-type=pmc]").textContent
     ].join('');
 
     // Related article if exists
@@ -384,11 +383,18 @@ HindawiConfiguration.Prototype = function() {
   this.enhanceFigure = function(state, node, element) {
     var graphic = element.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
-
+    var jid = article.querySelector("journal-id[journal-id-type=publisher-id]").textContent;
+    var articleDOI = article.querySelector("article-id[pub-id-type=doi]").textContent;
+    var newurl = articleDOI.split("/")
     url = [
-      "http://www.Hindawione.org/article/fetchObject.action?uri=",
-      url,
-      "&representation=PNG_L"
+      "http://www.hindawi.com/journals/",
+      jid,
+      "/",
+      newurl[1],
+      "/",
+      newurl[2],
+      "/",
+      element.getAttribute('id');
     ].join('');
 
     node.url = url;

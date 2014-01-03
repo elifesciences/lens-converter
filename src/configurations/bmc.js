@@ -105,9 +105,8 @@ BMCConfiguration.Prototype = function() {
     ].join('');
 
     var xmlLink = [
-      "http://www.BMCone.org/article/fetchObject.action?uri=info%3Adoi%2F",
-      articleDOI.textContent,
-      "&representation=XML"
+      "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=",
+      article.querySelector("article-id[pub-id-type=pmc]").textContent
     ].join('');
 
     // Related article if exists
@@ -386,9 +385,9 @@ BMCConfiguration.Prototype = function() {
     var url = graphic.getAttribute("xlink:href");
 
     url = [
-      "http://www.BMCone.org/article/fetchObject.action?uri=",
+      "http://www.biomedcentral.com/content/figures/1741",
       url,
-      "&representation=PNG_L"
+      ".jpg"
     ].join('');
 
     node.url = url;
