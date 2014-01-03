@@ -206,32 +206,34 @@ PLOSConfiguration.Prototype = function() {
     // --------------
 
     var editor = article.querySelector("contrib[contrib-type=editor]");
-    var aff = editor.querySelector("xref")
-    var affid = aff.getAttribute("rid")
-    var inst = article.querySelector("aff[id="+affid+"] addr-line").textContent;
-    var name = converter.getName(editor.querySelector('name'));
-    // var inst = editor.querySelector("addr-line").textContent;
-    var role = editor.querySelector("role").textContent;
-    // var country = editor.querySelector("country").textContent;
+    if (editor){
+      var aff = editor.querySelector("xref")
+      var affid = aff.getAttribute("rid")
+      var inst = article.querySelector("aff[id="+affid+"] addr-line").textContent;
+      var name = converter.getName(editor.querySelector('name'));
+      // var inst = editor.querySelector("addr-line").textContent;
+      var role = editor.querySelector("role").textContent;
+      // var country = editor.querySelector("country").textContent;
 
-    var h1 = {
-      "type": "heading",
-      "id": state.nextId("heading"),
-      "level": 3,
-      "content": "Reviewing Editor"
-    };
-    
-    doc.create(h1);
-    nodes.push(h1.id);
+      var h1 = {
+        "type": "heading",
+        "id": state.nextId("heading"),
+        "level": 3,
+        "content": "Reviewing Editor"
+      };
+      
+      doc.create(h1);
+      nodes.push(h1.id);
 
-    var t1 = {
-      "type": "text",
-      "id": state.nextId("text"),
-      "content": [name, role, inst].join(", ")
-    };
+      var t1 = {
+        "type": "text",
+        "id": state.nextId("text"),
+        "content": [name, role, inst].join(", ")
+      };
 
-    doc.create(t1);
-    nodes.push(t1.id);
+      doc.create(t1);
+      nodes.push(t1.id);
+    }
 
 
 
