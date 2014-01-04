@@ -396,7 +396,7 @@ HindawiConfiguration.Prototype = function() {
       "/",
       newurl[2],
       "/",
-      element.getAttribute('id')
+      element.getAttribute('source_id')
     ].join('');
 
     node.url = url;
