@@ -1,3 +1,6 @@
+
+var util = require("substance-util");
+var _ = require("underscore");
 var DefaultConfiguration = require('./default');
 
 var BMCConfiguration = function() {
