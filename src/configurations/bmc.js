@@ -96,13 +96,11 @@ BMCConfiguration.Prototype = function() {
     //
     // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
     
-    var pdfURI = article.querySelector("self-uri[content-type=pdf]");    
-
     var pdfLink = [
       "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
       pmcID,
       "/pdf/",
-      pubid,
+      pubID,
       ".pdf"
     ].join('');
 

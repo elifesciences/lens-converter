@@ -100,7 +100,7 @@ HindawiConfiguration.Prototype = function() {
       "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
       pmcID,
       "/pdf/",
-      pubid,
+      pubID,
       ".pdf"
     ].join('');
 
