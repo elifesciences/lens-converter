@@ -389,7 +389,7 @@ BMCConfiguration.Prototype = function() {
     var url = graphic.getAttribute("xlink:href");
 
     url = [
-      "http://www.biomedcentral.com/content/figures/1741",
+      "http://www.biomedcentral.com/content/figures/",
       url,
       ".jpg"
     ].join('');
