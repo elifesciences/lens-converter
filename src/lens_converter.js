@@ -1562,13 +1562,13 @@ LensImporter.Prototype = function() {
 
     // TODO: we should consider to have a more structured citation type
     // and let the view decide how to render it instead of blobbing everything here.
-    var personGroup = citation.querySelector("person-group");
-    var nameSet = citation.querySelector("name");
+    var checkStruct = citation.querySelector("year");
+    //var nameSet = citation.querySelector("name");
 
     // HACK: we try to create a 'articleCitation' when there is structured
     // content (ATM, when personGroup is present)
     // Otherwise we create a mixed-citation taking the plain text content of the element
-    if (personGroup || nameSet) {
+    if (checkStruct) {
 
       citationNode = {
         "id": id,
