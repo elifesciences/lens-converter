@@ -1562,8 +1562,7 @@ LensImporter.Prototype = function() {
 
     // TODO: we should consider to have a more structured citation type
     // and let the view decide how to render it instead of blobbing everything here.
-    var checkStruct = citation.querySelector("year");
-    //var nameSet = citation.querySelector("name");
+    var checkStruct = util.dom.getChildren(citation);
 
     // HACK: we try to create a 'articleCitation' when there is structured
     // content (ATM, when personGroup is present)
