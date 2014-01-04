@@ -1585,13 +1585,13 @@ LensImporter.Prototype = function() {
         "citation_urls": []
       };
 
-      var nameElements = personGroup.querySelectorAll("name");
+      var nameElements = citation.querySelectorAll("name");
       for (i = 0; i < nameElements.length; i++) {
         citationNode.authors.push(_getName(nameElements[i]));
       }
 
       // Consider collab elements (treat them as authors)
-      var collabElements = personGroup.querySelectorAll("collab");
+      var collabElements = citation.querySelectorAll("collab");
       for (i = 0; i < collabElements.length; i++) {
         citationNode.authors.push(collabElements[i].textContent);
       }
