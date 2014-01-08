@@ -1644,7 +1644,7 @@ LensImporter.Prototype = function() {
 
       if (citationNode.title === 'N/A') {
         citationNode.source = citation.textContent;
-        citationNode.title = '';
+        citationNode.title = 'Unstructured citation';
       }
     } else {
       console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...", citation);
