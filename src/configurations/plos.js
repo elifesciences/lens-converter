@@ -9,7 +9,7 @@ var PLOSConfiguration = function() {
 };
 
 PLOSConfiguration.Prototype = function() {
-  // this.enhanceCover = function(state, node, element) {
+  //  this.enhanceCover = function(state, node, element) {
   //   var dispChannel = element.querySelector("subj-group[subj-group-type=heading] subject").textContent;
   //   var category = element.querySelector("subj-group[subj-group-type=Discipline-v2] subject").textContent;
 
@@ -74,7 +74,7 @@ PLOSConfiguration.Prototype = function() {
     // <subject>Microbiology and infectious disease</subject>
     // </subj-group>
 
-    //var subjects = articleMeta.querySelectorAll("subj-group[subj-group-type=heading] subject");
+    var subjects = articleMeta.querySelectorAll("subj-group[subj-group-type=Discipline-v2] subject");
 
     // Extract article_type
     // ---------------
