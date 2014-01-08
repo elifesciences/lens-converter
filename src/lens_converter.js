@@ -1643,7 +1643,7 @@ LensImporter.Prototype = function() {
       if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;
 
       if (citationNode.title === 'N/A') {
-        citationNode.publisher_name = citation.textContent;
+        citationNode.source = citation.textContent;
         citationNode.title = '';
       }
     } else {
