@@ -1610,9 +1610,8 @@ LensImporter.Prototype = function() {
           if (source) {
             citationNode.title = source.textContent;
           } else {
-            citationNode.title = '';
+            citationNode.title = citation.textContent;
             citationNode.publisher_name = citation.textContent;
-            console.log(citation.textContent)
             console.error("FIXME: this citation has no title", citation);  
           }
         }
