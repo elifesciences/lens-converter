@@ -1610,8 +1610,6 @@ LensImporter.Prototype = function() {
           if (source) {
             citationNode.title = source.textContent;
           } else {
-            citationNode.title = citation.textContent;
-            citationNode.publisher_name = citation.textContent;
             console.error("FIXME: this citation has no title", citation);  
           }
         }
@@ -1643,6 +1641,11 @@ LensImporter.Prototype = function() {
 
       var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
       if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;
+
+      if (citationNode.title === 'N/A') {
+        citationNode.publisher_name = citation.textContent;
+        citationNode.title = '';
+      }
     } else {
       console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...", citation);
       return;
