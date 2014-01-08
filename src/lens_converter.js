@@ -1644,7 +1644,6 @@ LensImporter.Prototype = function() {
 
       if (citationNode.title === 'N/A') {
         citationNode.source = citation.textContent;
-        citationNode.volume = ' ';
         citationNode.title = '';
       }
     } else {
