@@ -1643,8 +1643,7 @@ LensImporter.Prototype = function() {
       if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;
 
       if (citationNode.title === 'N/A') {
-        citationNode.source = citation.textContent;
-        citationNode.title = 'Unstructured citation';
+        citationNode.title = citation.textContent;
       }
     } else {
       console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...", citation);
