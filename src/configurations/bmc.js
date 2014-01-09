@@ -168,27 +168,70 @@ BMCConfiguration.Prototype = function() {
     var nodes = articleInfo.children;
 
     // Get the author's impact statement
-    var meta = article.querySelectorAll("meta-value");
-    var impact = meta[1];
-    if (impact) {
-      var h1 = {
-        "type": "heading",
-        "id": state.nextId("heading"),
-        "level": 3,
-        "content": "Impact",
-      };
-      doc.create(h1);
-      nodes.push(h1.id);
+    // var meta = article.querySelectorAll("meta-value");
+    // var impact = meta[1];
+    // if (impact) {
+    //   var h1 = {
+    //     "type": "heading",
+    //     "id": state.nextId("heading"),
+    //     "level": 3,
+    //     "content": "Impact",
+    //   };
+    //   doc.create(h1);
+    //   nodes.push(h1.id);
       
-      var par = converter.paragraphGroup(state, impact);
-      nodes.push(par[0].id);
-    }
+    //   var par = converter.paragraphGroup(state, impact);
+    //   nodes.push(par[0].id);
+    // }
 
     // Add affiliations and emails to authors if missing
+
+    // Do affiliation nodes exist?
+    var affids = []
+    for (var key in doc["nodes"]) {
+      if (doc["nodes"][key].type === 'affiliation') {
+        affids.push(doc["nodes"][key].id)
+      }
+    }
+
+    // If affiliations don't exist, build them
+    if (affids.length < 1) {
+      var affs = article.querySelectorAll('aff');
+      for (var affnum=0;affnum<affs.length;affnum++) {
+
+      }
+    }  
+
     var authors = article.querySelectorAll('contrib[contrib-type=author]');
-    console.log(authors)
-    var affiliations = article.querySelectorAll('aff');
-    console.log(affiliations)
+    for (var ath=0;ath<authors.length;ath++) {
+
+      // Get existing author ID
+      var currentid = doc["nodes"]["document"]["authors"][ath];
+
+      // Add email if it exists
+      var email = authors[ath].querySelector('email');
+      if (email) doc["nodes"][currentid]["email"].push(email.textContent);
+
+      // Add affiliations
+      var aff = authors[ath].querySelectorAll('xref');
+      for (var affnum=0;affnum<aff.length;affnum++){
+        try {
+          var id = aff[affnum].getAttribute('rid');
+        }
+        catch {
+          var id = 'aff'+aff[affnum].textContent;
+        }
+        for (var key in doc["nodes"]) {
+          if (doc["nodes"][key].source_id === id) {
+            var stateid = doc["nodes"][key].id;
+            break
+          }
+        }
+        doc["nodes"][currentid]["affiliations"].push(stateid)
+      }
+    }
+    
+    
     // var affs = authors.querySelectorAll('xref');
     // var email = authors.querySelectorAll('email');
     
