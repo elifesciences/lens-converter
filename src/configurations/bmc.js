@@ -199,14 +199,14 @@ BMCConfiguration.Prototype = function() {
     // console.log(affs)
     // console.log(email)
     // Affiliations
-    if (affs) {
+    // if (affs) {
 
-    }
+    // }
 
-    // Email
-    if (email) {
+    // // Email
+    // if (email) {
 
-    }
+    // }
     // Get conflict of interest
 
     // var conflict = article.querySelectorAll("fn");
