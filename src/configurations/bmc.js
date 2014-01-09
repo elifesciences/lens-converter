@@ -189,13 +189,15 @@ BMCConfiguration.Prototype = function() {
 
     // Add affiliations and emails to authors if missing
     var authors = article.querySelectorAll('contrib[contrib-type=author]');
-    var affiliations = article.querySelectorAll('aff');
-    var affs = authors.querySelectorAll('xref');
-    var email = authors.querySelectorAll('email');
     console.log(authors)
+    var affiliations = article.querySelectorAll('aff');
     console.log(affiliations)
-    console.log(affs)
-    console.log(email)
+    // var affs = authors.querySelectorAll('xref');
+    // var email = authors.querySelectorAll('email');
+    
+    
+    // console.log(affs)
+    // console.log(email)
     // Affiliations
     if (affs) {
 
