@@ -215,10 +215,8 @@ BMCConfiguration.Prototype = function() {
       // Add affiliations
       var aff = authors[ath].querySelectorAll('xref');
       for (var affnum=0;affnum<aff.length;affnum++){
-        try {
-          var id = aff[affnum].getAttribute('rid');
-        }
-        catch {
+        var id = aff[affnum].getAttribute('rid');
+        if (!id){
           var id = 'aff'+aff[affnum].textContent;
         }
         for (var key in doc["nodes"]) {
