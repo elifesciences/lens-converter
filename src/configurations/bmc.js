@@ -169,22 +169,42 @@ BMCConfiguration.Prototype = function() {
 
     // Get the author's impact statement
     var meta = article.querySelectorAll("meta-value");
-    var impact = meta[1];
-    
-    var h1 = {
-      "type": "heading",
-      "id": state.nextId("heading"),
-      "level": 3,
-      "content": "Impact",
-    };
-    doc.create(h1);
-    nodes.push(h1.id);
+    if (meta) {
+      var impact = meta[1];
+      
+      var h1 = {
+        "type": "heading",
+        "id": state.nextId("heading"),
+        "level": 3,
+        "content": "Impact",
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
 
-    if (impact) {
-      var par = converter.paragraphGroup(state, impact);
-      nodes.push(par[0].id);
+      if (impact) {
+        var par = converter.paragraphGroup(state, impact);
+        nodes.push(par[0].id);
+      }
     }
 
+    // Add affiliations and emails to authors if missing
+    var authors = article.querySelectorAll('contrib[contrib-type=author]');
+    var affiliations = article.querySelectorAll('aff');
+    var affs = authors.querySelectorAll('xref');
+    var email = authors.querySelectorAll('email');
+    console.log(authors)
+    console.log(affiliations)
+    console.log(affs)
+    console.log(email)
+    // Affiliations
+    if (affs) {
+
+    }
+
+    // Email
+    if (email) {
+
+    }
     // Get conflict of interest
 
     // var conflict = article.querySelectorAll("fn");
