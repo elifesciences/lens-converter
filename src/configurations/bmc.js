@@ -49,7 +49,7 @@ BMCConfiguration.Prototype = function() {
     // <kwd>lipid droplet</kwd>
     // <kwd>anti-bacterial</kwd>
     // </kwd-group>
-    //var keyWords = articleMeta.querySelectorAll("kwd-group[kwd-group-type=author-keywords] kwd");
+    var keyWords = articleMeta.querySelectorAll("kwd-group kwd");
 
     // Extract research organism
     // ------------
