@@ -169,9 +169,8 @@ BMCConfiguration.Prototype = function() {
 
     // Get the author's impact statement
     var meta = article.querySelectorAll("meta-value");
-    if (meta) {
-      var impact = meta[1];
-      
+    var impact = meta[1];
+    if (impact) {
       var h1 = {
         "type": "heading",
         "id": state.nextId("heading"),
@@ -180,11 +179,9 @@ BMCConfiguration.Prototype = function() {
       };
       doc.create(h1);
       nodes.push(h1.id);
-
-      if (impact) {
-        var par = converter.paragraphGroup(state, impact);
-        nodes.push(par[0].id);
-      }
+      
+      var par = converter.paragraphGroup(state, impact);
+      nodes.push(par[0].id);
     }
 
     // Add affiliations and emails to authors if missing
