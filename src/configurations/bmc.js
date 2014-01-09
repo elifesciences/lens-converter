@@ -49,7 +49,7 @@ BMCConfiguration.Prototype = function() {
     // <kwd>lipid droplet</kwd>
     // <kwd>anti-bacterial</kwd>
     // </kwd-group>
-    var keyWords = articleMeta.querySelectorAll("kwd-group kwd");
+    var keyWords = articleMeta.querySelectorAll("kwd");
 
     // Extract research organism
     // ------------
@@ -130,7 +130,7 @@ BMCConfiguration.Prototype = function() {
       "published_on": _extractDate(pubDate),
       "received_on": _extractDate(receivedDate),
       "accepted_on": _extractDate(acceptedDate),
-      // "keywords": _.pluck(keyWords, "textContent"),
+      "keywords": _.pluck(keyWords, "textContent"),
       // "research_organisms": _.pluck(organisms, "textContent"),
       // "subjects": _.pluck(subjects, "textContent"),
       "article_type": articleType ? articleType.textContent : "",
