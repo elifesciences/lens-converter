@@ -87,7 +87,7 @@ DefaultConfiguration.Prototype = function() {
       var pubID = pubid.textContent;
     }
     else {
-      var id = article.querySelector("fig[id=fig1] graphic");
+      var id = article.querySelector("graphic");
       var attr = id.getAttribute("xlink:href");
       var pid = attr.split('.');
       var pubID = pid[0];
