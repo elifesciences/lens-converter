@@ -376,10 +376,9 @@ PLOSConfiguration.Prototype = function() {
       doc.create(h1);
       nodes.push(h1.id);
       var child = util.dom.getChildren(fund)
-      console.log(child)
-      var par = converter.bodyNodes(state,child[0]);
+      var par = converter.bodyNodes(state, child[0]);
       console.log(par)
-      nodes.push(par[0].id);
+      //nodes.push(par[0].id);
     }
 
     // Get copyright and license information
