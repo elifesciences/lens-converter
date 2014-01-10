@@ -84,7 +84,7 @@ DefaultConfiguration.Prototype = function() {
       var year = dateEl.querySelector("year").textContent;
       return [year, month, day].join("-");
     }
-    \
+    
     // Publication dates
     var pubDate = articleMeta.querySelector("pub-date[pub-type=epub]");
     var receivedDate = articleMeta.querySelector("date[date-type=received]");
