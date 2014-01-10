@@ -208,8 +208,8 @@ BMCConfiguration.Prototype = function() {
       };
 
       var affs = article.querySelectorAll('aff');
-      for (var affnum=0;affnum<affs.length-1;affnum++) {
-        affNode.source_id = affs[affnum].getAttribute('rid');
+      for (var affnum=0;affnum<affs.length;affnum++) {
+        affNode.source_id = affs[affnum].getAttribute('id');
         affNode.id = state.nextId("affiliation");
 
         var label = affs[affnum].querySelector('label');
@@ -222,7 +222,7 @@ BMCConfiguration.Prototype = function() {
     }  
 
     var authors = article.querySelectorAll('contrib[contrib-type=author]');
-    for (var ath=0;ath<authors.length-1;ath++) {
+    for (var ath=0;ath<authors.length;ath++) {
 
       // Get existing author ID
       var currentid = doc["nodes"]["document"]["authors"][ath];
@@ -233,7 +233,7 @@ BMCConfiguration.Prototype = function() {
 
       // Add affiliations
       var aff = authors[ath].querySelectorAll('xref');
-      for (var affnum=0;affnum<aff.length-1;affnum++){
+      for (var affnum=0;affnum<aff.length;affnum++){
         var id = aff[affnum].getAttribute('rid');
         if (!id){
           var id = 'aff'+aff[affnum].textContent;
