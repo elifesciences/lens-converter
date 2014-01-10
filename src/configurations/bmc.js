@@ -196,9 +196,28 @@ BMCConfiguration.Prototype = function() {
 
     // If affiliations don't exist, build them
     if (affids.length < 1) {
+      var affNode = {
+        "type": "affiliation",
+        "id": "",
+        "source_id": "",
+        "city": "",
+        "country": "",
+        "department": "",
+        "institution": "",
+        "label": ""
+      };
+
       var affs = article.querySelectorAll('aff');
       for (var affnum=0;affnum<affs.length;affnum++) {
+        affNode.source_id = affs[affnum].getAttribute('rid');
+        affNode.id = state.nextId("affiliation");
 
+        var label = affs[affnum].querySelector('label');
+        if (label) affNode.label = label.textContent;
+
+        affNode.institution = affs[affnum].textContent;
+
+        doc.create(affNode);
       }
     }  
 
