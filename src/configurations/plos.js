@@ -375,6 +375,7 @@ PLOSConfiguration.Prototype = function() {
       };
       doc.create(h1);
       nodes.push(h1.id);
+      console.log(fund)
       var par = converter.bodyNodes(state,fund);
       console.log(par)
       nodes.push(par.id);
