@@ -260,7 +260,7 @@ PLOSConfiguration.Prototype = function() {
 
       // Get existing author ID
       var currentid = doc["nodes"]["document"]["authors"][ath];
-      console.log(currentid)
+      
       // Add email if it exists
       var email = authors[ath].querySelector('email');
       if (email) doc["nodes"][currentid]["emails"].push(email.textContent);
@@ -271,6 +271,10 @@ PLOSConfiguration.Prototype = function() {
         var id = aff[affnum].getAttribute('rid');
         if (!id){
           var id = 'aff'+aff[affnum].textContent;
+        }
+        if ('cor' in id) {
+          doc["nodes"][currentid]["emails"].push(article.querySelector("corresp[id="+id+"] email").textContent);
+          continue
         }
         for (var key in doc["nodes"]) {
           if (doc["nodes"][key].source_id === id) {
@@ -375,7 +379,7 @@ PLOSConfiguration.Prototype = function() {
       console.log(par)
       nodes.push(par.id);
     }
-    
+
     // Get copyright and license information
     var license = article.querySelector("permissions");
     if (license) {
