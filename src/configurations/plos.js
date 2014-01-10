@@ -273,8 +273,10 @@ PLOSConfiguration.Prototype = function() {
           var id = 'aff'+aff[affnum].textContent;
         }
         if (id.indexOf('cor') >= 0) {
-          doc["nodes"][currentid]["emails"].push(article.querySelector("corresp[id="+id+"] email").textContent);
-          break
+          var email = article.querySelector("corresp[id="+id+"] email");
+          if !(email.textContent in doc["nodes"][currentid]["emails"]) {
+            doc["nodes"][currentid]["emails"].push(email.textContent);
+          }
         }
         for (var key in doc["nodes"]) {
           if (doc["nodes"][key].source_id === id) {
