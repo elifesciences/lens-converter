@@ -101,7 +101,6 @@ DefaultConfiguration.Prototype = function() {
       var figid = figs[j];
       if (doc["nodes"][figid]["type"] === "figure"){
         var id = doc["nodes"][figid]["attrib"];
-        console.log(id)
         var url = [
           "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
           pmcID,
@@ -231,9 +230,15 @@ DefaultConfiguration.Prototype = function() {
         affNode.id = state.nextId("affiliation");
 
         var label = affs[affnum].querySelector('label');
-        if (label) affNode.label = label.textContent;
-
-        affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
+        var sup = affs[affnum].querySelector('sup');
+        if (label) {
+          affNode.label = label.textContent;
+          affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
+        }
+        else if (sup){
+          affNode.label = sup.textContent;
+          affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
+        }
 
         doc.create(affNode);
       }
@@ -244,7 +249,7 @@ DefaultConfiguration.Prototype = function() {
 
       // Get existing author ID
       var currentid = doc["nodes"]["document"]["authors"][ath];
-      console.log(currentid)
+
       // Add email if it exists
       var email = authors[ath].querySelector('email');
       if (email) doc["nodes"][currentid]["emails"].push(email.textContent);
