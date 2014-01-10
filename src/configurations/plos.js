@@ -274,7 +274,7 @@ PLOSConfiguration.Prototype = function() {
         }
         if (id.indexOf('cor') >= 0) {
           var email = article.querySelector("corresp[id="+id+"] email");
-          if !(email.textContent in doc["nodes"][currentid]["emails"]) {
+          if (doc["nodes"][currentid]["emails"].indexOf(email.textContent) < 0) {
             doc["nodes"][currentid]["emails"].push(email.textContent);
           }
         }
