@@ -101,7 +101,7 @@ BMCConfiguration.Prototype = function() {
     console.log(figs)
     for (var j=0;j<figs.length;j++) {
       var figid = figs[j];
-      var id = doc["nodes"][figid]["graphic"];
+      console.log(doc["nodes"][figid]);
       console.log(id)
       var url = [
         "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
