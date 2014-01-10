@@ -97,11 +97,6 @@ DefaultConfiguration.Prototype = function() {
       pmcID
     ].join('');
 
-    var pdfLink = [
-        "http://europepmc.org/articles/PMC",
-        pmcID,
-        "?pdf=render"
-      ].join('');
 
     var articleType = articleMeta.querySelector("subj-group[subj-group-type=heading] subject");
     // Check to see if the full XML is available
@@ -110,6 +105,14 @@ DefaultConfiguration.Prototype = function() {
 
     if (body) {
       
+      // PDF Link
+
+      var pdfLink = [
+        "http://europepmc.org/articles/PMC",
+        pmcID,
+        "?pdf=render"
+      ].join('');
+
       // <article-id pub-id-type="doi">10.1371/journal.pcbi.1002724</article-id>
       var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
       //var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
@@ -144,7 +147,7 @@ DefaultConfiguration.Prototype = function() {
       // "subjects": _.pluck(subjects, "textContent"),
       "article_type": articleType ? articleType.textContent : "",
       "journal": journalTitle ? journalTitle.textContent : "",
-      "pdf_link": pdfLink,
+      "pdf_link": pdfLink ? pdfLink : ["http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",pmcID].join(""),
       //"related_article": relatedArticle ? ["http://dx.doi.org/", relatedArticle.getAttribute("xlink:href")].join("") : "",
       "xml_link": xmlLink,
       //"json_link": "http://mickey.com/mouse.json",
