@@ -98,7 +98,8 @@ BMCConfiguration.Prototype = function() {
 
     // Get Figure URLS
 
-    for (var fig in doc["nodes"]["figures"]["nodes"]) { 
+    for (var fig in doc["nodes"]["figures"]["nodes"]) {
+      console.log(fig) 
       var id = doc["nodes"][fig]["graphic"];
       url = [
         "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
