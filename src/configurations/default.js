@@ -509,13 +509,13 @@ DefaultConfiguration.Prototype = function() {
     // node.url = this.resolveURL(state, url);
   };
 
-  this.enhanceArticle = function(converter, state, article) {
-    // Noop - override in your configuration
-  };
+  // this.enhanceArticle = function(converter, state, article) {
+  //   // Noop - override in your configuration
+  // };
 
-  this.extractPublicationInfo = function() {
-    // Noop - override in your configuration
-  };
+  // this.extractPublicationInfo = function() {
+  //   // Noop - override in your configuration
+  // };
 
   this.resolveURL = function(url) {
     return url;
