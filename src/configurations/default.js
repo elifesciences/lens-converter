@@ -87,6 +87,7 @@ DefaultConfiguration.Prototype = function() {
     
     // Publication dates
     var pubDate = articleMeta.querySelector("pub-date[pub-type=epub]");
+    if (!pubDate) var pubDate = articleMeta.querySelector("pub-date[pub-type=ppub]")
     var receivedDate = articleMeta.querySelector("date[date-type=received]");
     var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
 
@@ -132,6 +133,9 @@ DefaultConfiguration.Prototype = function() {
         doc["nodes"][figid]["url"] = url;
       }
       
+    }
+    else {
+      journalTitle += ': Not a true Open Access Article. Full XML is unavailable because of the publisher.'
     }
     // Create PublicationInfo node
     // ---------------
