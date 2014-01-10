@@ -97,10 +97,10 @@ BMCConfiguration.Prototype = function() {
     var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
 
     // Get Figure URLS
-
-    for (var fig in doc["nodes"]["figures"]["nodes"]) {
-      console.log(fig) 
-      var id = doc["nodes"][fig]["graphic"];
+    var figs  = doc["nodes"]["figures"]["nodes"];
+    for (var j=0;j<figs.length;j++) {
+      var figid = figs[j];
+      var id = doc["nodes"][figid]["graphic"];
       url = [
         "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
         pmcID,
