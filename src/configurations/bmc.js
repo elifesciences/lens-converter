@@ -248,22 +248,6 @@ BMCConfiguration.Prototype = function() {
       }
     }
     
-    
-    // var affs = authors.querySelectorAll('xref');
-    // var email = authors.querySelectorAll('email');
-    
-    
-    // console.log(affs)
-    // console.log(email)
-    // Affiliations
-    // if (affs) {
-
-    // }
-
-    // // Email
-    // if (email) {
-
-    // }
     // Get conflict of interest
 
     // var conflict = article.querySelectorAll("fn");
