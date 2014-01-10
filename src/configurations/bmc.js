@@ -241,10 +241,10 @@ BMCConfiguration.Prototype = function() {
         for (var key in doc["nodes"]) {
           if (doc["nodes"][key].source_id === id) {
             var stateid = doc["nodes"][key].id;
+            doc["nodes"][currentid]["affiliations"].push(stateid)
             break
           }
         }
-        doc["nodes"][currentid]["affiliations"].push(stateid)
       }
     }
     
