@@ -452,7 +452,9 @@ BMCConfiguration.Prototype = function() {
     var url = graphic.getAttribute("xlink:href");
 
     url = [
-      "http://www.biomedcentral.com/content/figures/",
+      "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+      pmcID,
+      /bin/,
       url,
       ".jpg"
     ].join('');

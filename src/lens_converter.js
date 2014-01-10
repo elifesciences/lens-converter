@@ -1513,7 +1513,7 @@ LensImporter.Prototype = function() {
       var child = children[i];
       var type = util.dom.getNodeType(child);
 
-      if (type === "mixed-citation" || type === "element-citation" || type === "nlm-citation") {
+      if (type === "mixed-citation" || type === "element-citation" || type === "nlm-citation" || type === 'citation') {
         this.citation(state, ref, child);
       } else if (type === "label") {
         // ignoring it here...
