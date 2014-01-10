@@ -450,7 +450,7 @@ BMCConfiguration.Prototype = function() {
   this.enhanceFigure = function(state, node, element) {
     var graphic = element.querySelector("graphic");
     var url = graphic.getAttribute("xlink:href");
-
+    console.log(state.doc)
     url = [
       "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
       pmcID,
