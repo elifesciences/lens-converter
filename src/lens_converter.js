@@ -632,6 +632,7 @@ LensImporter.Prototype = function() {
       "source_id": figure.getAttribute("id"),
       "label": label ? label.textContent : "Figure",
       "url": "http://images.wisegeek.com/young-calico-cat.jpg",
+      "graphic" : figure.getAttribute("xlink:href"),
       "caption": null
     };
 

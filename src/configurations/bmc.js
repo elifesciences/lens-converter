@@ -95,6 +95,21 @@ BMCConfiguration.Prototype = function() {
     var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
     var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
     var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
+
+    // Get Figure URLS
+
+    for (var fig in doc["nodes"]["figures"]["nodes"]) { 
+      var id = doc["nodes"][fig]["graphic"];
+      url = [
+        "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+        pmcID,
+        /bin/,
+        url,
+        ".jpg"
+      ].join('');
+      doc["nodes"][fig]["url"] = url;
+    }
+    
     // Extract PDF link
     // ---------------
     //
@@ -448,18 +463,18 @@ BMCConfiguration.Prototype = function() {
   // 
 
   this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-    console.log(state.doc)
-    url = [
-      "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
-      pmcID,
-      /bin/,
-      url,
-      ".jpg"
-    ].join('');
+    // var graphic = element.querySelector("graphic");
+    // var url = graphic.getAttribute("xlink:href");
+    
+    // url = [
+    //   "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+    //   pmcID,
+    //   /bin/,
+    //   url,
+    //   ".jpg"
+    // ].join('');
 
-    node.url = url;
+    // node.url = url;
   };
 
 };
