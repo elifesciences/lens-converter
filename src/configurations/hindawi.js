@@ -122,6 +122,12 @@ HindawiConfiguration.Prototype = function() {
         ].join('');
         doc["nodes"][figid]["url"] = url;
       }
+      if (doc["nodes"][figid]["type"] === "supplement") {
+        var id = doc["nodes"][figid]["attrib"];
+        var url = [
+        ].join('');
+        doc["nodes"][figid]["url"] = url;
+      }
     }
     
     // Extract PDF link

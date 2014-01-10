@@ -26,7 +26,7 @@ PLOSConfiguration.Prototype = function() {
     var doc = state.doc;
 
     var articleMeta = article.querySelector("article-meta");
-
+    console.log(article.querySelector("?"))
     function _extractDate(dateEl) {
       if (!dateEl) return null;
       var day = dateEl.querySelector("day").textContent;
