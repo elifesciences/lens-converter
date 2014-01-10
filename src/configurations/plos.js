@@ -168,23 +168,23 @@ PLOSConfiguration.Prototype = function() {
     };
     var nodes = articleInfo.children;
 
-    // Get the author's impact statement
-    var meta = article.querySelectorAll("meta-value");
-    var impact = meta[1];
+    // // Get the author's impact statement
+    // var meta = article.querySelectorAll("meta-value");
+    // var impact = meta[1];
     
-    var h1 = {
-      "type": "heading",
-      "id": state.nextId("heading"),
-      "level": 3,
-      "content": "Impact",
-    };
-    doc.create(h1);
-    nodes.push(h1.id);
+    // var h1 = {
+    //   "type": "heading",
+    //   "id": state.nextId("heading"),
+    //   "level": 3,
+    //   "content": "Impact",
+    // };
+    // doc.create(h1);
+    // nodes.push(h1.id);
 
-    if (impact) {
-      var par = converter.paragraphGroup(state, impact);
-      nodes.push(par[0].id);
-    }
+    // if (impact) {
+    //   var par = converter.paragraphGroup(state, impact);
+    //   nodes.push(par[0].id);
+    // }
 
     // Get conflict of interest
 
@@ -357,6 +357,23 @@ PLOSConfiguration.Prototype = function() {
       nodes.push(h1.id);
       var par = converter.bodyNodes(state, util.dom.getChildren(ack));
       nodes.push(par[0].id);
+    }
+    
+    // Get funding information
+
+    var fund = article.querySelector("funding-statement");
+    if (fund) {
+      var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 3,
+        "content" : "Funding Statement"
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+      var par = converter.bodyNodes(state,fund);
+      console.log(par)
+      nodes.push(par.id);
     }
     
     // Get copyright and license information
