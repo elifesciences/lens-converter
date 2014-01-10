@@ -79,7 +79,17 @@ DefaultConfiguration.Prototype = function() {
     // <article-id pub-id-type="doi">10.1371/journal.pcbi.1002724</article-id>
     var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
     var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
-    var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
+    var pubid = article.querySelector("article-id[pub-id-type=publisher-id]");
+    if (pubID) {
+      var pubID = pubid.textContent;
+    }
+    else {
+      var id = article.querySelector("fig[id=fig1] graphic");
+      var attr = id.getAttribute("xlink:href");
+      var pid = attr.split('.');
+      var pubID = pid[0];
+    }
+    
 
     // Get Figure URLS
     var figs  = doc["nodes"]["figures"]["nodes"];
