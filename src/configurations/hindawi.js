@@ -22,7 +22,7 @@ HindawiConfiguration.Prototype = function() {
 
   
 
-  this.extractPublicationInfo = function(converter, state, article) {
+  his.extractPublicationInfo = function(converter, state, article) {
     var doc = state.doc;
 
     var articleMeta = article.querySelector("article-meta");
@@ -49,7 +49,7 @@ HindawiConfiguration.Prototype = function() {
     // <kwd>lipid droplet</kwd>
     // <kwd>anti-bacterial</kwd>
     // </kwd-group>
-    //var keyWords = articleMeta.querySelectorAll("kwd-group[kwd-group-type=author-keywords] kwd");
+    var keyWords = articleMeta.querySelectorAll("kwd");
 
     // Extract research organism
     // ------------
@@ -94,7 +94,36 @@ HindawiConfiguration.Prototype = function() {
     // <article-id pub-id-type="doi">10.1371/journal.pcbi.1002724</article-id>
     var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
     var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
-    var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
+    var pubid = article.querySelector("article-id[pub-id-type=publisher-id]");
+    if (pubID) {
+      var pubID = pubid.textContent;
+    }
+    else {
+      var id = article.querySelector("graphic");
+      var attr = id.getAttribute("xlink:href");
+      var pid = attr.split('.');
+      var pubID = pid[0];
+    }
+    
+
+    // Get Figure URLS
+    var figs  = doc["nodes"]["figures"]["nodes"];
+    console.log(figs)
+    for (var j=0;j<figs.length;j++) {
+      var figid = figs[j];
+      if (doc["nodes"][figid]["type"] === "figure"){
+        var id = doc["nodes"][figid]["attrib"];
+        var url = [
+          "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+          pmcID,
+          /bin/,
+          id,
+          ".jpg"
+        ].join('');
+        doc["nodes"][figid]["url"] = url;
+      }
+    }
+    
     // Extract PDF link
     // ---------------
     //
@@ -130,7 +159,7 @@ HindawiConfiguration.Prototype = function() {
       "published_on": _extractDate(pubDate),
       "received_on": _extractDate(receivedDate),
       "accepted_on": _extractDate(acceptedDate),
-      // "keywords": _.pluck(keyWords, "textContent"),
+      "keywords": _.pluck(keyWords, "textContent"),
       // "research_organisms": _.pluck(organisms, "textContent"),
       // "subjects": _.pluck(subjects, "textContent"),
       "article_type": articleType ? articleType.textContent : "",
@@ -168,23 +197,98 @@ HindawiConfiguration.Prototype = function() {
     var nodes = articleInfo.children;
 
     // Get the author's impact statement
-    var meta = article.querySelectorAll("meta-value");
-    var impact = meta[1];
-    
-    var h1 = {
-      "type": "heading",
-      "id": state.nextId("heading"),
-      "level": 3,
-      "content": "Impact",
-    };
-    doc.create(h1);
-    nodes.push(h1.id);
+    // var meta = article.querySelectorAll("meta-value");
+    // var impact = meta[1];
+    // if (impact) {
+    //   var h1 = {
+    //     "type": "heading",
+    //     "id": state.nextId("heading"),
+    //     "level": 3,
+    //     "content": "Impact",
+    //   };
+    //   doc.create(h1);
+    //   nodes.push(h1.id);
+      
+    //   var par = converter.paragraphGroup(state, impact);
+    //   nodes.push(par[0].id);
+    // }
 
-    if (impact) {
-      var par = converter.paragraphGroup(state, impact);
-      nodes.push(par[0].id);
+    // Add affiliations and emails to authors if missing
+
+    // Do affiliation nodes exist?
+    var affids = []
+    for (var key in doc["nodes"]) {
+      if (doc["nodes"][key].type === 'affiliation') {
+        affids.push(doc["nodes"][key].id)
+      }
     }
 
+    // If affiliations don't exist, build them
+    if (affids.length < 1) {
+      var affNode = {
+        "type": "affiliation",
+        "id": "",
+        "source_id": "",
+        "city": "",
+        "country": "",
+        "department": "",
+        "institution": "",
+        "label": ""
+      };
+
+      var affs = article.querySelectorAll('aff');
+      for (var affnum=0;affnum<affs.length;affnum++) {
+        affNode.source_id = affs[affnum].getAttribute('id');
+        affNode.id = state.nextId("affiliation");
+
+        var label = affs[affnum].querySelector('label');
+        var sup = affs[affnum].querySelector('sup');
+        if (label) {
+          affNode.label = label.textContent;
+          affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
+        }
+        else if (sup){
+          affNode.label = sup.textContent;
+          affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
+        }
+
+        doc.create(affNode);
+      }
+    }  
+
+    var authors = article.querySelectorAll('contrib[contrib-type=author]');
+    for (var ath=0;ath<authors.length;ath++) {
+
+      // Get existing author ID
+      var currentid = doc["nodes"]["document"]["authors"][ath];
+
+      // Add email if it exists
+      var email = authors[ath].querySelector('email');
+      if (email) doc["nodes"][currentid]["emails"].push(email.textContent);
+
+      // Add affiliations
+      var aff = authors[ath].querySelectorAll('xref');
+      for (var affnum=0;affnum<aff.length;affnum++){
+        var id = aff[affnum].getAttribute('rid');
+        if (!id){
+          var id = 'aff'+aff[affnum].textContent;
+        }
+        if (id.indexOf('cor') >= 0) {
+          var email = article.querySelector("corresp[id="+id+"] email");
+          if (doc["nodes"][currentid]["emails"].indexOf(email.textContent) < 0) {
+            doc["nodes"][currentid]["emails"].push(email.textContent);
+          }
+        }
+        for (var key in doc["nodes"]) {
+          if (doc["nodes"][key].source_id === id) {
+            var stateid = doc["nodes"][key].id;
+            doc["nodes"][currentid]["affiliations"].push(stateid)
+            break
+          }
+        }
+      }
+    }
+    
     // Get conflict of interest
 
     // var conflict = article.querySelectorAll("fn");
@@ -379,28 +483,28 @@ HindawiConfiguration.Prototype = function() {
 
     this.enhanceInfo(converter, state, article);
   };
-
+  
   // Resolve figure urls
   // --------
   // 
 
   this.enhanceFigure = function(state, node, element) {
-    var jid = article.querySelector("journal-id[journal-id-type=publisher-id]").textContent.toLowerCase();
-    var articleDOI = article.querySelector("article-id[pub-id-type=doi]").textContent;
-    var newurl = articleDOI.split("/")
-    url = [
-      "http://www.hindawi.com/journals/",
-      jid,
-      "/",
-      newurl[1],
-      "/",
-      newurl[2],
-      "/",
-      element.getAttribute('source_id')
-    ].join('');
+    // var jid = article.querySelector("journal-id[journal-id-type=publisher-id]").textContent.toLowerCase();
+    // var articleDOI = article.querySelector("article-id[pub-id-type=doi]").textContent;
+    // var newurl = articleDOI.split("/")
+    // url = [
+    //   "http://www.hindawi.com/journals/",
+    //   jid,
+    //   "/",
+    //   newurl[1],
+    //   "/",
+    //   newurl[2],
+    //   "/",
+    //   element.getAttribute('source_id')
+    // ].join('');
 
-    node.url = url;
-    node.caption = "";
+    // node.url = url;
+    // node.caption = "";
   };
 
 };
