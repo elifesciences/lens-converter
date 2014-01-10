@@ -72,7 +72,7 @@ DefaultConfiguration.Prototype = function() {
     // Noop - override in your configuration
   };
 
-  this.extractPublicationInfo = function() {
+  this.extractPublicationInfo = function(converter, state, article) {
     var doc = state.doc;
 
     var articleMeta = article.querySelector("article-meta");
