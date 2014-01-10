@@ -229,7 +229,7 @@ BMCConfiguration.Prototype = function() {
 
       // Add email if it exists
       var email = authors[ath].querySelector('email');
-      if (email) doc["nodes"][currentid]["email"].push(email.textContent);
+      if (email) doc["nodes"][currentid]["emails"].push(email.textContent);
 
       // Add affiliations
       var aff = authors[ath].querySelectorAll('xref');
