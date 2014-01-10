@@ -225,8 +225,8 @@ BMCConfiguration.Prototype = function() {
     for (var ath=0;ath<authors.length;ath++) {
 
       // Get existing author ID
-      var currentid = doc["nodes"]["document"]["authors"][ath].id;
-
+      var currentid = doc["nodes"]["document"]["authors"][ath];
+      console.log(currentid)
       // Add email if it exists
       var email = authors[ath].querySelector('email');
       if (email) doc["nodes"][currentid]["emails"].push(email.textContent);
