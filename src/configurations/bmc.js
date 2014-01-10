@@ -98,6 +98,7 @@ BMCConfiguration.Prototype = function() {
 
     // Get Figure URLS
     var figs  = doc["nodes"]["figures"]["nodes"];
+    console.log(figs)
     for (var j=0;j<figs.length;j++) {
       var figid = figs[j];
       var id = doc["nodes"][figid]["graphic"];
