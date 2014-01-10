@@ -272,7 +272,7 @@ PLOSConfiguration.Prototype = function() {
         if (!id){
           var id = 'aff'+aff[affnum].textContent;
         }
-        if ('cor' in id) {
+        if (id.indexOf('cor') >= 0) {
           doc["nodes"][currentid]["emails"].push(article.querySelector("corresp[id="+id+"] email").textContent);
           continue
         }
