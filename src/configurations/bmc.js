@@ -105,7 +105,7 @@ BMCConfiguration.Prototype = function() {
         "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
         pmcID,
         /bin/,
-        url,
+        id,
         ".jpg"
       ].join('');
       doc["nodes"][figid]["url"] = url;
