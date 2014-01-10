@@ -106,7 +106,7 @@ DefaultConfiguration.Prototype = function() {
     ].join('');
 
 
-    var articleType = articleMeta.querySelector("subj-group[subj-group-type=heading] subject");
+    var articleType = articleMeta.querySelector("subj-group[subj-group-type=heading] subject").textContent;
     // Check to see if the full XML is available
     var body = article.querySelector("body");
     var journalTitle = article.querySelector("journal-title");
@@ -142,7 +142,7 @@ DefaultConfiguration.Prototype = function() {
       
     }
     else {
-      journalTitle += ': Not a true Open Access Article. Full XML is unavailable because of the publisher.'
+      articleType += ': Not a true Open Access Article. Full XML is unavailable because of the publisher.'
     }
     // Create PublicationInfo node
     // ---------------
@@ -156,7 +156,7 @@ DefaultConfiguration.Prototype = function() {
       //"keywords": _.pluck(keyWords, "textContent"),
       // "research_organisms": _.pluck(organisms, "textContent"),
       // "subjects": _.pluck(subjects, "textContent"),
-      "article_type": articleType ? articleType.textContent : "",
+      "article_type": articleType,
       "journal": journalTitle ? journalTitle.textContent : "",
       "pdf_link": pdfLink ? pdfLink : ["http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",pmcID].join(""),
       //"related_article": relatedArticle ? ["http://dx.doi.org/", relatedArticle.getAttribute("xlink:href")].join("") : "",
