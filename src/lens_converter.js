@@ -523,7 +523,7 @@ LensImporter.Prototype = function() {
     } else if (publisherName === 'BioMed Central'){
       state.config = new BMCConfiguration();
     } else if (publisherName === 'Hindawi Publishing Corporation'){
-      state.config = new HindawiConfiguration();
+      state.config = new DefaultConfiguration();
     } else {
       state.config = new DefaultConfiguration();
     }
