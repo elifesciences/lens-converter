@@ -215,7 +215,7 @@ BMCConfiguration.Prototype = function() {
         var label = affs[affnum].querySelector('label');
         if (label) affNode.label = label.textContent;
 
-        affNode.institution = affs[affnum].textContent;
+        affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
 
         doc.create(affNode);
       }
