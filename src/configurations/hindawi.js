@@ -22,7 +22,7 @@ HindawiConfiguration.Prototype = function() {
 
   
 
-  his.extractPublicationInfo = function(converter, state, article) {
+  this.extractPublicationInfo = function(converter, state, article) {
     var doc = state.doc;
 
     var articleMeta = article.querySelector("article-meta");
@@ -483,7 +483,7 @@ HindawiConfiguration.Prototype = function() {
 
     this.enhanceInfo(converter, state, article);
   };
-  
+
   // Resolve figure urls
   // --------
   // 
