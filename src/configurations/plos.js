@@ -367,7 +367,7 @@ PLOSConfiguration.Prototype = function() {
     
     // Get funding information
 
-    var fund = article.querySelector("funding-group");
+    var fund = article.querySelector("funding-statement");
     if (fund) {
       var h1 = {
         "type" : "heading",
@@ -377,8 +377,7 @@ PLOSConfiguration.Prototype = function() {
       };
       doc.create(h1);
       nodes.push(h1.id);
-      var child = util.dom.getChildren(fund)
-      var par = converter.bodyNodes(state, child[0]);
+      var par = converter.bodyNodes(state, fund);
       console.log(par)
       //nodes.push(par[0].id);
     }
