@@ -84,30 +84,40 @@ DefaultConfiguration.Prototype = function() {
       var year = dateEl.querySelector("year").textContent;
       return [year, month, day].join("-");
     }
-
+    \
+    // Publication dates
     var pubDate = articleMeta.querySelector("pub-date[pub-type=epub]");
     var receivedDate = articleMeta.querySelector("date[date-type=received]");
     var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
 
+    // PDF and XML link
+    var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
+    var xmlLink = [
+      "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=",
+      pmcID
+    ].join('');
+
+    var pdfLink = [
+        "http://europepmc.org/articles/PMC",
+        pmcID,
+        "?pdf=render"
+      ].join('');
+
     // Check to see if the full XML is available
     var body = article.querySelector("body");
-
+    
     if (body) {
       var journalTitle = article.querySelector("journal-id[journal-id-type=nlm-ta]");
 
       // <article-id pub-id-type="doi">10.1371/journal.pcbi.1002724</article-id>
       var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
-
-      var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
-      var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
+      //var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
 
       // Get Figure URLS
       var figs  = doc["nodes"]["figures"]["nodes"];
-      console.log(figs)
       for (var j=0;j<figs.length;j++) {
         var figid = figs[j];
         var id = doc["nodes"][figid]["attrib"];
-        console.log(id)
         var url = [
           "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
           pmcID,
@@ -117,27 +127,6 @@ DefaultConfiguration.Prototype = function() {
         ].join('');
         doc["nodes"][figid]["url"] = url;
       }
-      
-      // Extract PDF link
-      // ---------------
-      //
-      // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
-      
-      var pdfLink = [
-        "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
-        pmcID,
-        "/pdf/",
-        pubID,
-        ".pdf"
-      ].join('');
-
-      var xmlLink = [
-        "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=",
-        pmcID
-      ].join('');
-
-      // if (relatedArticle) relatedArticle = relatedArticle.getAttribute("xlink:href");
-
       
     }
     // Create PublicationInfo node
