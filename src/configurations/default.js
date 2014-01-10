@@ -103,12 +103,13 @@ DefaultConfiguration.Prototype = function() {
         "?pdf=render"
       ].join('');
 
+    var articleType = articleMeta.querySelector("subj-group[subj-group-type=heading] subject");
     // Check to see if the full XML is available
     var body = article.querySelector("body");
-    
-    if (body) {
-      var journalTitle = article.querySelector("journal-id[journal-id-type=nlm-ta]");
+    var journalTitle = article.querySelector("journal-title");
 
+    if (body) {
+      
       // <article-id pub-id-type="doi">10.1371/journal.pcbi.1002724</article-id>
       var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
       //var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
@@ -138,12 +139,12 @@ DefaultConfiguration.Prototype = function() {
       "published_on": _extractDate(pubDate),
       "received_on": _extractDate(receivedDate),
       "accepted_on": _extractDate(acceptedDate),
-      "keywords": _.pluck(keyWords, "textContent"),
+      //"keywords": _.pluck(keyWords, "textContent"),
       // "research_organisms": _.pluck(organisms, "textContent"),
       // "subjects": _.pluck(subjects, "textContent"),
       "article_type": articleType ? articleType.textContent : "",
       "journal": journalTitle ? journalTitle.textContent : "",
-      "pdf_link": pdfLink ? pdfLink : "",
+      "pdf_link": pdfLink,
       //"related_article": relatedArticle ? ["http://dx.doi.org/", relatedArticle.getAttribute("xlink:href")].join("") : "",
       "xml_link": xmlLink,
       //"json_link": "http://mickey.com/mouse.json",
