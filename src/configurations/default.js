@@ -1,5 +1,8 @@
-var _ = require('underscore');
+"use strict";
 
+//var DefaultConfiguration = require('./default');
+var util = require("substance-util");
+var _ = require("underscore");
 
 var DefaultConfiguration = function() {
 
