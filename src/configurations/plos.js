@@ -206,6 +206,70 @@ PLOSConfiguration.Prototype = function() {
     //   }
     // }
 
+    // Add affiliations and emails to authors if missing
+
+    // Do affiliation nodes exist?
+    var affids = []
+    for (var key in doc["nodes"]) {
+      if (doc["nodes"][key].type === 'affiliation') {
+        affids.push(doc["nodes"][key].id)
+      }
+    }
+
+    // If affiliations don't exist, build them
+    if (affids.length < 1) {
+      var affNode = {
+        "type": "affiliation",
+        "id": "",
+        "source_id": "",
+        "city": "",
+        "country": "",
+        "department": "",
+        "institution": "",
+        "label": ""
+      };
+
+      var affs = article.querySelectorAll('aff');
+      for (var affnum=0;affnum<affs.length;affnum++) {
+        affNode.source_id = affs[affnum].getAttribute('id');
+        affNode.id = state.nextId("affiliation");
+
+        var label = affs[affnum].querySelector('label');
+        if (label) affNode.label = label.textContent;
+
+        affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
+
+        doc.create(affNode);
+      }
+    }  
+
+    var authors = article.querySelectorAll('contrib[contrib-type=author]');
+    for (var ath=0;ath<authors.length;ath++) {
+
+      // Get existing author ID
+      var currentid = doc["nodes"]["document"]["authors"][ath];
+      console.log(currentid)
+      // Add email if it exists
+      var email = authors[ath].querySelector('email');
+      if (email) doc["nodes"][currentid]["emails"].push(email.textContent);
+
+      // Add affiliations
+      var aff = authors[ath].querySelectorAll('xref');
+      for (var affnum=0;affnum<aff.length;affnum++){
+        var id = aff[affnum].getAttribute('rid');
+        if (!id){
+          var id = 'aff'+aff[affnum].textContent;
+        }
+        for (var key in doc["nodes"]) {
+          if (doc["nodes"][key].source_id === id) {
+            var stateid = doc["nodes"][key].id;
+            break
+          }
+        }
+        doc["nodes"][currentid]["affiliations"].push(stateid)
+      }
+    }
+    
     // Get reviewing editor
     // --------------
 
