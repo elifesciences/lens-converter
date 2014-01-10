@@ -79,15 +79,22 @@ DefaultConfiguration.Prototype = function() {
     
     function _extractDate(dateEl) {
       if (!dateEl) return null;
-      var day = dateEl.querySelector("day").textContent;
-      var month = dateEl.querySelector("month").textContent;
-      var year = dateEl.querySelector("year").textContent;
-      return [year, month, day].join("-");
+      try {
+        var day = dateEl.querySelector("day").textContent;
+        var month = dateEl.querySelector("month").textContent;
+        var year = dateEl.querySelector("year").textContent;
+        return [year, month, day].join("-");
+      }
+      catch (TypeError) {
+        var month = dateEl.querySelector("month").textContent;
+        var year = dateEl.querySelector("year").textContent;
+        eturn [year, month].join("-");
+      }
     }
     
     // Publication dates
     var pubDate = articleMeta.querySelector("pub-date[pub-type=epub]");
-    if (!pubDate) var pubDate = articleMeta.querySelector("pub-date[pub-type=ppub]")
+    if (!pubDate) var pubDate = articleMeta.querySelector("pub-date[pub-type=ppub]");
     var receivedDate = articleMeta.querySelector("date[date-type=received]");
     var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
 
