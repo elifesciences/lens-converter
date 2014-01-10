@@ -88,7 +88,7 @@ DefaultConfiguration.Prototype = function() {
       catch (TypeError) {
         var month = dateEl.querySelector("month").textContent;
         var year = dateEl.querySelector("year").textContent;
-        eturn [year, month].join("-");
+        return [year, month].join("-");
       }
     }
     
