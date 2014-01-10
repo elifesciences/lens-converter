@@ -108,7 +108,7 @@ BMCConfiguration.Prototype = function() {
         url,
         ".jpg"
       ].join('');
-      doc["nodes"][fig]["url"] = url;
+      doc["nodes"][figid]["url"] = url;
     }
     
     // Extract PDF link
