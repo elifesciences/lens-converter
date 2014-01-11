@@ -109,7 +109,9 @@ DefaultConfiguration.Prototype = function() {
     var articleType = articleMeta.querySelector("subj-group[subj-group-type=heading] subject").textContent;
     // Check to see if the full XML is available
     var body = article.querySelector("body");
+    
     var journalTitle = article.querySelector("journal-title");
+    var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
 
     if (body) {
       
@@ -122,7 +124,7 @@ DefaultConfiguration.Prototype = function() {
       ].join('');
 
       // <article-id pub-id-type="doi">10.1371/journal.pcbi.1002724</article-id>
-      var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
+      
       //var pubID = article.querySelector("article-id[pub-id-type=publisher-id]").textContent;
 
       // Get Figure URLS
