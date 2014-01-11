@@ -281,7 +281,9 @@ PLOSConfiguration.Prototype = function() {
         for (var key in doc["nodes"]) {
           if (doc["nodes"][key].source_id === id) {
             var stateid = doc["nodes"][key].id;
-            doc["nodes"][currentid]["affiliations"].push(stateid);
+            if (doc["nodes"][currentid]["affiliations"].indexOf(stateid) < 0){
+              doc["nodes"][currentid]["affiliations"].push(stateid)
+            }
             break
           }
         }

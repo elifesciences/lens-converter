@@ -109,7 +109,7 @@ DefaultConfiguration.Prototype = function() {
     var articleType = articleMeta.querySelector("subj-group[subj-group-type=heading] subject").textContent;
     // Check to see if the full XML is available
     var body = article.querySelector("body");
-    
+
     var journalTitle = article.querySelector("journal-title");
     var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
 
@@ -166,6 +166,84 @@ DefaultConfiguration.Prototype = function() {
       //"json_link": "http://mickey.com/mouse.json",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
     };
+
+    // Add affiliations and emails to authors if missing
+
+    // Do affiliation nodes exist?
+    var affids = []
+    for (var key in doc["nodes"]) {
+      if (doc["nodes"][key].type === 'affiliation') {
+        affids.push(doc["nodes"][key].id)
+      }
+    }
+
+    // If affiliations don't exist, build them
+    if (affids.length < 1) {
+      var affNode = {
+        "type": "affiliation",
+        "id": "",
+        "source_id": "",
+        "city": "",
+        "country": "",
+        "department": "",
+        "institution": "",
+        "label": ""
+      };
+
+      var affs = article.querySelectorAll('aff');
+      for (var affnum=0;affnum<affs.length;affnum++) {
+        affNode.source_id = affs[affnum].getAttribute('id');
+        affNode.id = state.nextId("affiliation");
+
+        var label = affs[affnum].querySelector('label');
+        var sup = affs[affnum].querySelector('sup');
+        if (label) {
+          affNode.label = label.textContent;
+          affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
+        }
+        else if (sup){
+          affNode.label = sup.textContent;
+          affNode.institution = affs[affnum].textContent.replace(affNode.label,"");
+        }
+
+        doc.create(affNode);
+      }
+    }  
+
+    var authors = article.querySelectorAll('contrib[contrib-type=author]');
+    for (var ath=0;ath<authors.length;ath++) {
+
+      // Get existing author ID
+      var currentid = doc["nodes"]["document"]["authors"][ath];
+
+      // Add email if it exists
+      var email = authors[ath].querySelector('email');
+      if (email) doc["nodes"][currentid]["emails"].push(email.textContent);
+
+      // Add affiliations
+      var aff = authors[ath].querySelectorAll('xref');
+      for (var affnum=0;affnum<aff.length;affnum++){
+        var id = aff[affnum].getAttribute('rid');
+        if (!id){
+          var id = 'aff'+aff[affnum].textContent;
+        }
+        if (id.indexOf('cor') >= 0) {
+          var email = article.querySelector("corresp[id="+id+"] email");
+          if (doc["nodes"][currentid]["emails"].indexOf(email.textContent) < 0) {
+            doc["nodes"][currentid]["emails"].push(email.textContent);
+          }
+        }
+        for (var key in doc["nodes"]) {
+          if (doc["nodes"][key].source_id === id) {
+            var stateid = doc["nodes"][key].id;
+            if (doc["nodes"][currentid]["affiliations"].indexOf(stateid) < 0){
+              doc["nodes"][currentid]["affiliations"].push(stateid)
+            }
+            break
+          }
+        }
+      }
+    }
     doc.create(pubInfoNode);
     doc.show("info", pubInfoNode.id, 0);
   };
