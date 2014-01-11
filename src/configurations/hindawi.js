@@ -108,7 +108,6 @@ HindawiConfiguration.Prototype = function() {
 
     // Get Figure URLS
     var figs  = doc["nodes"]["figures"]["nodes"];
-    console.log(figs)
     for (var j=0;j<figs.length;j++) {
       var figid = figs[j];
       if (doc["nodes"][figid]["type"] === "figure"){
@@ -119,12 +118,6 @@ HindawiConfiguration.Prototype = function() {
           /bin/,
           id,
           ".jpg"
-        ].join('');
-        doc["nodes"][figid]["url"] = url;
-      }
-      if (doc["nodes"][figid]["type"] === "supplement") {
-        var id = doc["nodes"][figid]["attrib"];
-        var url = [
         ].join('');
         doc["nodes"][figid]["url"] = url;
       }
