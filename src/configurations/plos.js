@@ -114,6 +114,7 @@ PLOSConfiguration.Prototype = function() {
       "&representation=XML"
     ].join('');
 
+    var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
     // Get Figure URLS
     var figs  = doc["nodes"]["figures"]["nodes"];
     for (var j=0;j<figs.length;j++) {
