@@ -298,7 +298,7 @@ PLOSConfiguration.Prototype = function() {
     if (editor){
       var aff = editor.querySelector("xref")
       var affid = aff.getAttribute("rid")
-      var inst = article.querySelector("aff[id="+affid+"] addr-line").textContent;
+      var inst = article.querySelector("aff[id="+affid+"]").textContent;
       var name = converter.getName(editor.querySelector('name'));
       // var inst = editor.querySelector("addr-line").textContent;
       var role = editor.querySelector("role").textContent;
