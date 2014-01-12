@@ -404,13 +404,15 @@ PLOSConfiguration.Prototype = function() {
         nodes.push(par[0].id);
       }
       var lic = license.querySelector("license");
-      var children = util.dom.getChildren(lic);
-      for (var i = 0;i < children.length;i++) {
-        var child = children[i];
-        var type = util.dom.getNodeType(child);
-        if (type === 'p' || type === 'license-p') {
-          var par = converter.paragraphGroup(state, child);
-          nodes.push(par[0].id)
+      if (lic) {
+        var children = util.dom.getChildren(lic);
+        for (var i = 0;i < children.length;i++) {
+          var child = children[i];
+          var type = util.dom.getNodeType(child);
+          if (type === 'p' || type === 'license-p') {
+            var par = converter.paragraphGroup(state, child);
+            nodes.push(par[0].id)
+          }
         }
       }
     }

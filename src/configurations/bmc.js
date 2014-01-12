@@ -382,7 +382,7 @@ BMCConfiguration.Prototype = function() {
       doc.create(h1);
       nodes.push(h1.id);
 
-      var copyright = license.querySelector("copyright-statement");
+      var copyright = license.querySelector("copyright-holder");
       if (copyright) {
         var par = converter.paragraphGroup(state, copyright);
         var textid = par[0].children[0];
@@ -390,13 +390,15 @@ BMCConfiguration.Prototype = function() {
         nodes.push(par[0].id);
       }
       var lic = license.querySelector("license");
-      var children = util.dom.getChildren(lic);
-      for (var i = 0;i < children.length;i++) {
-        var child = children[i];
-        var type = util.dom.getNodeType(child);
-        if (type === 'p' || type === 'license-p') {
-          var par = converter.paragraphGroup(state, child);
-          nodes.push(par[0].id)
+      if (lic) {
+        var children = util.dom.getChildren(lic);
+        for (var i = 0;i < children.length;i++) {
+          var child = children[i];
+          var type = util.dom.getNodeType(child);
+          if (type === 'p' || type === 'license-p') {
+            var par = converter.paragraphGroup(state, child);
+            nodes.push(par[0].id)
+          }
         }
       }
     }
