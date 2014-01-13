@@ -230,8 +230,10 @@ DefaultConfiguration.Prototype = function() {
         }
         if (id.indexOf('cor') >= 0) {
           var email = article.querySelector("corresp[id="+id+"] email");
-          if (doc["nodes"][currentid]["emails"].indexOf(email.textContent) < 0) {
-            doc["nodes"][currentid]["emails"].push(email.textContent);
+          if (email) {
+            if (doc["nodes"][currentid]["emails"].indexOf(email.textContent) < 0) {
+              doc["nodes"][currentid]["emails"].push(email.textContent);
+            }
           }
         }
         for (var key in doc["nodes"]) {
