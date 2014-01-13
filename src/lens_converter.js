@@ -867,7 +867,7 @@ LensImporter.Prototype = function() {
     var doc = state.doc;
 
     // Assign id
-    var articleId = article.querySelector("article-id");
+    var articleId = article.querySelector("article-id[pub-id-type=publisher-id]");
     // Note: Substance.Article does only support one id
     if (articleId) {
       doc.id = articleId.textContent;
