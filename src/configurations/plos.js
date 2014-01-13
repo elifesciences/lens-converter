@@ -114,25 +114,6 @@ PLOSConfiguration.Prototype = function() {
       "&representation=XML"
     ].join('');
 
-    var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
-    // Get Figure URLS
-    var figs  = doc["nodes"]["figures"]["nodes"];
-    for (var j=0;j<figs.length;j++) {
-      var figid = figs[j];
-      if (doc["nodes"][figid]["type"] === "figure"){
-        var id = doc["nodes"][figid]["attrib"];
-        doc["nodes"][figid]["attrib"] = "";
-        var url = [
-          "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
-          pmcID,
-          /bin/,
-          id,
-          ".jpg"
-        ].join('');
-        doc["nodes"][figid]["url"] = url;
-      }
-    }
-
     // Related article if exists
     // -----------
 
@@ -509,16 +490,16 @@ PLOSConfiguration.Prototype = function() {
   // 
 
   this.enhanceFigure = function(state, node, element) {
-    // var graphic = element.querySelector("graphic");
-    // var url = graphic.getAttribute("xlink:href");
-    // state.doc["nodes"][node.id]["attrib"] = "";
-    // url = [
-    //   "http://www.plosone.org/article/fetchObject.action?uri=",
-    //   url,
-    //   "&representation=PNG_L"
-    // ].join('');
+    var graphic = element.querySelector("graphic");
+    var url = graphic.getAttribute("xlink:href");
+    
+    url = [
+      "http://www.plosone.org/article/fetchObject.action?uri=",
+      url,
+      "&representation=PNG_L"
+    ].join('');
 
-    // node.url = url;
+    node.url = url;
   };
 
 };

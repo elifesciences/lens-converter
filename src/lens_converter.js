@@ -511,28 +511,34 @@ LensImporter.Prototype = function() {
 
   this.document = function(state, xmlDoc) {
     // Setup configuration objects
-    var publisherName = xmlDoc.querySelector("publisher-name");
-    if (publisherName) {
-      if (publisherName.textContent === "Landes Bioscience") {
-        state.config = new LandesConfiguration();
-      } else if (publisherName.textContent === "eLife Sciences Publications, Ltd") {
-        state.config = new ElifeConfiguration();
-      } else if (publisherName.textContent === "Public Library of Science") {
-        state.config = new PLOSConfiguration();
-      } else if (publisherName.textContent === 'PeerJ Inc.') {
-        state.config = new DefaultConfiguration();
-      } else if (publisherName.textContent === 'BioMed Central'){
-        state.config = new BMCConfiguration();
-      } else if (publisherName.textContent === 'Hindawi Publishing Corporation'){
-        state.config = new HindawiConfiguration();
-      } else {
+    var ispmc = xmlDoc.querySelector("article-id[pub-id-type=pmc]")
+    if (ispmc) {
+      state.config = new DefaultConfiguration();
+    }
+    else {
+      var publisherName = xmlDoc.querySelector("publisher-name");
+      if (publisherName) {
+        if (publisherName.textContent === "Landes Bioscience") {
+          state.config = new LandesConfiguration();
+        } else if (publisherName.textContent === "eLife Sciences Publications, Ltd") {
+          state.config = new ElifeConfiguration();
+        } else if (publisherName.textContent === "Public Library of Science") {
+          state.config = new PLOSConfiguration();
+        } else if (publisherName.textContent === 'PeerJ Inc.') {
+          state.config = new PeerJConfiguration();
+        } else if (publisherName.textContent === 'BioMed Central'){
+          state.config = new BMCConfiguration();
+        } else if (publisherName.textContent === 'Hindawi Publishing Corporation'){
+          state.config = new HindawiConfiguration();
+        } else {
+          state.config = new DefaultConfiguration();
+        }
+      }
+      else {
         state.config = new DefaultConfiguration();
       }
     }
-    else {
-      state.config = new DefaultConfiguration();
-    }
-
+    
     var doc = state.doc;
     var article = xmlDoc.querySelector("article");
 
