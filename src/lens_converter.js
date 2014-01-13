@@ -520,7 +520,7 @@ LensImporter.Prototype = function() {
       } else if (publisherName.textContent === "Public Library of Science") {
         state.config = new PLOSConfiguration();
       } else if (publisherName.textContent === 'PeerJ Inc.') {
-        state.config = new PeerJConfiguration();
+        state.config = new DefaultConfiguration();
       } else if (publisherName.textContent === 'BioMed Central'){
         state.config = new BMCConfiguration();
       } else if (publisherName.textContent === 'Hindawi Publishing Corporation'){
