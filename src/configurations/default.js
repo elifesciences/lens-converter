@@ -131,16 +131,18 @@ DefaultConfiguration.Prototype = function() {
       var figs  = doc["nodes"]["figures"]["nodes"];
       for (var j=0;j<figs.length;j++) {
         var figid = figs[j];
-        var id = doc["nodes"][figid]["attrib"];
-        doc["nodes"][figid]["attrib"] = "";
-        var url = [
-          "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
-          pmcID,
-          /bin/,
-          id,
-          ".jpg"
-        ].join('');
-        doc["nodes"][figid]["url"] = url;
+        if (doc["nodes"][figid]["type"] === "figure") {
+          var id = doc["nodes"][figid]["attrib"];
+          doc["nodes"][figid]["attrib"] = "";
+          var url = [
+            "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+            pmcID,
+            /bin/,
+            id,
+            ".jpg"
+          ].join('');
+          doc["nodes"][figid]["url"] = url;
+        }
       }
       
     }

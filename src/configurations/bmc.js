@@ -98,19 +98,19 @@ BMCConfiguration.Prototype = function() {
 
     // Get Figure URLS
     var figs  = doc["nodes"]["figures"]["nodes"];
-    console.log(figs)
     for (var j=0;j<figs.length;j++) {
       var figid = figs[j];
-      var id = doc["nodes"][figid]["attrib"];
-      console.log(id)
-      var url = [
-        "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
-        pmcID,
-        /bin/,
-        id,
-        ".jpg"
-      ].join('');
-      doc["nodes"][figid]["url"] = url;
+      if (doc["nodes"][figid]["type"] === "figure") {
+        var id = doc["nodes"][figid]["attrib"];
+        var url = [
+          "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+          pmcID,
+          /bin/,
+          id,
+          ".jpg"
+        ].join('');
+        doc["nodes"][figid]["url"] = url;
+      }
     }
     
     // Extract PDF link
