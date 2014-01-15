@@ -797,14 +797,15 @@ LensImporter.Prototype = function() {
   this.video = function(state, video) {
     var doc = state.doc;
 
-    var label = video.querySelector("label").textContent;
+    var label = video.querySelector("label");
+    if (label) label_text = label.textContent;
 
     var id = state.nextId("video");
     var videoNode = {
       "id": id,
       "source_id": video.getAttribute("id"),
       "type": "video",
-      "label": label,
+      "label": label_text,
       "title": "",
       "caption": null,
       "poster": ""
