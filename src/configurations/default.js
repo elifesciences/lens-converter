@@ -131,7 +131,7 @@ DefaultConfiguration.Prototype = function() {
       var figs  = doc["nodes"]["figures"]["nodes"];
       for (var j=0;j<figs.length;j++) {
         var figid = figs[j];
-        if (doc["nodes"][figid]["type"] === "figure") {
+        if (doc["nodes"][figid]["type"] !== "table") {
           var id = doc["nodes"][figid]["attrib"];
           doc["nodes"][figid]["attrib"] = "";
           var url = [
