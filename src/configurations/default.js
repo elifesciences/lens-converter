@@ -141,6 +141,7 @@ DefaultConfiguration.Prototype = function() {
             id,
             ".jpg"
           ].join('');
+          console.log(doc["nodes"][figid])
           doc["nodes"][figid]["url"] = url;
         }
       }
