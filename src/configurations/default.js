@@ -149,12 +149,11 @@ DefaultConfiguration.Prototype = function() {
             "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
             pmcID,
             /bin/,
-            id,
-            ".jpg"
+            id
           ].join('');
           console.log(url)
           console.log(doc["nodes"][figid])
-          doc["nodes"][figid]["url"] = url;
+          doc["nodes"][figid]["properties"]["url"] = url;
         }
       }
       
