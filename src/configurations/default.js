@@ -131,7 +131,7 @@ DefaultConfiguration.Prototype = function() {
       var figs  = doc["nodes"]["figures"]["nodes"];
       for (var j=0;j<figs.length;j++) {
         var figid = figs[j];
-        if (doc["nodes"][figid]["type"] !== "table") {
+        if (doc["nodes"][figid]["type"] === "figure") {
           var id = doc["nodes"][figid]["attrib"];
           doc["nodes"][figid]["attrib"] = "";
           var url = [
@@ -141,7 +141,17 @@ DefaultConfiguration.Prototype = function() {
             id,
             ".jpg"
           ].join('');
-          console.log(doc["nodes"][figid])
+          doc["nodes"][figid]["url"] = url;
+        }
+        else if (doc["nodes"][figid]["type"] === "supplement") {
+          var id = doc["nodes"][figid]["url"];
+          var url = [
+            "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+            pmcID,
+            /bin/,
+            id,
+            ".jpg"
+          ].join('');
           doc["nodes"][figid]["url"] = url;
         }
       }
