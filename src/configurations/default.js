@@ -100,6 +100,7 @@ DefaultConfiguration.Prototype = function() {
 
     // PDF and XML link
     var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
+    var pubID = article.querySelector("article-id[pub-id-type=publisher-id]");
     var xmlLink = [
       "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=",
       pmcID
@@ -170,6 +171,9 @@ DefaultConfiguration.Prototype = function() {
       "published_on": _extractDate(pubDate),
       "received_on": _extractDate(receivedDate),
       "accepted_on": _extractDate(acceptedDate),
+      "pmid" : article.querySelector("article-id[pub-id-type=pmid]").textContent,
+      "pmcid" : pmcID,
+      "pubid" : pubID ? pubID.textContent : "",
       //"keywords": _.pluck(keyWords, "textContent"),
       // "research_organisms": _.pluck(organisms, "textContent"),
       // "subjects": _.pluck(subjects, "textContent"),
