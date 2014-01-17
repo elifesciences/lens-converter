@@ -110,11 +110,11 @@ DefaultConfiguration.Prototype = function() {
     var articleType = articleMeta.querySelector("subj-group[subj-group-type=heading] subject").textContent;
     // Check to see if the full XML is available
     var body = article.querySelector("body");
-
+    var fig = article.querySelector("fig");
     var journalTitle = article.querySelector("journal-title");
     var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
 
-    if (body) {
+    if (body || fig) {
       
       // PDF Link
 
