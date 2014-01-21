@@ -388,6 +388,7 @@ LensImporter.Prototype = function() {
     "sup": "superscript",
     "underline": "underline",
     "ext-link": "link",
+    "uri" : "link",
     "xref": "",
     "named-content": ""
   };
@@ -433,7 +434,7 @@ LensImporter.Prototype = function() {
     // Common annotations (e.g., emphasis)
     else if (_annotationTypes[type] !== undefined) {
       anno.type = _annotationTypes[type];
-      if (type === "ext-link") {
+      if (type === "ext-link" || type === "uri") {
         anno.url = el.getAttribute("xlink:href");
         if (el.getAttribute("ext-link-type") === "doi") {
           anno.url = ["http://dx.doi.org/", anno.url].join("");
