@@ -435,7 +435,12 @@ LensImporter.Prototype = function() {
     else if (_annotationTypes[type] !== undefined) {
       anno.type = _annotationTypes[type];
       if (type === "ext-link" || type === "uri") {
-        anno.url = el.getAttribute("xlink:href");
+        if (el.getAttribute("xlink:href").indexOf("http://" >= 0)){
+          anno.url = el.getAttribute("xlink:href");
+        }
+        else {
+          anno.url = ["http://",el.getAttribute("xlink:href")].join("");
+        }
         if (el.getAttribute("ext-link-type") === "doi") {
           anno.url = ["http://dx.doi.org/", anno.url].join("");
         }
