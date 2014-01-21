@@ -99,6 +99,7 @@ DefaultConfiguration.Prototype = function() {
     var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
 
     // PDF and XML link
+    var pmID = article.querySelector("article-id[pub-id-type=pmid]");
     var pmcID = article.querySelector("article-id[pub-id-type=pmc]").textContent;
     var pubID = article.querySelector("article-id[pub-id-type=publisher-id]");
     var xmlLink = [
@@ -171,7 +172,7 @@ DefaultConfiguration.Prototype = function() {
       "published_on": _extractDate(pubDate),
       "received_on": _extractDate(receivedDate),
       "accepted_on": _extractDate(acceptedDate),
-      "pmid" : article.querySelector("article-id[pub-id-type=pmid]").textContent,
+      "pmid" : pmID ? pmID.textContent,
       "pmcid" : pmcID,
       "pubid" : pubID ? pubID.textContent : "",
       //"keywords": _.pluck(keyWords, "textContent"),
