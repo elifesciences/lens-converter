@@ -172,7 +172,7 @@ DefaultConfiguration.Prototype = function() {
       "published_on": _extractDate(pubDate),
       "received_on": _extractDate(receivedDate),
       "accepted_on": _extractDate(acceptedDate),
-      "pmid" : pmID ? pmID.textContent,
+      "pmid" : pmID ? pmID.textContent : "",
       "pmcid" : pmcID,
       "pubid" : pubID ? pubID.textContent : "",
       //"keywords": _.pluck(keyWords, "textContent"),
