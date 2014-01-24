@@ -146,9 +146,10 @@ DefaultConfiguration.Prototype = function() {
               xlink
             ].join('');
             doc["nodes"][figid]["url"] = url;
-            doc["nodes"][figid]["url_ogv"] = url;
-            doc["nodes"][figid]["url_web,"] = url;
-            doc["nodes"][figid]["poster"] = url;
+            var mov_type = xlink.split(".")
+            doc["nodes"][figid]["url_ogv"] = url.replace(mov_type[1],"ogv");
+            doc["nodes"][figid]["url_webm"] = url.replace(mov_type[1],"web");
+            doc["nodes"][figid]["poster"] = url.replace(mov_type[1],"jpg");
             continue
           }
           var id = doc["nodes"][figid]["attrib"];
