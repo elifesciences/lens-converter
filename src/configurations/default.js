@@ -137,8 +137,8 @@ DefaultConfiguration.Prototype = function() {
           if (doc["nodes"][figid]["source_id"].indexOf('video') >= 0){
             doc["nodes"][figid]["type"] = "video";
             console.log("media[id="+doc["nodes"][figid]["source_id"]+"]")
-            var id = article.querySelector("media[id="+doc["nodes"][figid]["source_id"]+"]");
-
+            var id = article.querySelector("#"+doc["nodes"][figid]["source_id"]);
+            console.log(id)
             var xlink = id.getAttribute("xlink:href")
             var url = [
               "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
