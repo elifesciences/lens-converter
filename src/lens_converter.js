@@ -642,7 +642,7 @@ LensImporter.Prototype = function() {
 
     var label = figure.querySelector("label");
     var graphic = figure.querySelector("graphic");
-    console.log(graphic.getAttribute("xlink:href"))
+    
     // Top level figure node
     var figureNode = {
       "type": "figure",
@@ -650,7 +650,7 @@ LensImporter.Prototype = function() {
       "source_id": figure.getAttribute("id"),
       "label": label ? label.textContent : "Figure",
       "url": "http://images.wisegeek.com/young-calico-cat.jpg",
-      "attrib" : graphic.getAttribute("xlink:href"),
+      "attrib" : graphic ? graphic.getAttribute("xlink:href") : "",
       "caption": null
     };
 
