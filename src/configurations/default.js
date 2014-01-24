@@ -170,7 +170,6 @@ DefaultConfiguration.Prototype = function() {
           console.log(doc["nodes"][figid])
           doc["nodes"][figid]["properties"]["url"] = url;
         }
-        else if (doc["nodes"][figid]["type"] === )
       }
       
     }
