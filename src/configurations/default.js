@@ -134,24 +134,24 @@ DefaultConfiguration.Prototype = function() {
       for (var j=0;j<figs.length;j++) {
         var figid = figs[j];
         if (doc["nodes"][figid]["type"] === "figure") {
-          if (doc["nodes"][figid]["source_id"].indexOf('video') >= 0){
-            doc["nodes"][figid]["type"] = "video";
-            var id = article.querySelector("#"+doc["nodes"][figid]["source_id"]);
-            var media = id.querySelector("media")
-            var xlink = media.getAttribute("xlink:href")
-            var url = [
-              "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
-              pmcID,
-              /bin/,
-              xlink
-            ].join('');
-            doc["nodes"][figid]["url"] = url;
-            var mov_type = xlink.split(".")
-            doc["nodes"][figid]["properties"]["url_ogv"] = url.replace(mov_type[1],"ogv");
-            doc["nodes"][figid]["properties"]["url_webm"] = url.replace(mov_type[1],"web");
-            doc["nodes"][figid]["properties"]["poster"] = url.replace(mov_type[1],"jpg");
-            console.log(doc["nodes"][figid])
-            continue
+          // if (doc["nodes"][figid]["source_id"].indexOf('video') >= 0){
+          //   doc["nodes"][figid]["type"] = "video";
+          //   var id = article.querySelector("#"+doc["nodes"][figid]["source_id"]);
+          //   var media = id.querySelector("media")
+          //   var xlink = media.getAttribute("xlink:href")
+          //   var url = [
+          //     "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC",
+          //     pmcID,
+          //     /bin/,
+          //     xlink
+          //   ].join('');
+          //   doc["nodes"][figid]["url"] = url;
+          //   var mov_type = xlink.split(".")
+          //   doc["nodes"][figid]["properties"]["url_ogv"] = url.replace(mov_type[1],"ogv");
+          //   doc["nodes"][figid]["properties"]["url_webm"] = url.replace(mov_type[1],"web");
+          //   doc["nodes"][figid]["properties"]["poster"] = url.replace(mov_type[1],"jpg");
+          //   console.log(doc["nodes"][figid])
+          //   continue
           }
           var id = doc["nodes"][figid]["attrib"];
           doc["nodes"][figid]["attrib"] = "";
