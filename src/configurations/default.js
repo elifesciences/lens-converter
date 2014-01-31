@@ -150,6 +150,7 @@ DefaultConfiguration.Prototype = function() {
             doc["nodes"][figid]["url_ogv"] = url.replace(mov_type[1],"ogv");
             doc["nodes"][figid]["url_webm"] = url.replace(mov_type[1],"web");
             doc["nodes"][figid]["poster"] = url.replace(mov_type[1],"jpg");
+            console.log(doc["nodes"][figid])
             continue
           }
           var id = doc["nodes"][figid]["attrib"];
