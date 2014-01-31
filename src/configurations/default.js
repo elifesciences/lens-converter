@@ -152,7 +152,7 @@ DefaultConfiguration.Prototype = function() {
           //   doc["nodes"][figid]["properties"]["poster"] = url.replace(mov_type[1],"jpg");
           //   console.log(doc["nodes"][figid])
           //   continue
-          }
+          //  }
           var id = doc["nodes"][figid]["attrib"];
           doc["nodes"][figid]["attrib"] = "";
           var url = [
