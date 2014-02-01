@@ -47,7 +47,10 @@ LensImporter.Prototype = function() {
 
   var _toHtml = function(el) {
     var tmp = document.createElement("DIV");
-    tmp.appendChild(el.cloneNode(true));
+    try {
+      tmp.appendChild(el.cloneNode(true));
+    }
+    catch (TypeError){}
     return tmp.innerHTML;
   };
 
