@@ -12,13 +12,18 @@ ElifeConfiguration.Prototype = function() {
 
   this.enhanceCover = function(state, node, element) {
     var dispChannel = element.querySelector("subj-group[subj-group-type=display-channel] subject").textContent;
-    var category = element.querySelector("subj-group[subj-group-type=heading] subject").textContent;
-
+    try {
+      var category = element.querySelector("subj-group[subj-group-type=heading] subject").textContent;
+    } catch(err) {
+      var category = null;
+    }
+    
     node.breadcrumbs = [
       { name: "eLife", url: "http://elife.elifesciences.org/", image: "http://lens.elifesciences.org/lens-elife/styles/elife.png" },
       { name: dispChannel, url: "http://elife.elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase() },
-      { name: category, url: "http://elife.elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() },
     ];
+    
+    if (category) node.breadcrumbs.push( { name: category, url: "http://elife.elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() } );
   };
 
   // Resolves figure url
