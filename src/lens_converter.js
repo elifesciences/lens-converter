@@ -269,8 +269,10 @@ LensImporter.Prototype = function() {
       // eLife specific?
       // ----------------
 
-      var memberListId = contrib.querySelector("xref[ref-type=other]").getAttribute("rid");
-      var members = state.xmlDoc.querySelectorAll("#"+memberListId+" contrib");
+      var memberListId = contrib.querySelector("xref[ref-type=other]");
+      if (memberListId) {
+        var members = state.xmlDoc.querySelectorAll("#"+memberListId.getAttribute("rid")+" contrib");
+      }
       
       contribNode.members = _.map(members, function(m) {
         return _getName(m.querySelector("name"));
