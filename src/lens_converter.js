@@ -226,9 +226,9 @@ LensImporter.Prototype = function() {
       image: "",
       deceased: false,
       emails: [],
-      contribution: ""
+      contribution: "",
+      members: []
     };
-
 
     // Deceased?
 
