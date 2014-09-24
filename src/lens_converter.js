@@ -238,7 +238,7 @@ LensImporter.Prototype = function() {
 
     // Extract ORCID
     // -----------------
-    // 
+    //
     // <uri content-type="orcid" xlink:href="http://orcid.org/0000-0002-7361-560X"/>
 
     var orcidURI = contrib.querySelector("uri[content-type=orcid]");
@@ -266,7 +266,7 @@ LensImporter.Prototype = function() {
 
       var memberListId = contrib.querySelector("xref[ref-type=other]").getAttribute("rid");
       var members = state.xmlDoc.querySelectorAll("#"+memberListId+" contrib");
-      
+
       contribNode.members = _.map(members, function(m) {
         return _getName(m.querySelector("name"));
       });
@@ -312,12 +312,12 @@ LensImporter.Prototype = function() {
 
 
         // Funding source nodes are looking like this
-        // 
+        //
         // <funding-source>
         //   National Institutes of Health
         //   <named-content content-type="funder-id">http://dx.doi.org/10.13039/100000002</named-content>
         // </funding-source>
-        // 
+        //
         // and we only want to display the first text node, excluding the funder id
 
         var fundingSourceName = fundingSource.childNodes[0].textContent;
@@ -364,7 +364,7 @@ LensImporter.Prototype = function() {
         return confl.indexOf("no competing") < 0;
       });
     }
-    
+
     contribNode.competing_interests = compInterests;
 
     if (contrib.getAttribute("contrib-type") === "author") {
@@ -553,8 +553,6 @@ LensImporter.Prototype = function() {
 
     return doc;
   };
-
-
 
   this.extractContributors = function(state, article) {
     // TODO: the spec says, that there may be any combination of
@@ -1604,7 +1602,7 @@ LensImporter.Prototype = function() {
           if (source) {
             citationNode.title = source.textContent;
           } else {
-            console.error("FIXME: this citation has no title", citation);  
+            console.error("FIXME: this citation has no title", citation);
           }
         }
       }
