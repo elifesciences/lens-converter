@@ -1134,7 +1134,7 @@ LensImporter.Prototype = function() {
         }
         else {
           var par = this.paragraphGroup(state, data);
-          nodes.push(par[0].id);
+          if (par.length > 0) nodes.push(par[0].id);
         }
       }
     }
