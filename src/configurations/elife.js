@@ -316,7 +316,25 @@ ElifeConfiguration.Prototype = function() {
     var relatedArticle = article.querySelector("related-article");
 
 
-    // if (relatedArticle) relatedArticle = relatedArticle.getAttribute("xlink:href");
+    // Collect Links
+    // ---------------
+
+    var links = [];
+
+    if (pdfLink) {
+      links.push({
+        url: pdfLink,
+        name: "PDF",
+        type: "pdf"
+      });
+    }
+
+    links.push({
+      url: "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml",
+      name: "Source XML",
+      type: "xml"
+    });
+
 
     // Create PublicationInfo node
     // ---------------
@@ -332,13 +350,16 @@ ElifeConfiguration.Prototype = function() {
       "subjects": _.pluck(subjects, "textContent"),
       "article_type": articleType ? articleType.textContent : "",
       "journal": journalTitle ? journalTitle.textContent : "",
-      "pdf_link": pdfLink,
+      // "pdf_link": pdfLink,
       "related_article": relatedArticle ? ["http://dx.doi.org/", relatedArticle.getAttribute("xlink:href")].join("") : "",
-      "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml", // "http://mickey.com/mouse.xml",
+      // "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml", // "http://mickey.com/mouse.xml",
       "json_link": "http://mickey.com/mouse.json",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
-      "article_info": articleInfo.id
+      "article_info": articleInfo.id,
+      "links": links
     };
+
+
 
     doc.create(pubInfoNode);
     doc.show("info", pubInfoNode.id, 0);
