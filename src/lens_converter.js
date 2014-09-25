@@ -1699,6 +1699,7 @@ LensImporter.State = function(xmlDoc, doc, options) {
   var WS_LEFT = /^\s+/g;
   var WS_LEFT_ALL = /^\s*/g;
   var WS_RIGHT = /\s+$/g;
+   var WS_ALL = /\s+/g;
   // var ALL_WS_NOTSPACE_LEFT = /^[\t\n]+/g;
   // var ALL_WS_NOTSPACE_RIGHT = /[\t\n]+$/g;
   var SPACE = " ";
@@ -1723,6 +1724,11 @@ LensImporter.State = function(xmlDoc, doc, options) {
     }
 
     text = text.replace(WS_RIGHT, SPACE);
+
+    // EXPERIMENTAL: also remove white-space within
+    if (this.options.REMOVE_INNER_WS) {
+      text = text.replace(WS_ALL, SPACE);
+    }
 
     this.lastChar = text[text.length-1] || this.lastChar;
     return text;
