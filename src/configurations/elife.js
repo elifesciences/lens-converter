@@ -67,7 +67,6 @@ ElifeConfiguration.Prototype = function() {
         ".jpg"
       ].join('');
     }
-
   };
 
   this.enhanceSupplement = function(state, node, element) {
@@ -86,9 +85,6 @@ ElifeConfiguration.Prototype = function() {
 
   this.extractPublicationInfo = function(converter, state, article) {
     var doc = state.doc;
-
-
-    // var doc = state.doc;
 
     // Initialize the Article Info object
     var articleInfo = {
@@ -221,9 +217,7 @@ ElifeConfiguration.Prototype = function() {
     
     doc.create(articleInfo);
 
-
     // ========================================
-
 
     var articleMeta = article.querySelector("article-meta");
 
@@ -335,6 +329,13 @@ ElifeConfiguration.Prototype = function() {
       type: "xml"
     });
 
+    // Add JSON Link
+
+    links.push({
+      url: "", // will be auto generated
+      name: "Lens JSON",
+      type: "json"
+    });
 
     // Create PublicationInfo node
     // ---------------
@@ -350,10 +351,7 @@ ElifeConfiguration.Prototype = function() {
       "subjects": _.pluck(subjects, "textContent"),
       "article_type": articleType ? articleType.textContent : "",
       "journal": journalTitle ? journalTitle.textContent : "",
-      // "pdf_link": pdfLink,
       "related_article": relatedArticle ? ["http://dx.doi.org/", relatedArticle.getAttribute("xlink:href")].join("") : "",
-      // "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml", // "http://mickey.com/mouse.xml",
-      "json_link": "http://mickey.com/mouse.json",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
       "article_info": articleInfo.id,
       "links": links
@@ -376,7 +374,6 @@ ElifeConfiguration.Prototype = function() {
   // Copyright
 
   this.enhanceInfo = function(converter, state, article) {
-
     // doc.show("info", articleInfo.id);
   };
 
