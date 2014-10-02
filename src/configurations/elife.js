@@ -19,11 +19,11 @@ ElifeConfiguration.Prototype = function() {
     }
     
     node.breadcrumbs = [
-      { name: "eLife", url: "http://elife.elifesciences.org/", image: "http://lens.elifesciences.org/lens-elife/styles/elife.png" },
-      { name: dispChannel, url: "http://elife.elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase() },
+      { name: "eLife", url: "http://elifesciences.org/", image: "http://lens.elifesciences.org/lens-elife/styles/elife.png" },
+      { name: dispChannel, url: "http://elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase() },
     ];
     
-    if (category) node.breadcrumbs.push( { name: category, url: "http://elife.elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() } );
+    if (category) node.breadcrumbs.push( { name: category, url: "http://elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() } );
   };
 
   // Resolves figure url
