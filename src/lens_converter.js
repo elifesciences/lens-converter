@@ -1092,7 +1092,6 @@ LensImporter.Prototype = function() {
     return nodes;
   };
 
-
   this.boxedText = function(state, box) {
     var doc = state.doc;
 
@@ -1106,7 +1105,7 @@ LensImporter.Prototype = function() {
       "type": "box",
       "id": boxId,
       "source_id": box.getAttribute("id"),
-      "label": label ? label.textContent : boxId.replace("_", " "),
+      // "label": label ? label.textContent : boxId.replace("_", " "),
       "children": _.pluck(childNodes, 'id')
     };
     doc.create(boxNode);
