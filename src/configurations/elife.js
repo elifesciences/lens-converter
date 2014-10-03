@@ -118,10 +118,18 @@ ElifeConfiguration.Prototype = function() {
     var editor = article.querySelector("contrib[contrib-type=editor]");
 
     if (editor) {
+      var content = [];
+
       var name = converter.getName(editor.querySelector('name'));
-      var inst = editor.querySelector("institution").textContent;
-      var role = editor.querySelector("role").textContent;
-      var country = editor.querySelector("country").textContent;
+      if (name) content.push(name);
+      var inst = editor.querySelector("institution");
+      if (inst) content.push(inst.textContent);
+
+      // var role = editor.querySelector("role");
+      // if (role) content.push(role.textContent);
+
+      var country = editor.querySelector("country");
+      if (country) content.push(country.textContent);
 
       var h1 = {
         "type": "heading",
@@ -136,7 +144,7 @@ ElifeConfiguration.Prototype = function() {
       var t1 = {
         "type": "text",
         "id": state.nextId("text"),
-        "content": [name, role, inst, country].join(", ")
+        "content": content.join(", ")
       };
 
       doc.create(t1);
@@ -210,7 +218,7 @@ ElifeConfiguration.Prototype = function() {
         var type = util.dom.getNodeType(child);
         if (type === 'p' || type === 'license-p') {
           var par = converter.paragraphGroup(state, child);
-          nodes.push(par[0].id)
+          nodes.push(par[0].id);
         }
       }
     }

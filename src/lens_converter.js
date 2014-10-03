@@ -44,6 +44,7 @@ LensImporter.Prototype = function() {
   this.getName = _getName;
 
   var _toHtml = function(el) {
+    if (!el) return "";
     var tmp = document.createElement("DIV");
     tmp.appendChild(el.cloneNode(true));
     return tmp.innerHTML;
