@@ -70,8 +70,6 @@ ElifeConfiguration.Prototype = function() {
     if (nodes.length > 0) {
       converter.show(state, nodes);
     }
-
-    this.enhanceInfo(converter, state, article);
   };
 
   this.enhanceCover = function(state, node, element) {
@@ -105,9 +103,11 @@ ElifeConfiguration.Prototype = function() {
   // ---------
   //
 
-  this.enhancePublicationInfo = function(state, publicationInfo) {
+  this.enhancePublicationInfo = function(state) {
     var article = state.xmlDoc.querySelector("article");
     var articleMeta = article.querySelector("article-meta");
+
+    var publicationInfo = state.doc.get('publication_info');
 
     // Extract research organism
     // ------------

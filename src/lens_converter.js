@@ -150,11 +150,27 @@ NlmToLensConverter.Prototype = function() {
       "journal": journalTitle ? journalTitle.textContent : "",
       "related_article": relatedArticle ? relatedArticle.getAttribute("xlink:href") : "",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
-      "article_info": articleInfo.id
+      "article_info": articleInfo.id,
+      // TODO: 'article_type' should not be optional; we need to find a good default implementation
+      "article_type": "",
+      // Optional fields not covered by the default implementation
+      // Implement config.enhancePublication() to complement the data
+      // TODO: think about how we could provide good default implementations
+      "keywords": [],
+      "links": [],
+      "subjects": [],
+      "supplements": [],
+      // TODO: it seems messy to have this in the model
+      // Instead it would be cleaner to add 'custom': 'object' field
+      "research_organisms": [],
+      // TODO: this is in the schema, but seems to be unused
+      "provider": "",
     };
 
     doc.create(pubInfoNode);
     doc.show("info", pubInfoNode.id, 0);
+
+    state.config.enhancePublicationInfo(state, pubInfoNode);
   };
 
   this.extractArticleInfo = function(state, article) {
@@ -162,10 +178,10 @@ NlmToLensConverter.Prototype = function() {
     var articleInfo = {
       "id": "articleinfo",
       "type": "paragraph",
-      "children": []
     };
-    var nodes = articleInfo.children;
     var doc = state.doc;
+
+    var nodes = [];
     // Impact statement
     nodes = nodes.concat(this.extractAuthorImpactStatement(state, article));
     // Reviewing editor
@@ -177,7 +193,10 @@ NlmToLensConverter.Prototype = function() {
     // License and Copyright
     nodes = nodes.concat(this.extractCopyrightAndLicense(state, article));
 
+    articleInfo.children = nodes;
     doc.create(articleInfo);
+
+    return articleInfo;
   };
 
   this.extractAuthorImpactStatement = function(state, article) {
