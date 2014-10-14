@@ -14,13 +14,11 @@ var DefaultConfiguration = require("./configurations/default");
 var PLOSConfiguration = require("./configurations/plos");
 var PeerJConfiguration = require("./configurations/peerj");
 
-
-
-var LensImporter = function(options) {
+var NlmToLensConverter = function(options) {
   this.options = options || {};
 };
 
-LensImporter.Prototype = function() {
+NlmToLensConverter.Prototype = function() {
 
   // Helpers
   // --------
@@ -76,7 +74,7 @@ LensImporter.Prototype = function() {
     window.doc = doc;
 
     // A deliverable state which makes this importer stateless
-    var state = new LensImporter.State(xmlDoc, doc, options);
+    var state = new NlmToLensConverter.State(xmlDoc, doc, options);
 
     // Note: all other methods are called corresponding
     return this.document(state, xmlDoc);
@@ -107,6 +105,241 @@ LensImporter.Prototype = function() {
     });
   };
 
+  this.extractDate = function(dateEl) {
+    if (!dateEl) return null;
+    var day = dateEl.querySelector("day").textContent;
+    var month = dateEl.querySelector("month").textContent;
+    var year = dateEl.querySelector("year").textContent;
+    return [year, month, day].join("-");
+  };
+
+  this.extractPublicationInfo = function(state, article) {
+    var doc = state.doc;
+
+    var articleMeta = article.querySelector("article-meta");
+    var pubDate = articleMeta.querySelector("pub-date");
+    var receivedDate = articleMeta.querySelector("date[date-type=received]");
+    var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
+
+    // Journal title
+    //
+    var journalTitle = article.querySelector("journal-title");
+
+    // DOI
+    //
+    // <article-id pub-id-type="doi">10.7554/eLife.00003</article-id>
+    var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
+
+    // Related article if exists
+    //
+    // TODO: can't there be more than one?
+    var relatedArticle = article.querySelector("related-article");
+
+    // Article information
+    var articleInfo = this.extractArticleInfo(state, article);
+
+    // Create PublicationInfo node
+    // ---------------
+
+    var pubInfoNode = {
+      "id": "publication_info",
+      "type": "publication_info",
+      "published_on": this.extractDate(pubDate),
+      "received_on": this.extractDate(receivedDate),
+      "accepted_on": this.extractDate(acceptedDate),
+      "journal": journalTitle ? journalTitle.textContent : "",
+      "related_article": relatedArticle ? relatedArticle.getAttribute("xlink:href") : "",
+      "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
+      "article_info": articleInfo.id
+    };
+
+    doc.create(pubInfoNode);
+    doc.show("info", pubInfoNode.id, 0);
+  };
+
+  this.extractArticleInfo = function(state, article) {
+    // Initialize the Article Info object
+    var articleInfo = {
+      "id": "articleinfo",
+      "type": "paragraph",
+      "children": []
+    };
+    var nodes = articleInfo.children;
+    var doc = state.doc;
+    // Impact statement
+    nodes = nodes.concat(this.extractAuthorImpactStatement(state, article));
+    // Reviewing editor
+    nodes = nodes.concat(this.extractEditor(state, article));
+    // Datasets
+    nodes = nodes.concat(this.extractDatasets(state, article));
+    // Acknowledgments
+    nodes = nodes.concat(this.extractAcknowledgements(state, article));
+    // License and Copyright
+    nodes = nodes.concat(this.extractCopyrightAndLicense(state, article));
+
+    doc.create(articleInfo);
+  };
+
+  this.extractAuthorImpactStatement = function(state, article) {
+    var doc = state.doc;
+    var nodes = [];
+    // Get the author's impact statement
+    var meta = article.querySelectorAll("meta-value");
+    var impact = meta[1];
+    if (impact) {
+      var h1 = {
+        "type": "heading",
+        "id": state.nextId("heading"),
+        "level": 3,
+        "content": "Impact",
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+
+      var par = this.paragraphGroup(state, impact);
+      nodes.push(par[0].id);
+    }
+    return nodes;
+  };
+
+  // Get reviewing editor
+  // --------------
+  // TODO: it is possible to have multiple editors. This does only show the first one
+  //   However, this would be easy: just querySelectorAll and have 'Reviewing Editors' as heading when there are multiple nodes found
+
+  this.extractEditor = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+
+    var editor = article.querySelector("contrib[contrib-type=editor]");
+    if (editor) {
+      var content = [];
+
+      var name = this.getName(editor.querySelector('name'));
+      if (name) content.push(name);
+      var inst = editor.querySelector("institution");
+      if (inst) content.push(inst.textContent);
+      var country = editor.querySelector("country");
+      if (country) content.push(country.textContent);
+
+      var h1 = {
+        "type": "heading",
+        "id": state.nextId("heading"),
+        "level": 3,
+        "content": "Reviewing Editor"
+      };
+
+      doc.create(h1);
+      nodes.push(h1.id);
+
+      var t1 = {
+        "type": "text",
+        "id": state.nextId("text"),
+        "content": content.join(", ")
+      };
+
+      doc.create(t1);
+      nodes.push(t1.id);
+    }
+    return nodes;
+  };
+
+  //
+  // Extracts major datasets
+  // -----------------------
+
+  this.extractDatasets = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+
+    var datasets = article.querySelectorAll('sec');
+    for (var i = 0;i <datasets.length;i++){
+      var data = datasets[i];
+      var type = data.getAttribute('sec-type');
+      if (type === 'datasets') {
+        var h1 = {
+          "type" : "heading",
+          "id" : state.nextId("heading"),
+          "level" : 3,
+          "content" : "Major Datasets"
+        };
+        doc.create(h1);
+        nodes.push(h1.id);
+        var ids = this.datasets(state, util.dom.getChildren(data));
+        for (var j=0;j < ids.length;j++) {
+          if (ids[j]) {
+            nodes.push(ids[j]);
+          }
+        }
+      }
+    }
+    return nodes;
+  };
+
+  //
+  // Extracts Acknowledgements
+  // -------------------------
+
+  this.extractAcknowledgements = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+
+    var ack = article.querySelector("ack");
+    if (ack) {
+      var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 3,
+        "content" : "Acknowledgements"
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+      var par = this.bodyNodes(state, util.dom.getChildren(ack));
+      nodes.push(par[0].id);
+    }
+    return nodes;
+  };
+
+  //
+  // Extracts Copyright and License Information
+  // ------------------------------------------
+
+  this.extractCopyrightAndLicense = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+
+    var license = article.querySelector("permissions");
+    if (license) {
+      var par;
+      var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 3,
+        "content" : "Copyright and License"
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+
+      var copyright = license.querySelector("copyright-statement");
+      if (copyright) {
+        par = this.paragraphGroup(state, copyright);
+        var textid = par[0].children[0];
+        doc.nodes[textid].content += ". ";
+        nodes.push(par[0].id);
+      }
+      var lic = license.querySelector("license");
+      var children = util.dom.getChildren(lic);
+      for (var i = 0;i < children.length;i++) {
+        var child = children[i];
+        var type = util.dom.getNodeType(child);
+        if (type === 'p' || type === 'license-p') {
+          par = this.paragraphGroup(state, child);
+          nodes.push(par[0].id);
+        }
+      }
+    }
+    return nodes;
+  };
 
   this.extractCover = function(state, article) {
     var doc = state.doc;
@@ -239,7 +472,7 @@ LensImporter.Prototype = function() {
 
     // Extract ORCID
     // -----------------
-    // 
+    //
     // <uri content-type="orcid" xlink:href="http://orcid.org/0000-0002-7361-560X"/>
 
     var orcidURI = contrib.querySelector("uri[content-type=orcid]");
@@ -265,7 +498,7 @@ LensImporter.Prototype = function() {
       // eLife specific?
       // ----------------
 
-      var memberList = contrib.querySelector("xref[ref-type=other]"); 
+      var memberList = contrib.querySelector("xref[ref-type=other]");
 
       if (memberList) {
         var memberListId = memberList.getAttribute("rid");
@@ -280,14 +513,13 @@ LensImporter.Prototype = function() {
     function _getEqualContribs(contribId) {
       var result = [];
       var refs = state.xmlDoc.querySelectorAll("xref[rid="+contribId+"]");
-
       // Find xrefs within contrib elements
       _.each(refs, function(ref) {
         var c = ref.parentNode;
-        if (c !== contrib) result.push(_getName(c.querySelector("name")))
+        if (c !== contrib) result.push(_getName(c.querySelector("name")));
       });
       return result;
-    };
+    }
 
 
     // Extract equal contributors
@@ -316,12 +548,12 @@ LensImporter.Prototype = function() {
 
 
         // Funding source nodes are looking like this
-        // 
+        //
         // <funding-source>
         //   National Institutes of Health
         //   <named-content content-type="funder-id">http://dx.doi.org/10.13039/100000002</named-content>
         // </funding-source>
-        // 
+        //
         // and we only want to display the first text node, excluding the funder id
 
         var fundingSourceName = fundingSource.childNodes[0].textContent;
@@ -368,7 +600,7 @@ LensImporter.Prototype = function() {
         return confl.indexOf("no competing") < 0;
       });
     }
-    
+
     contribNode.competing_interests = compInterests;
 
     if (contrib.getAttribute("contrib-type") === "author") {
@@ -882,6 +1114,9 @@ LensImporter.Prototype = function() {
     // Extract ArticleMeta
     this.extractArticleMeta(state, article);
 
+    // Populate Publication Info node
+    this.extractPublicationInfo(state, article);
+
     var body = article.querySelector("body");
     if (body) {
       this.body(state, body);
@@ -924,11 +1159,6 @@ LensImporter.Prototype = function() {
     _.each(abstracts, function(abs) {
       this.abstract(state, abs);
     }, this);
-
-    // Populate Publication Info node
-    // ------------
-
-    state.config.extractPublicationInfo(this, state, article);
 
     // Not supported yet:
     // <trans-abstract> Translated Abstract, zero or more
@@ -1607,7 +1837,7 @@ LensImporter.Prototype = function() {
           if (source) {
             citationNode.title = source.textContent;
           } else {
-            console.error("FIXME: this citation has no title", citation);  
+            console.error("FIXME: this citation has no title", citation);
           }
         }
       }
@@ -1664,7 +1894,7 @@ LensImporter.Prototype = function() {
 };
 
 
-LensImporter.State = function(xmlDoc, doc, options) {
+NlmToLensConverter.State = function(xmlDoc, doc, options) {
   // the input xml document
   this.xmlDoc = xmlDoc;
 
@@ -1738,10 +1968,10 @@ LensImporter.State = function(xmlDoc, doc, options) {
   };
 
 };
+NlmToLensConverter.prototype = new NlmToLensConverter.Prototype();
 
-// LensImporter.Prototype.prototype = NLMImporter.prototype;
-LensImporter.prototype = new LensImporter.Prototype();
-
+// TODO: straightify that overcomplicated export structure
+// This must be Copy'n'Paste shit.
 module.exports = {
-  Importer: LensImporter
+  Importer: NlmToLensConverter
 };
