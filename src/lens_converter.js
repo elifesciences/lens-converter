@@ -318,6 +318,7 @@ NlmToLensConverter.Prototype = function() {
 
     var ack = article.querySelector("ack");
     if (ack) {
+      // TODO: ack elements may have a title element which should be considered here
       var h1 = {
         "type" : "heading",
         "id" : state.nextId("heading"),
@@ -326,7 +327,9 @@ NlmToLensConverter.Prototype = function() {
       };
       doc.create(h1);
       nodes.push(h1.id);
-      var par = this.bodyNodes(state, util.dom.getChildren(ack));
+      var par = this.bodyNodes(state, util.dom.getChildren(ack), {
+        ignore: [ 'title' ]
+      });
       nodes.push(par[0].id);
     }
     return nodes;
@@ -622,7 +625,7 @@ NlmToLensConverter.Prototype = function() {
           // skipping...
         }
       }
-    });
+    }, this);
 
     // Extract member list for person group
     // eLife specific?
@@ -1359,7 +1362,13 @@ NlmToLensConverter.Prototype = function() {
     doc.create(heading);
     nodes.push(heading);
 
-    nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(abs)));
+    // with eLife there are abstracts having an object-id.
+    // TODO: we should store that in the model instead of dropping it
+
+    nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(abs), {
+      ignore: ["title", "object-id"]
+    }));
+
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -1384,10 +1393,6 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this._ignoredBodyNodes = {
-    // label or title occur at several paragraphish elements
-    // and are always picked explicitely
-    "label": true,
-    "title": true,
     // figures and table-wraps are treated globally
     "fig": true,
     "table-wrap": true
@@ -1395,12 +1400,11 @@ NlmToLensConverter.Prototype = function() {
 
   // Top-level elements as they can be found in the body or
   // in a section
-  // NEW: Also used for boxed-text elements
-  this.bodyNodes = function(state, children, startIndex) {
+  // Note: this is also used for boxed-text elements
+  this.bodyNodes = function(state, children, options) {
     var nodes = [], node;
-    startIndex = startIndex || 0;
 
-    for (var i = startIndex; i < children.length; i++) {
+    for (var i = 0; i < children.length; i++) {
       var child = children[i];
       var type = util.dom.getNodeType(child);
 
@@ -1436,7 +1440,7 @@ NlmToLensConverter.Prototype = function() {
         node = this.comment(state, child);
         if (node) nodes.push(node);
       }
-      else if (this._ignoredBodyNodes[type]) {
+      else if (this._ignoredBodyNodes[type] || (options && options.ignore && options.ignore.indexOf(type) >= 0) ) {
         // Note: here are some node types ignored which are
         // processed in an extra pass (figures, tables, etc.)
       }
@@ -1542,38 +1546,35 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.section = function(state, section) {
-
     // pushing the section level to track the level for nested sections
     state.sectionLevel++;
 
     var doc = state.doc;
     var children = util.dom.getChildren(section);
-
-    // create a heading
-    var title = children[0];
-    var id = state.nextId("heading");
-
-    var heading = {
-      id: id,
-      source_id: section.getAttribute("id"),
-      type: "heading",
-      level: state.sectionLevel,
-      content: this.annotatedText(state, title, [id, 'content'])
-    };
-
     var nodes = [];
 
-    if (heading.content.length > 0) {
-      doc.create(heading);
-      nodes.push(heading);
+    // create a heading
+    var title = section.querySelector('title');
+    if (title) {
+      var id = state.nextId("heading");
+      var heading = {
+        id: id,
+        source_id: section.getAttribute("id"),
+        type: "heading",
+        level: state.sectionLevel,
+        content: this.annotatedText(state, title, [id, 'content'])
+      };
+      if (heading.content.length > 0) {
+        doc.create(heading);
+        nodes.push(heading);
+      }
     }
-
     // Recursive Descent: get all section body nodes
-    nodes = nodes.concat(this.bodyNodes(state, children, 1));
-
+    nodes = nodes.concat(this.bodyNodes(state, children, {
+      ignore: ["title"]
+    }));
     // popping the section level
     state.sectionLevel--;
-
     return nodes;
   };
 
@@ -1768,7 +1769,7 @@ NlmToLensConverter.Prototype = function() {
       // Note: we do not care much about what is served as items
       // However, we do not have complex nodes on paragraph level
       // They will be extract as sibling items
-      var nodes = this.bodyNodes(state, util.dom.getChildren(listItem), 0);
+      var nodes = this.bodyNodes(state, util.dom.getChildren(listItem));
       for (var j = 0; j < nodes.length; j++) {
         listNode.items.push(nodes[j].id);
       }
