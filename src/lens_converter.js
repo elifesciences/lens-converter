@@ -120,10 +120,15 @@ NlmToLensConverter.Prototype = function() {
 
   this.extractDate = function(dateEl) {
     if (!dateEl) return null;
-    var day = dateEl.querySelector("day").textContent;
-    var month = dateEl.querySelector("month").textContent;
-    var year = dateEl.querySelector("year").textContent;
-    return [year, month, day].join("-");
+    
+    var year = dateEl.querySelector("year");
+    var month = dateEl.querySelector("month");
+    var day = dateEl.querySelector("day");
+
+    var res = [year.textContent, month.textContent];
+    if (day) res.push(day.textContent);
+    
+    return res.join("-");
   };
 
   this.extractPublicationInfo = function(state, article) {
