@@ -10,6 +10,8 @@ var ElifeConfiguration = function() {
 
 ElifeConfiguration.Prototype = function() {
 
+  var __super__ = DefaultConfiguration.prototype;
+
   // Add Decision letter and author response
   // ---------
 
@@ -102,6 +104,51 @@ ElifeConfiguration.Prototype = function() {
   // Add additional information to the info view
   // ---------
   //
+  this.enhanceVideo = function(state, node, element) {
+    var href = element.getAttribute("xlink:href").split(".");
+    var name = href[0];
+
+    node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
+    node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
+    node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
+    node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
+  };
+
+  // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
+  this.resolveURL = function(state, url) {
+    // Use absolute URL
+    if (url.match(/http:\/\//)) return url;
+
+    // Look up base url
+    var baseURL = this.getBaseURL(state);
+
+    if (baseURL) {
+      return [baseURL, url].join('');
+    } else {
+      // Use special URL resolving for production articles
+      return [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/jpg/",
+        url,
+        ".jpg"
+      ].join('');
+    }
+  };
+
+  this.enhanceSupplement = function(state, node) {
+    var baseURL = this.getBaseURL(state);
+    if (baseURL) {
+      return [baseURL, node.url].join('');
+    } else {
+      node.url = [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/suppl/",
+        node.url
+      ].join('');
+    }
+  };
 
   this.enhancePublicationInfo = function(state) {
     var article = state.xmlDoc.querySelector("article");
@@ -195,7 +242,6 @@ ElifeConfiguration.Prototype = function() {
       type: "json"
     });
 
-
     publicationInfo.research_organisms = _.pluck(organisms, "textContent");
     publicationInfo.keywords = _.pluck(keyWords, "textContent");
     publicationInfo.subjects = _.pluck(subjects, "textContent");
@@ -204,7 +250,6 @@ ElifeConfiguration.Prototype = function() {
 
     if (publicationInfo.related_article) publicationInfo.related_article = "http://dx.doi.org/" + publicationInfo.related_article;
   };
-
 
   this.enhanceSupplement = function(state, node) {
     var baseURL = this.getBaseURL(state);
@@ -252,6 +297,32 @@ ElifeConfiguration.Prototype = function() {
     }
   };
 
+  var AUTHOR_CALLOUT = /author-callout-style/;
+  this.enhanceAnnotationData = function(state, anno, element, type) {
+    // HACK: elife specific hack: there are 'styling' annotations to annotate
+    // text in a certain color associated to one author.
+    if (type === "named-content") {
+      var contentType = element.getAttribute("content-type");
+      if (AUTHOR_CALLOUT.test(contentType)) {
+        anno.type = "author_callout";
+        anno.style = contentType;
+      }
+    }
+  };
+
+  this.showNode = function(state, node) {
+    switch(node.type) {
+    // Boxes go into the figures view if these conditions are met
+    // 1. box has a label (e.g. elife 00288)
+    case "box":
+      if (node.label) {
+        state.doc.show("figures", node.id);
+      }
+      break;
+    default:
+      __super__.showNode.apply(this, arguments);
+    }
+  };
 };
 
 ElifeConfiguration.Prototype.prototype = DefaultConfiguration.prototype;

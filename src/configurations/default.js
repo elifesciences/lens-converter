@@ -94,6 +94,24 @@ DefaultConfiguration.Prototype = function() {
       url
     ].join('');
   };
+
+  this.viewMapping = {
+    // "image": "figures",
+    "box": "content",
+    "supplement": "figures",
+    "figure": "figures",
+    "table": "figures",
+    "video": "figures"
+  };
+
+  this.enhanceAnnotationData = function(state, anno, element, type) {
+  };
+
+  this.showNode = function(state, node) {
+    var view = this.viewMapping[node.type] || "content";
+    state.doc.show(view, node.id);
+  };
+
 };
 
 DefaultConfiguration.prototype = new DefaultConfiguration.Prototype();
