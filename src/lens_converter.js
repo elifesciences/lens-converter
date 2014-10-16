@@ -210,6 +210,8 @@ NlmToLensConverter.Prototype = function() {
     nodes = nodes.concat(this.extractAcknowledgements(state, article));
     // License and Copyright
     nodes = nodes.concat(this.extractCopyrightAndLicense(state, article));
+    // Footnotes
+    nodes = nodes.concat(this.extractFootnotes(state, article));
 
     articleInfo.children = nodes;
     doc.create(articleInfo);
@@ -321,22 +323,38 @@ NlmToLensConverter.Prototype = function() {
     var nodes = [];
     var doc = state.doc;
 
-    var ack = article.querySelector("ack");
-    if (ack) {
-      // TODO: ack elements may have a title element which should be considered here
-      var h1 = {
-        "type" : "heading",
-        "id" : state.nextId("heading"),
-        "level" : 3,
-        "content" : "Acknowledgements"
-      };
-      doc.create(h1);
-      nodes.push(h1.id);
-      var par = this.bodyNodes(state, util.dom.getChildren(ack), {
-        ignore: [ 'title' ]
-      });
-      nodes.push(par[0].id);
+    var acks = article.querySelectorAll("ack");
+    if (acks && acks.length > 0) {
+      _.each(acks, function(ack) {
+        var title = ack.querySelector('title');
+        var header = {
+          "type" : "heading",
+          "id" : state.nextId("heading"),
+          "level" : 3,
+          "content" : title ? title.textContent : "Acknowledgements"
+        };
+        doc.create(header);
+        nodes.push(header.id);
+
+        // There may be multiple paragraphs per ack element
+        var pars = this.bodyNodes(state, util.dom.getChildren(ack));
+        _.each(pars, function(par) {
+          nodes.push(par.id);
+        });
+      }, this);
     }
+
+    return nodes;
+  };
+
+  //
+  // Extracts footnotes that should be shown in article info
+  // ------------------------------------------
+  // 
+  // Needs to be overwritten in configuration
+
+  this.extractFootnotes = function(state, article) {
+    var nodes = [];
     return nodes;
   };
 
@@ -350,34 +368,47 @@ NlmToLensConverter.Prototype = function() {
 
     var license = article.querySelector("permissions");
     if (license) {
-      var par;
       var h1 = {
         "type" : "heading",
         "id" : state.nextId("heading"),
         "level" : 3,
-        "content" : "Copyright and License"
+        "content" : "Copyright & License"
       };
       doc.create(h1);
       nodes.push(h1.id);
 
+      // TODO: this is quite messy. We should introduce a dedicated note for article info
+      // and do that rendering related things there, e.g., '. ' separator
+
+      var par;
       var copyright = license.querySelector("copyright-statement");
       if (copyright) {
         par = this.paragraphGroup(state, copyright);
-        var textid = par[0].children[0];
-        doc.nodes[textid].content += ". ";
-        nodes.push(par[0].id);
+        if (par && par.length) {
+          nodes = nodes.concat( _.map(par, function(p) { return p.id; } ) );
+          // append '.' only if there is none yet
+          if (copyright.textContent.trim().slice(-1) !== '.') {
+            // TODO: this needs to be more robust... what if there are no children
+            var textid = _.last(_.last(par).children);
+            doc.nodes[textid].content += ". ";
+          }
+        }
       }
+
       var lic = license.querySelector("license");
-      var children = util.dom.getChildren(lic);
-      for (var i = 0;i < children.length;i++) {
-        var child = children[i];
-        var type = util.dom.getNodeType(child);
-        if (type === 'p' || type === 'license-p') {
-          par = this.paragraphGroup(state, child);
-          nodes.push(par[0].id);
+      if (lic) {
+        for (var child = lic.firstElementChild; child; child = child.nextElementSibling) {
+          var type = util.dom.getNodeType(child);
+          if (type === 'p' || type === 'license-p') {
+            par = this.paragraphGroup(state, child);
+            if (par && par.length) {
+              nodes = nodes.concat( _.pluck(par, 'id') );
+            }
+          }
         }
       }
     }
+
     return nodes;
   };
 
