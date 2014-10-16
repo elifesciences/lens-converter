@@ -225,6 +225,7 @@ NlmToLensConverter.Prototype = function() {
     // Get the author's impact statement
     var meta = article.querySelectorAll("meta-value");
     var impact = meta[1];
+
     if (impact) {
       var h1 = {
         "type": "heading",
@@ -518,6 +519,7 @@ NlmToLensConverter.Prototype = function() {
       name: "",
       affiliations: [],
       fundings: [],
+      bio: [],
       // Not yet supported... need examples
       image: "",
       deceased: false,
@@ -525,6 +527,25 @@ NlmToLensConverter.Prototype = function() {
       contribution: "",
       members: []
     };
+
+    // Search for author bio and author image
+    var bio = contrib.querySelector("bio");
+
+    if (bio) {
+      _.each(util.dom.getChildren(bio), function(par) {
+        var graphic = par.querySelector("graphic");
+        if (graphic) {
+          var imageUrl = graphic.getAttribute("xlink:href");
+          contribNode.image = imageUrl;
+        } else {
+          var pars = this.paragraphGroup(state, par);
+
+          if (pars.length > 0) {
+            contribNode.bio = [ pars[0].id ];
+          }
+        }
+      }, this);
+    }
 
     // Deceased?
 
@@ -936,7 +957,8 @@ NlmToLensConverter.Prototype = function() {
   this.extractFigures = function(state, xmlDoc) {
     // Globally query all figure-ish content, <fig>, <supplementary-material>, <table-wrap>, <media video>
     // mimetype="video"
-    var figureElements = xmlDoc.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
+    var body = xmlDoc.querySelector("body");
+    var figureElements = body.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
     var figureNodes = [];
     var node;
 
