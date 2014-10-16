@@ -1012,7 +1012,7 @@ NlmToLensConverter.Prototype = function() {
       "id": state.nextId("figure"),
       "source_id": figure.getAttribute("id"),
       "label": label ? label.textContent : "Figure",
-      "url": "http://images.wisegeek.com/young-calico-cat.jpg",
+      "url": "",
       "caption": null
     };
 
@@ -1501,12 +1501,19 @@ NlmToLensConverter.Prototype = function() {
       else if (this._ignoredBodyNodes[type] || (options && options.ignore && options.ignore.indexOf(type) >= 0) ) {
         // Note: here are some node types ignored which are
         // processed in an extra pass (figures, tables, etc.)
+        node = this.ignoredNode(state, child, type);
+        if (node) nodes.push(node);
       }
       else {
         console.error("Node not yet supported as top-level node: " + type);
       }
     }
     return nodes;
+  };
+
+  // Overwirte in specific converter
+  this.ignoredNode = function(state, node, type) {
+    
   };
 
   this.comment = function(/*state, comment*/) {
