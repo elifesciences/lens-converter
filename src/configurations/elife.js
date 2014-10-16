@@ -10,6 +10,8 @@ var ElifeConfiguration = function() {
 
 ElifeConfiguration.Prototype = function() {
 
+  var __super__ = DefaultConfiguration.prototype;
+
   this.enhanceCover = function(state, node, element) {
     var dispChannel = element.querySelector("subj-group[subj-group-type=display-channel] subject").textContent;
     try {
@@ -17,12 +19,11 @@ ElifeConfiguration.Prototype = function() {
     } catch(err) {
       var category = null;
     }
-    
+
     node.breadcrumbs = [
       { name: "eLife", url: "http://elifesciences.org/", image: "http://lens.elifesciences.org/lens-elife/styles/elife.png" },
       { name: dispChannel, url: "http://elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase() },
     ];
-    
     if (category) node.breadcrumbs.push( { name: category, url: "http://elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() } );
   };
 
@@ -54,7 +55,7 @@ ElifeConfiguration.Prototype = function() {
 
     // Look up base url
     var baseURL = this.getBaseURL(state);
-    
+
     if (baseURL) {
       return [baseURL, url].join('');
     } else {
@@ -97,7 +98,7 @@ ElifeConfiguration.Prototype = function() {
     // Get the author's impact statement
     var meta = article.querySelectorAll("meta-value");
     var impact = meta[1];
-    
+
     if (impact) {
       var h1 = {
         "type": "heading",
@@ -137,7 +138,7 @@ ElifeConfiguration.Prototype = function() {
         "level": 3,
         "content": "Reviewing Editor"
       };
-      
+
       doc.create(h1);
       nodes.push(h1.id);
 
@@ -148,7 +149,7 @@ ElifeConfiguration.Prototype = function() {
       };
 
       doc.create(t1);
-      nodes.push(t1.id);      
+      nodes.push(t1.id);
     }
 
     // Get major datasets
@@ -191,7 +192,7 @@ ElifeConfiguration.Prototype = function() {
       var par = converter.bodyNodes(state, util.dom.getChildren(ack));
       nodes.push(par[0].id);
     }
-    
+
     // Get copyright and license information
     var license = article.querySelector("permissions");
     if (license) {
@@ -222,7 +223,7 @@ ElifeConfiguration.Prototype = function() {
         }
       }
     }
-    
+
     doc.create(articleInfo);
 
     // ========================================
@@ -301,8 +302,8 @@ ElifeConfiguration.Prototype = function() {
     // ---------------
     //
     // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
-    
-    var pdfURI = article.querySelector("self-uri[content-type=pdf]");    
+
+    var pdfURI = article.querySelector("self-uri[content-type=pdf]");
 
     var pdfLink = [
       "http://cdn.elifesciences.org/elife-articles/",
@@ -347,7 +348,7 @@ ElifeConfiguration.Prototype = function() {
 
     // Create PublicationInfo node
     // ---------------
-    
+
     var pubInfoNode = {
       "id": "publication_info",
       "type": "publication_info",
@@ -391,6 +392,7 @@ ElifeConfiguration.Prototype = function() {
   this.enhanceArticle = function(converter, state, article) {
 
     var nodes = [];
+    var doc = state.doc;
 
     // Decision letter (if available)
     // -----------
@@ -447,6 +449,33 @@ ElifeConfiguration.Prototype = function() {
     }
 
     this.enhanceInfo(converter, state, article);
+  };
+
+  var AUTHOR_CALLOUT = /author-callout-style/;
+  this.enhanceAnnotationData = function(state, anno, element, type) {
+    // HACK: elife specific hack: there are 'styling' annotations to annotate
+    // text in a certain color associated to one author.
+    if (type === "named-content") {
+      var contentType = element.getAttribute("content-type");
+      if (AUTHOR_CALLOUT.test(contentType)) {
+        anno.type = "author_callout";
+        anno.style = contentType;
+      }
+    }
+  };
+
+  this.showNode = function(state, node) {
+    switch(node.type) {
+    // Boxes go into the figures view if these conditions are met
+    // 1. box has a label (e.g. elife 00288)
+    case "box":
+      if (node.label) {
+        state.doc.show("figures", node.id);
+      }
+      break;
+    default:
+      __super__.showNode.apply(this, arguments);
+    }
   };
 };
 

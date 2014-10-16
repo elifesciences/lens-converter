@@ -1,5 +1,3 @@
-var _ = require('underscore');
-
 
 var DefaultConfiguration = function() {
 
@@ -21,7 +19,7 @@ DefaultConfiguration.Prototype = function() {
 
   // Get baseURL either from XML or from the converter options
   // --------
-  // 
+  //
 
   this.getBaseURL = function(state) {
     // Use xml:base attribute if present
@@ -31,12 +29,12 @@ DefaultConfiguration.Prototype = function() {
 
   // Default video resolver
   // --------
-  // 
+  //
 
   this.enhanceVideo = function(state, node, element) {
     var el = element.querySelector("media") || element;
     // xlink:href example: elife00778v001.mov
-    
+
     var url = element.getAttribute("xlink:href");
     // Just return absolute urls
     if (url.match(/http:/)) {
@@ -78,7 +76,7 @@ DefaultConfiguration.Prototype = function() {
 
   // Default figure url resolver
   // --------
-  // 
+  //
   // For relative urls it uses the same basebath as the source XML
 
   this.resolveURL = function(state, url) {
@@ -89,6 +87,24 @@ DefaultConfiguration.Prototype = function() {
       url
     ].join('');
   };
+
+  this.viewMapping = {
+    // "image": "figures",
+    "box": "content",
+    "supplement": "figures",
+    "figure": "figures",
+    "table": "figures",
+    "video": "figures"
+  };
+
+  this.enhanceAnnotationData = function(state, anno, element, type) {
+  };
+
+  this.showNode = function(state, node) {
+    var view = this.viewMapping[node.type] || "content";
+    state.doc.show(view, node.id);
+  };
+
 };
 
 DefaultConfiguration.prototype = new DefaultConfiguration.Prototype();
