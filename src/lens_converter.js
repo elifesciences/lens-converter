@@ -63,6 +63,8 @@ NlmToLensConverter.Prototype = function() {
       xmlDoc = input;
     }
 
+    this.sanitizeXML(xmlDoc);
+
     // Creating the output Document via factore, so that it is possible to
     // create specialized NLMImporter later which would want to instantiate
     // a specialized Document type
@@ -82,6 +84,15 @@ NlmToLensConverter.Prototype = function() {
 
     // Note: all other methods are called corresponding
     return this.document(state, xmlDoc);
+  };
+
+  // Sometimes we need to deal with unconsistent XML
+  // When overwriting this function in your custom converter
+  // you can solve those issues in a preprocessing step instead of adding
+  // hacks in the main converter code
+
+  this.sanitizeXML = function(xmlDoc) {
+
   };
 
   this.getConfiguration = function(xmlDoc) {
