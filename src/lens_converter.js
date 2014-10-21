@@ -1506,6 +1506,10 @@ NlmToLensConverter.Prototype = function() {
         node = this.boxedText(state, child);
         if (node) nodes.push(node);
       }
+      else if (type === "attrib") { // usually appears within disp-quote
+        // Just treat as another container
+        nodes = nodes.concat(this.paragraphGroup(state, child));
+      }
       else if (type === "comment") {
         node = this.comment(state, child);
         if (node) nodes.push(node);
