@@ -782,8 +782,9 @@ NlmToLensConverter.Prototype = function() {
     } else if (type === "ext-link") {
       anno.url = el.getAttribute("xlink:href");
       // Add 'http://' to URIs without a protocol, such as 'www.google.com'
+      // Except: Url starts with a slash, then we consider them relative
       var extLinkType = el.getAttribute('ext-link-type') || '';
-      if (extLinkType.toLowerCase() === 'uri' && !/^\w+:\/\//.exec(anno.url)) {
+      if (extLinkType.toLowerCase() === 'uri' && !/^\w+:\/\//.exec(anno.url) && !/^\//.exec(anno.url)) {
         anno.url = 'http://' + anno.url;
       } else if (extLinkType.toLowerCase() === 'doi') {
         anno.url = ["http://dx.doi.org/", anno.url].join("");
