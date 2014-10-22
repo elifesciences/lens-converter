@@ -15,7 +15,7 @@ var PLOSConfiguration = require("./configurations/plos");
 var PeerJConfiguration = require("./configurations/peerj");
 
 var NlmToLensConverter = function(options) {
-  this.options = options || {};
+  this.options = options || NlmToLensConverter.DefaultOptions;
 };
 
 NlmToLensConverter.Prototype = function() {
@@ -46,13 +46,9 @@ NlmToLensConverter.Prototype = function() {
   };
 
   // ### The main entry point for starting an import
-  // options:
-  //   - TRIM_WHITESPACES : eliminates any succeeding white-spaces; Use this to prettify the output for
-  //     prettified XML containing indentation for readability. (Default: undefined)
 
-  this.import = function(input, options) {
+  this.import = function(input) {
     var xmlDoc;
-    options = options || {};
 
     // Note: when we are using jqueries get("<file>.xml") we
     // magically get a parsed XML document already
@@ -73,14 +69,12 @@ NlmToLensConverter.Prototype = function() {
     // For debug purposes
     window.doc = doc;
 
+    // A deliverable state which makes this importer stateless
+    var state = this.createState(xmlDoc, doc);
+
     // The configuration can be provided as option or created dynamically based on the XML content
     // by overriding this.getConfig(xmlDoc);
-    if (!options.config) {
-      options.config = this.getConfiguration(xmlDoc);
-    }
-
-    // A deliverable state which makes this importer stateless
-    var state = this.createState(xmlDoc, doc, options);
+    state.config = this.options.config || this.getConfiguration(xmlDoc);
 
     // Note: all other methods are called corresponding
     return this.document(state, xmlDoc);
@@ -92,9 +86,11 @@ NlmToLensConverter.Prototype = function() {
   // hacks in the main converter code
 
   this.sanitizeXML = function(xmlDoc) {
-
   };
 
+  // TODO: to avoid needing to adapt the core converter code each time when adding a custom configuration
+  // it would be cleaner to do this on application level.
+  // To solve this generically, we would need a certain place/service to register configurations.
   this.getConfiguration = function(xmlDoc) {
     var config;
     var publisherName = xmlDoc.querySelector("publisher-name").textContent;
@@ -112,8 +108,8 @@ NlmToLensConverter.Prototype = function() {
     return config;
   };
 
-  this.createState = function(xmlDoc, doc, options) {
-    return new NlmToLensConverter.State(xmlDoc, doc, options);
+  this.createState = function(xmlDoc, doc) {
+    return new NlmToLensConverter.State(this, xmlDoc, doc);
   };
 
   // Overridden to create a Lens Article instance
@@ -131,14 +127,14 @@ NlmToLensConverter.Prototype = function() {
 
   this.extractDate = function(dateEl) {
     if (!dateEl) return null;
-    
+
     var year = dateEl.querySelector("year");
     var month = dateEl.querySelector("month");
     var day = dateEl.querySelector("day");
 
     var res = [year.textContent, month.textContent];
     if (day) res.push(day.textContent);
-    
+
     return res.join("-");
   };
 
@@ -362,7 +358,7 @@ NlmToLensConverter.Prototype = function() {
   //
   // Extracts footnotes that should be shown in article info
   // ------------------------------------------
-  // 
+  //
   // Needs to be overwritten in configuration
 
   this.extractFootnotes = function(state, article) {
@@ -1529,7 +1525,7 @@ NlmToLensConverter.Prototype = function() {
 
   // Overwirte in specific converter
   this.ignoredNode = function(state, node, type) {
-    
+
   };
 
   this.comment = function(/*state, comment*/) {
@@ -2094,7 +2090,7 @@ NlmToLensConverter.Prototype = function() {
   };
 };
 
-NlmToLensConverter.State = function(xmlDoc, doc, options) {
+NlmToLensConverter.State = function(converter, xmlDoc, doc) {
   // the input xml document
   this.xmlDoc = xmlDoc;
 
@@ -2102,7 +2098,9 @@ NlmToLensConverter.State = function(xmlDoc, doc, options) {
   this.doc = doc;
 
   // keep track of the options
-  this.options = options || {};
+  this.options = converter.options;
+
+  this.config = new DefaultConfiguration();
 
   // store annotations to be created here
   // they will be added to the document when everything else is in place
@@ -2118,8 +2116,6 @@ NlmToLensConverter.State = function(xmlDoc, doc, options) {
   this.affiliations = [];
 
   this.skipTypes = {};
-
-  this.config = options.config || new DefaultConfiguration();
 
   // an id generator for different types
   var ids = {};
@@ -2180,8 +2176,9 @@ NlmToLensConverter.prototype.constructor = NlmToLensConverter;
 
 NlmToLensConverter.DefaultConfiguration = DefaultConfiguration;
 
-// TODO: straightify that overcomplicated export structure
-// This must be Copy'n'Paste shit.
-module.exports = {
-  Importer: NlmToLensConverter
+NlmToLensConverter.DefaultOptions = {
+  TRIM_WHITESPACES: true,
+  REMOVE_INNER_WS: true
 };
+
+module.exports = NlmToLensConverter;
