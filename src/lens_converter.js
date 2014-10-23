@@ -1297,8 +1297,11 @@ NlmToLensConverter.Prototype = function() {
       var term = defItem.querySelector("term");
       var def = defItem.querySelector("def");
 
+      // using hwp:id as a fallback MCP articles don't have def.id set
+      var id = def.id || def.getAttribute("hwp:id") || state.nextId('definition');
+
       var definitionNode = {
-        id: def.id || def.getAttribute("hwp:id"), // using hwp:id as a fallback MCP articles don't have def.id set
+        id: id,
         type: "definition",
         title: term.textContent,
         description: def.textContent
