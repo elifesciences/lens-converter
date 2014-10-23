@@ -145,6 +145,7 @@ NlmToLensConverter.Prototype = function() {
     var pubDate = articleMeta.querySelector("pub-date");
     var receivedDate = articleMeta.querySelector("date[date-type=received]");
     var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
+    var revisedDate = articleMeta.querySelector("date[date-type=rev-recd]");
 
     // Journal title
     //
@@ -172,6 +173,7 @@ NlmToLensConverter.Prototype = function() {
       "published_on": this.extractDate(pubDate),
       "received_on": this.extractDate(receivedDate),
       "accepted_on": this.extractDate(acceptedDate),
+      "revised_on": this.extractDate(revisedDate),
       "journal": journalTitle ? journalTitle.textContent : "",
       "related_article": relatedArticle ? relatedArticle.getAttribute("xlink:href") : "",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
