@@ -100,7 +100,7 @@ DefaultConfiguration.Prototype = function() {
     "box": "content",
     "supplement": "figures",
     "figure": "figures",
-    "table": "figures",
+    "html_table": "figures",
     "video": "figures"
   };
 

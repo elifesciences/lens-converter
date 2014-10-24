@@ -1198,9 +1198,9 @@ NlmToLensConverter.Prototype = function() {
     var label = tableWrap.querySelector("label");
 
     var tableNode = {
-      "id": state.nextId("table"),
+      "id": state.nextId("html_table"),
       "source_id": tableWrap.getAttribute("id"),
-      "type": "table",
+      "type": "html_table",
       "title": "",
       "label": label ? label.textContent : "Table",
       "content": "",
