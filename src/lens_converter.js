@@ -940,8 +940,8 @@ NlmToLensConverter.Prototype = function() {
     }
 
     // Rebuild views to ensure consistency
-    _.each(doc.views, function(view) {
-      doc.get(view).rebuild();
+    _.each(doc.containers, function(container, name) {
+      container.rebuild();
     });
 
     return doc;
