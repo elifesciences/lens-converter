@@ -85,7 +85,7 @@ NlmToLensConverter.Prototype = function() {
   // you can solve those issues in a preprocessing step instead of adding
   // hacks in the main converter code
 
-  this.sanitizeXML = function(xmlDoc) {
+  this.sanitizeXML = function(/*xmlDoc*/) {
   };
 
   // TODO: to avoid needing to adapt the core converter code each time when adding a custom configuration
@@ -363,7 +363,7 @@ NlmToLensConverter.Prototype = function() {
   //
   // Needs to be overwritten in configuration
 
-  this.extractFootnotes = function(state, article) {
+  this.extractFootnotes = function(/*state, article*/) {
     var nodes = [];
     return nodes;
   };
@@ -1469,6 +1469,8 @@ NlmToLensConverter.Prototype = function() {
   // Top-level elements as they can be found in the body or
   // in a section
   // Note: this is also used for boxed-text elements
+  this._bodyNodes = {};
+
   this.bodyNodes = function(state, children, options) {
     var nodes = [], node;
 
@@ -1476,58 +1478,57 @@ NlmToLensConverter.Prototype = function() {
       var child = children[i];
       var type = util.dom.getNodeType(child);
 
-      if (type === "p") {
-        nodes = nodes.concat(this.paragraphGroup(state, child));
-      }
-      else if (type === "sec") {
-        nodes = nodes.concat(this.section(state, child));
-      }
-      else if (type === "list") {
-        node = this.list(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "disp-formula") {
-        node = this.formula(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "caption") {
-        node = this.caption(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "boxed-text") {
-        // Just treat as another container
-        node = this.boxedText(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "disp-quote") {
-        // Just treat as another container
-        node = this.boxedText(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "attrib") { // usually appears within disp-quote
-        // Just treat as another container
-        nodes = nodes.concat(this.paragraphGroup(state, child));
-      }
-      else if (type === "comment") {
-        node = this.comment(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (this._ignoredBodyNodes[type] || (options && options.ignore && options.ignore.indexOf(type) >= 0) ) {
+      if (this._bodyNodes[type]) {
+        var result = this._bodyNodes[type].call(this, state, child);
+        if (_.isArray(result)) {
+          nodes = nodes.concat(result);
+        } else if (result) {
+          nodes.push(result);
+        } else {
+          // skip
+        }
+      } else if (this._ignoredBodyNodes[type] || (options && options.ignore && options.ignore.indexOf(type) >= 0) ) {
         // Note: here are some node types ignored which are
         // processed in an extra pass (figures, tables, etc.)
         node = this.ignoredNode(state, child, type);
         if (node) nodes.push(node);
-      }
-      else {
+      } else {
         console.error("Node not yet supported as top-level node: " + type);
       }
     }
     return nodes;
   };
 
-  // Overwirte in specific converter
-  this.ignoredNode = function(state, node, type) {
+  this._bodyNodes["p"] = function(state, child) {
+    return this.paragraphGroup(state, child);
+  };
+  this._bodyNodes["sec"] = function(state, child) {
+    return this.section(state, child);
+  };
+  this._bodyNodes["list"] = function(state, child) {
+    return this.list(state, child);
+  };
+  this._bodyNodes["disp-formula"] = function(state, child) {
+    return this.formula(state, child);
+  };
+  this._bodyNodes["caption"] = function(state, child) {
+    return this.caption(state, child);
+  };
+  this._bodyNodes["boxed-text"] = function(state, child) {
+    return this.boxedText(state, child);
+  };
+  this._bodyNodes["disp-quote"] = function(state, child) {
+    return this.boxedText(state, child);
+  };
+  this._bodyNodes["attrib"] = function(state, child) {
+    return this.paragraphGroup(state, child);
+  };
+  this._bodyNodes["comment"] = function(state, child) {
+    return this.comment(state, child);
+  };
 
+  // Overwirte in specific converter
+  this.ignoredNode = function(/*state, node, type*/) {
   };
 
   this.comment = function(/*state, comment*/) {
