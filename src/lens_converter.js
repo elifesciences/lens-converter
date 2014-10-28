@@ -2056,15 +2056,15 @@ NlmToLensConverter.Prototype = function() {
 
       var articleTitle = citation.querySelector("article-title");
       if (articleTitle) {
-        citationNode.title = articleTitle.textContent;
+        citationNode.title = this.annotatedText(state, articleTitle, [id, 'title']);
       } else {
         var comment = citation.querySelector("comment");
         if (comment) {
-          citationNode.title = comment.textContent;
+          citationNode.title = this.annotatedText(state, comment, [id, 'title']);
         } else {
           // 3rd fallback -> use source
           if (source) {
-            citationNode.title = source.textContent;
+            citationNode.title = this.annotatedText(state, source, [id, 'title']);
           } else {
             console.error("FIXME: this citation has no title", citation);
           }
