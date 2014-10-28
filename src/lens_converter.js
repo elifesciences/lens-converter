@@ -958,7 +958,7 @@ NlmToLensConverter.Prototype = function() {
     }
 
     // Rebuild views to ensure consistency
-    _.each(doc.containers, function(container, name) {
+    _.each(doc.containers, function(container) {
       container.rebuild();
     });
 
@@ -1883,59 +1883,54 @@ NlmToLensConverter.Prototype = function() {
   // Formula Node Type
   // --------
 
-  this._getFormula = function(formulaElement, inline) {
-    var children = util.dom.getChildren(formulaElement);
-    for (var i = 0; i < children.length; i++) {
-      var child = children[i];
+  this._getFormulaData = function(formulaElement, inline) {
+    var result = [];
+    for (var child = formulaElement.firstElementChild; child; child = child.nextElementSibling) {
       var type = util.dom.getNodeType(child);
-
-      if (type === "mml:math") {
-        // make sure that 'display' is set to 'block', otherwise
-        // there will be rendering issues.
-        // Although it is a rendering related issue it is easier
-        // to make this conform here
-        if (!inline) {
-          child.setAttribute("display", "block");
-        }
-        return {
-          format: "mathml",
-          data: this.toHtml(child)
-        };
-      }
-      else if (type === "tex-math") {
-        return {
-          format: "latex",
-          data: child.textContent
-        };
+      switch (type) {
+        case "graphic":
+        case "inline-graphic":
+          result.push({
+            format: 'image',
+            data: child.getAttribute('xlink:href')
+          });
+          break;
+        case "mml:math":
+          result.push({
+            format: "mathml",
+            data: this.toHtml(child)
+          });
+          break;
+        case "tex-math":
+          result.push({
+            format: "latex",
+            data: child.textContent
+          });
+          break;
+        default:
+          console.error('Unsupported formula element of type ' + type);
       }
     }
-    return null;
+    return result;
   };
 
-  this.formula = function(state, dispFormula, inline) {
+  this.formula = function(state, formulaElement, inline) {
     var doc = state.doc;
-
-    var id = inline ? state.nextId("inline_formula") : state.nextId("formula");
-
     var formulaNode = {
-      id: id,
-      source_id: dispFormula.getAttribute("id"),
+      id: state.nextId("formula"),
+      source_id: formulaElement.getAttribute("id"),
       type: "formula",
       label: "",
-      data: "",
-      format: "",
+      inline: !!inline,
+      data: [],
+      format: [],
     };
-    if (inline) formulaNode.inline = true;
-
-    var label = dispFormula.querySelector("label");
+    var label = formulaElement.querySelector("label");
     if (label) formulaNode.label = label.textContent;
-
-    var formula = this._getFormula(dispFormula, inline);
-    if (!formula) {
-      return null;
-    } else {
-      formulaNode.format = formula.format;
-      formulaNode.data = formula.data;
+    var formulaData = this._getFormulaData(formulaElement, inline);
+    for (var i = 0; i < formulaData.length; i++) {
+      formulaNode.format.push(formulaData[i].format);
+      formulaNode.data.push(formulaData[i].data);
     }
     doc.create(formulaNode);
     return formulaNode;
