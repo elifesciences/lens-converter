@@ -730,7 +730,8 @@ NlmToLensConverter.Prototype = function() {
     "underline": "underline",
     "ext-link": "link",
     "xref": "",
-    "named-content": ""
+    "named-content": "",
+    "inline-formula": "inline-formula"
   };
 
   // mapping from xref.refType to node type
@@ -789,6 +790,9 @@ NlmToLensConverter.Prototype = function() {
       }
     } else if (type === 'inline-graphic') {
       anno.url = el.getAttribute("xlink:href");
+    } else if (type === 'inline-formula') {
+      var formula = this.formula(state, el, "inline");
+      anno.target = formula.id;
     }
   };
 
@@ -897,6 +901,14 @@ NlmToLensConverter.Prototype = function() {
       annotatedText = this.shortenLinkLabel(state, annotatedText);
     }
     return annotatedText;
+  };
+
+  this._annotationTextHandler['inline-formula'] = function(state, el, type, charPos) {
+    // ATTENTION: as we skip the regular mechanism for collecting text
+    // it is necessary to specify the last scanned character to achieve
+    // a correct whitespace handling.
+    state.lastChar = '}';
+    return "{{inline-formula}}";
   };
 
   this.shortenLinkLabel = function(state, linkLabel) {
@@ -1883,7 +1895,7 @@ NlmToLensConverter.Prototype = function() {
   // Formula Node Type
   // --------
 
-  this._getFormulaData = function(formulaElement, inline) {
+  this._getFormulaData = function(formulaElement) {
     var result = [];
     for (var child = formulaElement.firstElementChild; child; child = child.nextElementSibling) {
       var type = util.dom.getNodeType(child);
