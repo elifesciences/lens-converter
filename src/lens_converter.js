@@ -842,19 +842,11 @@ NlmToLensConverter.Prototype = function() {
         if (this.isAnnotation(type)) {
           if (!state.skipTypes[type]) {
             var start = charPos;
-            if (type === 'inline-graphic') {
-              var imgId = el.getAttribute('hwp:id');
-              annotatedText = '{{inline-image:'+imgId+'}}';
-            } else {
-              // recurse into the annotation element to collect nested annotations
-              // and the contained plain text
-              var childIterator = new util.dom.ChildNodeIterator(el);
-              annotatedText = this._annotatedText(state, childIterator, charPos, "nested");
 
-              // Shorten label for URL links (i.e. if label === url )
-              if (type === 'ext-link' && el.getAttribute('xlink:href') === annotatedText.trim()) {
-                annotatedText = this.shortenLinkLabel(state, annotatedText);
-              }
+            if (this._annotationTextHandler[type]) {
+              annotatedText = this._annotationTextHandler[type].call(this, state, el, type, charPos);
+            } else {
+              annotatedText = this._getAnnotationText(state, el, type, charPos);
             }
 
             plainText += annotatedText;
@@ -879,6 +871,32 @@ NlmToLensConverter.Prototype = function() {
       }
     }
     return plainText;
+  };
+
+  // A place to register handlers to override how the text of an annotation is created.
+  // The default implementation is this._getAnnotationText() which extracts the plain text and creates
+  // nested annotations if necessary.
+  // Examples for other implementations:
+  //   - links: the label of a link may be shortened in certain cases
+  //   - inline elements: we model inline elements by a pair of annotation and a content node, and we create a custom label.
+
+  this._annotationTextHandler = {};
+
+  this._getAnnotationText = function(state, el, type, charPos) {
+    // recurse into the annotation element to collect nested annotations
+    // and the contained plain text
+    var childIterator = new util.dom.ChildNodeIterator(el);
+    var annotatedText = this._annotatedText(state, childIterator, charPos, "nested");
+    return annotatedText;
+  };
+
+  this._annotationTextHandler['ext-link'] = function(state, el, type, charPos) {
+    var annotatedText = this._getAnnotationText(state, el, charPos);
+    // Shorten label for URL links (i.e. if label === url )
+    if (type === 'ext-link' && el.getAttribute('xlink:href') === annotatedText.trim()) {
+      annotatedText = this.shortenLinkLabel(state, annotatedText);
+    }
+    return annotatedText;
   };
 
   this.shortenLinkLabel = function(state, linkLabel) {
