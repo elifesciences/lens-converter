@@ -224,19 +224,13 @@ NlmToLensConverter.Prototype = function() {
     nodes = nodes.concat(this.extractAcknowledgements(state, article));
     // License and Copyright
     nodes = nodes.concat(this.extractCopyrightAndLicense(state, article));
-    // Footnotes
-    nodes = nodes.concat(this.extractFootnotes(state, article));
-    // Author-notes
-    nodes = nodes.concat(this.extractAuthorNotes(state, article));
+    // Notes (Footnotes + Author notes)
+    nodes = nodes.concat(this.extractNotes(state, article));
 
     articleInfo.children = nodes;
     doc.create(articleInfo);
 
     return articleInfo;
-  };
-
-  this.extractAuthorNotes = function(/*state, article*/) {
-    return [];
   };
 
   this.extractAuthorImpactStatement = function(state, article) {
@@ -376,7 +370,7 @@ NlmToLensConverter.Prototype = function() {
   //
   // Needs to be overwritten in configuration
 
-  this.extractFootnotes = function(/*state, article*/) {
+  this.extractNotes = function(/*state, article*/) {
     var nodes = [];
     return nodes;
   };
