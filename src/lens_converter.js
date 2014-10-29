@@ -143,9 +143,7 @@ NlmToLensConverter.Prototype = function() {
 
     var articleMeta = article.querySelector("article-meta");
     var pubDate = articleMeta.querySelector("pub-date");
-    var receivedDate = articleMeta.querySelector("date[date-type=received]");
-    var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
-    var revisedDate = articleMeta.querySelector("date[date-type=rev-recd]");
+    var history = articleMeta.querySelectorAll("history date");
 
     // Journal title
     //
@@ -171,9 +169,6 @@ NlmToLensConverter.Prototype = function() {
       "id": "publication_info",
       "type": "publication_info",
       "published_on": this.extractDate(pubDate),
-      "received_on": this.extractDate(receivedDate),
-      "accepted_on": this.extractDate(acceptedDate),
-      "revised_on": this.extractDate(revisedDate),
       "journal": journalTitle ? journalTitle.textContent : "",
       "related_article": relatedArticle ? relatedArticle.getAttribute("xlink:href") : "",
       "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
@@ -187,12 +182,22 @@ NlmToLensConverter.Prototype = function() {
       "links": [],
       "subjects": [],
       "supplements": [],
+      "history": [],
       // TODO: it seems messy to have this in the model
       // Instead it would be cleaner to add 'custom': 'object' field
       "research_organisms": [],
       // TODO: this is in the schema, but seems to be unused
       "provider": "",
     };
+
+    for (var i = 0; i < history.length; i++) {
+      var dateEl = history[i];
+      var historyEntry = {
+        type: dateEl.getAttribute('date-type'),
+        date: this.extractDate(dateEl)
+      };
+      pubInfoNode.history.push(historyEntry);
+    }
 
     doc.create(pubInfoNode);
     doc.show("info", pubInfoNode.id, 0);
@@ -221,11 +226,17 @@ NlmToLensConverter.Prototype = function() {
     nodes = nodes.concat(this.extractCopyrightAndLicense(state, article));
     // Footnotes
     nodes = nodes.concat(this.extractFootnotes(state, article));
+    // Author-notes
+    nodes = nodes.concat(this.extractAuthorNotes(state, article));
 
     articleInfo.children = nodes;
     doc.create(articleInfo);
 
     return articleInfo;
+  };
+
+  this.extractAuthorNotes = function(/*state, article*/) {
+    return [];
   };
 
   this.extractAuthorImpactStatement = function(state, article) {
@@ -347,7 +358,9 @@ NlmToLensConverter.Prototype = function() {
         nodes.push(header.id);
 
         // There may be multiple paragraphs per ack element
-        var pars = this.bodyNodes(state, util.dom.getChildren(ack));
+        var pars = this.bodyNodes(state, util.dom.getChildren(ack), {
+          ignore: ["title"]
+        });
         _.each(pars, function(par) {
           nodes.push(par.id);
         });
@@ -730,6 +743,7 @@ NlmToLensConverter.Prototype = function() {
     "underline": "underline",
     "ext-link": "link",
     "xref": "",
+    "email": "link",
     "named-content": "",
     "inline-formula": "inline-formula"
   };
@@ -788,6 +802,8 @@ NlmToLensConverter.Prototype = function() {
       } else if (extLinkType.toLowerCase() === 'doi') {
         anno.url = ["http://dx.doi.org/", anno.url].join("");
       }
+    } else if (type === "email") {
+      anno.url = "mailto:" + el.textContent.trim();
     } else if (type === 'inline-graphic') {
       anno.url = el.getAttribute("xlink:href");
     } else if (type === 'inline-formula') {
@@ -903,7 +919,7 @@ NlmToLensConverter.Prototype = function() {
     return annotatedText;
   };
 
-  this._annotationTextHandler['inline-formula'] = function(state, el, type, charPos) {
+  this._annotationTextHandler['inline-formula'] = function(state) {
     // ATTENTION: as we skip the regular mechanism for collecting text
     // it is necessary to specify the last scanned character to achieve
     // a correct whitespace handling.
@@ -992,6 +1008,7 @@ NlmToLensConverter.Prototype = function() {
     if (contribGroup) {
       this.contribGroup(state, contribGroup);
     }
+
   };
 
   this.extractFigures = function(state, xmlDoc) {
