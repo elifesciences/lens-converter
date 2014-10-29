@@ -330,6 +330,20 @@ NlmToLensConverter.Prototype = function() {
     return nodes;
   };
 
+  var _capitalized = function(str, all) {
+    if (all) {
+      return str.split(' ').map(function(s){
+        return _capitalized(s);
+      }).join(' ');
+    } else {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+  };
+
+  this.capitalized = function(str, all) {
+    return _capitalized(str, all);
+  };
+
   //
   // Extracts Acknowledgements
   // -------------------------
@@ -346,7 +360,7 @@ NlmToLensConverter.Prototype = function() {
           "type" : "heading",
           "id" : state.nextId("heading"),
           "level" : 3,
-          "content" : title ? title.textContent : "Acknowledgements"
+          "content" : title ? this.capitalized(title.textContent.toLowerCase(), "all") : "Acknowledgements"
         };
         doc.create(header);
         nodes.push(header.id);
