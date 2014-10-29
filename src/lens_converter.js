@@ -1439,7 +1439,7 @@ NlmToLensConverter.Prototype = function() {
         // In that case, the iterator will still have more elements
         // and the loop is continued
         // Before descending, we reset the iterator to provide the current element again.
-        var annotatedText = this._annotatedText(state, iterator.back(), 0);
+        var annotatedText = this._annotatedText(state, iterator.back(), { offset: 0, breakOnUnknown: true });
 
         // Ignore empty paragraphs
         if (annotatedText.length > 0) {
@@ -2044,7 +2044,7 @@ NlmToLensConverter.Prototype = function() {
       ignore: options.ignore
     });
     var childIterator = new util.dom.ChildNodeIterator(node);
-    var text = this._annotatedText(state, childIterator, options.offset || 0);
+    var text = this._annotatedText(state, childIterator, options);
     state.stack.pop();
     return text;
   };
@@ -2054,12 +2054,12 @@ NlmToLensConverter.Prototype = function() {
   // As annotations are nested this is a bit more involved and meant for
   // internal use only.
   //
-  this._annotatedText = function(state, iterator, charPos, nested) {
+  this._annotatedText = function(state, iterator, options) {
     var plainText = "";
 
-    if (charPos === undefined) {
-      charPos = 0;
-    }
+    var charPos = (options.offset === undefined) ? 0 : options.offset;
+    var nested = !!options.nested;
+    var breakOnUnknown = !!options.breakOnUnknown;
 
     while(iterator.hasNext()) {
       var el = iterator.next();
@@ -2091,7 +2091,14 @@ NlmToLensConverter.Prototype = function() {
           }
         }
         // Unsupported...
-        else {
+        else if (!breakOnUnknown) {
+          if (state.top().ignore.indexOf(type) < 0) {
+            var start = charPos;
+            annotatedText = this._getAnnotationText(state, el, type, charPos);
+            plainText += annotatedText;
+            charPos += annotatedText.length;
+          }
+        } else {
           if (nested) {
             console.error("Node not yet supported in annoted text: " + type);
           }
@@ -2120,7 +2127,7 @@ NlmToLensConverter.Prototype = function() {
     // recurse into the annotation element to collect nested annotations
     // and the contained plain text
     var childIterator = new util.dom.ChildNodeIterator(el);
-    var annotatedText = this._annotatedText(state, childIterator, charPos, "nested");
+    var annotatedText = this._annotatedText(state, childIterator, { offset: charPos, nested: true });
     return annotatedText;
   };
 
