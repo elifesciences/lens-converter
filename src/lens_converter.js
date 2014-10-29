@@ -20,6 +20,42 @@ var NlmToLensConverter = function(options) {
 
 NlmToLensConverter.Prototype = function() {
 
+  this._annotationTypes = {
+    "bold": "strong",
+    "italic": "emphasis",
+    "monospace": "code",
+    "sub": "subscript",
+    "sup": "superscript",
+    "underline": "underline",
+    "ext-link": "link",
+    "xref": "",
+    "email": "link",
+    "named-content": "",
+    "inline-formula": "inline-formula"
+  };
+
+  // mapping from xref.refType to node type
+  this._refTypeMapping = {
+    "bibr": "citation_reference",
+    "fig": "figure_reference",
+    "table": "figure_reference",
+    "supplementary-material": "figure_reference",
+    "other": "figure_reference",
+    "list": "definition_reference",
+  };
+
+  this.isAnnotation = function(type) {
+    return this._annotationTypes[type] !== undefined;
+  };
+
+  this.isParagraphish = function(node) {
+    for (var i = 0; i < node.childNodes.length; i++) {
+      var el = node.childNodes[i];
+      if (el.nodeType !== Node.TEXT_NODE && !this.isAnnotation(el.tagName.toLowerCase())) return false;
+    }
+    return true;
+  };
+
   // Helpers
   // --------
 
@@ -425,7 +461,6 @@ NlmToLensConverter.Prototype = function() {
           }
         }
       }
-
       var lic = license.querySelector("license");
       if (lic) {
         for (var child = lic.firstElementChild; child; child = child.nextElementSibling) {
@@ -525,6 +560,9 @@ NlmToLensConverter.Prototype = function() {
     var department = aff.querySelector("addr-line named-content[content-type=department]");
     var city = aff.querySelector("addr-line named-content[content-type=city]");
 
+    // TODO: this is a potential place for implementing a catch-bin
+    // For that, iterate all children elements and fill into properties as needed or add content to the catch-bin
+
     var affiliationNode = {
       id: state.nextId("affiliation"),
       type: "affiliation",
@@ -560,7 +598,6 @@ NlmToLensConverter.Prototype = function() {
 
     // Search for author bio and author image
     var bio = contrib.querySelector("bio");
-
     if (bio) {
       _.each(util.dom.getChildren(bio), function(par) {
         var graphic = par.querySelector("graphic");
@@ -569,7 +606,6 @@ NlmToLensConverter.Prototype = function() {
           contribNode.image = imageUrl;
         } else {
           var pars = this.paragraphGroup(state, par);
-
           if (pars.length > 0) {
             contribNode.bio = [ pars[0].id ];
           }
@@ -725,7 +761,9 @@ NlmToLensConverter.Prototype = function() {
           if (used) state.used[fnId] = true;
         }
       } else {
-        console.log("Skipping xref in contrib node", xref.textContent);
+        // TODO: this is a potential place for implementing a catch-bin
+        // For that, we could push the content of the referenced element into the contrib's catch-bin
+        console.log("Skipping contrib's xref", xref.textContent);
       }
     }, this);
 
@@ -752,226 +790,6 @@ NlmToLensConverter.Prototype = function() {
 
     contribNode.equal_contrib = equalContribs;
     contribNode.competing_interests = compInterests;
-  };
-
-  // Annotations
-  // --------
-
-  this._annotationTypes = {
-    "bold": "strong",
-    "italic": "emphasis",
-    "monospace": "code",
-    "sub": "subscript",
-    "sup": "superscript",
-    "underline": "underline",
-    "ext-link": "link",
-    "xref": "",
-    "email": "link",
-    "named-content": "",
-    "inline-formula": "inline-formula"
-  };
-
-  // mapping from xref.refType to node type
-  this._refTypeMapping = {
-    "bibr": "citation_reference",
-    "fig": "figure_reference",
-    "table": "figure_reference",
-    "supplementary-material": "figure_reference",
-    "other": "figure_reference",
-    "list": "definition_reference",
-  };
-
-  this.isAnnotation = function(type) {
-    return this._annotationTypes[type] !== undefined;
-  };
-
-  this.isParagraphish = function(node) {
-    for (var i = 0; i < node.childNodes.length; i++) {
-      var el = node.childNodes[i];
-      if (el.nodeType !== Node.TEXT_NODE && !this.isAnnotation(el.tagName.toLowerCase())) return false;
-    }
-    return true;
-  };
-
-  this.createAnnotation = function(state, el, start, end) {
-    // do not create an annotaiton if there is no range
-    if (start === end) return;
-    var type = el.tagName.toLowerCase();
-    var anno = {
-      type: "annotation",
-      path: _.last(state.stack).path,
-      range: [start, end],
-    };
-    this.addAnnotationData(state, anno, el, type);
-    state.config.enhanceAnnotationData(state, anno, el, type);
-
-    // assign an id after the type has been extracted to be able to create typed ids
-    anno.id = state.nextId(anno.type);
-    state.annotations.push(anno);
-  };
-
-  // Called for annotation types registered in this._annotationTypes
-  this.addAnnotationData = function(state, anno, el, type) {
-    anno.type = this._annotationTypes[type] || "annotation";
-    if (type === 'xref') {
-      this.addAnnotationDataForXref(state, anno, el);
-    } else if (type === "ext-link") {
-      anno.url = el.getAttribute("xlink:href");
-      // Add 'http://' to URIs without a protocol, such as 'www.google.com'
-      // Except: Url starts with a slash, then we consider them relative
-      var extLinkType = el.getAttribute('ext-link-type') || '';
-      if (extLinkType.toLowerCase() === 'uri' && !/^\w+:\/\//.exec(anno.url) && !/^\//.exec(anno.url)) {
-        anno.url = 'http://' + anno.url;
-      } else if (extLinkType.toLowerCase() === 'doi') {
-        anno.url = ["http://dx.doi.org/", anno.url].join("");
-      }
-    } else if (type === "email") {
-      anno.url = "mailto:" + el.textContent.trim();
-    } else if (type === 'inline-graphic') {
-      anno.url = el.getAttribute("xlink:href");
-    } else if (type === 'inline-formula') {
-      var formula = this.formula(state, el, "inline");
-      anno.target = formula.id;
-    }
-  };
-
-  this.addAnnotationDataForXref = function(state, anno, el) {
-    var refType = el.getAttribute("ref-type");
-    var sourceId = el.getAttribute("rid");
-    // Default reference is a cross_reference
-    anno.type = this._refTypeMapping[refType] || "cross_reference";
-    if (sourceId) anno.target = sourceId.split(" ")[0];
-  };
-
-  // Parse annotated text
-  // --------------------
-  // Make sure you call this method only for nodes where `this.isParagraphish(node) === true`
-  //
-  this.annotatedText = function(state, node, path, options) {
-    options = options || {};
-    state.stack.push({
-      path: path,
-      ignore: options.ignore
-    });
-    var childIterator = new util.dom.ChildNodeIterator(node);
-    var text = this._annotatedText(state, childIterator, options.offset || 0);
-    state.stack.pop();
-    return text;
-  };
-
-  // Internal function for parsing annotated text
-  // --------------------------------------------
-  // As annotations are nested this is a bit more involved and meant for
-  // internal use only.
-  //
-  this._annotatedText = function(state, iterator, charPos, nested) {
-    var plainText = "";
-
-    if (charPos === undefined) {
-      charPos = 0;
-    }
-
-    while(iterator.hasNext()) {
-      var el = iterator.next();
-      // Plain text nodes...
-      if (el.nodeType === Node.TEXT_NODE) {
-        var text = state.acceptText(el.textContent);
-        plainText += text;
-        charPos += text.length;
-      }
-      // Annotations...
-      else {
-        var annotatedText;
-        var type = util.dom.getNodeType(el);
-        if (this.isAnnotation(type)) {
-          if (state.top().ignore.indexOf(type) < 0) {
-            var start = charPos;
-
-            if (this._annotationTextHandler[type]) {
-              annotatedText = this._annotationTextHandler[type].call(this, state, el, type, charPos);
-            } else {
-              annotatedText = this._getAnnotationText(state, el, type, charPos);
-            }
-
-            plainText += annotatedText;
-            charPos += annotatedText.length;
-            if (!state.ignoreAnnotations) {
-              this.createAnnotation(state, el, start, charPos);
-            }
-          }
-        }
-        // Unsupported...
-        else {
-          if (nested) {
-            console.error("Node not yet supported in annoted text: " + type);
-          }
-          else {
-            // on paragraph level other elements can break a text block
-            // we shift back the position and finish this call
-            iterator.back();
-            break;
-          }
-        }
-      }
-    }
-    return plainText;
-  };
-
-  // A place to register handlers to override how the text of an annotation is created.
-  // The default implementation is this._getAnnotationText() which extracts the plain text and creates
-  // nested annotations if necessary.
-  // Examples for other implementations:
-  //   - links: the label of a link may be shortened in certain cases
-  //   - inline elements: we model inline elements by a pair of annotation and a content node, and we create a custom label.
-
-  this._annotationTextHandler = {};
-
-  this._getAnnotationText = function(state, el, type, charPos) {
-    // recurse into the annotation element to collect nested annotations
-    // and the contained plain text
-    var childIterator = new util.dom.ChildNodeIterator(el);
-    var annotatedText = this._annotatedText(state, childIterator, charPos, "nested");
-    return annotatedText;
-  };
-
-  this._annotationTextHandler['ext-link'] = function(state, el, type, charPos) {
-    var annotatedText = this._getAnnotationText(state, el, charPos);
-    // Shorten label for URL links (i.e. if label === url )
-    if (type === 'ext-link' && el.getAttribute('xlink:href') === annotatedText.trim()) {
-      annotatedText = this.shortenLinkLabel(state, annotatedText);
-    }
-    return annotatedText;
-  };
-
-  this._annotationTextHandler['inline-formula'] = function(state) {
-    // ATTENTION: as we skip the regular mechanism for collecting text
-    // it is necessary to specify the last scanned character to achieve
-    // a correct whitespace handling.
-    state.lastChar = '}';
-    return "{{inline-formula}}";
-  };
-
-  this.shortenLinkLabel = function(state, linkLabel) {
-    var LINK_MAX_LENGTH = 50;
-    var MARGIN = 10;
-    // The strategy is preferably to shorten the fragment after the host part, preferring the tail.
-    // If this is not possible, both parts are shortened.
-    if (linkLabel.length > LINK_MAX_LENGTH) {
-      var match = /((?:\w+:\/\/)?[\/]?[^\/]+[\/]?)(.*)/.exec(linkLabel);
-      if (!match) {
-        linkLabel = linkLabel.substring(0, LINK_MAX_LENGTH - MARGIN) + '...' + linkLabel.substring(linkLabel.length - MARGIN - 3);
-      } else {
-        var host = match[1] || '';
-        var tail = match[2] || '';
-        if (host.length > LINK_MAX_LENGTH - MARGIN) {
-          linkLabel = host.substring(0, LINK_MAX_LENGTH - MARGIN) + '...' + tail.substring(tail.length - MARGIN - 3);
-        } else {
-          var margin = Math.max(LINK_MAX_LENGTH - host.length - 3, MARGIN - 3);
-          linkLabel = host + '...' + tail.substring(tail.length - margin);
-        }
-      }
-    }
-    return linkLabel;
   };
 
   // Parser
@@ -1015,293 +833,6 @@ NlmToLensConverter.Prototype = function() {
     });
 
     return doc;
-  };
-
-  this.extractAffilitations = function(state, article) {
-    var affiliations =  article.querySelectorAll("aff");
-    for (var i = 0; i < affiliations.length; i++) {
-      this.affiliation(state, affiliations[i]);
-    }
-  };
-
-  this.extractContributors = function(state, article) {
-    // TODO: the spec says, that there may be any combination of
-    // 'contrib-group', 'aff', 'aff-alternatives', and 'x'
-    // However, in the articles seen so far, these were sub-elements of 'contrib-group', which itself was single
-    var contribGroup = article.querySelector("article-meta contrib-group");
-    if (contribGroup) {
-      this.contribGroup(state, contribGroup);
-    }
-
-  };
-
-  this.extractFigures = function(state, xmlDoc) {
-    // Globally query all figure-ish content, <fig>, <supplementary-material>, <table-wrap>, <media video>
-    // mimetype="video"
-    var body = xmlDoc.querySelector("body");
-    var figureElements = body.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
-    var figureNodes = [];
-    var node;
-
-    for (var i = 0; i < figureElements.length; i++) {
-      var figEl = figureElements[i];
-      var type = util.dom.getNodeType(figEl);
-
-      if (type === "fig") {
-        node = this.figure(state, figEl);
-        if (node) figureNodes.push(node);
-      }
-      else if (type === "table-wrap") {
-        node = this.tableWrap(state, figEl);
-        if (node) figureNodes.push(node);
-        // nodes = nodes.concat(this.section(state, child));
-      } else if (type === "media") {
-        node = this.video(state, figEl);
-        if (node) figureNodes.push(node);
-      } else if (type === "supplementary-material") {
-
-        node = this.supplement(state, figEl);
-        if (node) figureNodes.push(node);
-      }
-    }
-
-    // Show the figures
-    if (figureNodes.length > 0) {
-      this.show(state, figureNodes);
-    }
-  };
-
-  this.extractCitations = function(state, xmlDoc) {
-    var refList = xmlDoc.querySelector("ref-list");
-    if (refList) {
-      this.refList(state, refList);
-    }
-  };
-
-  // Handle <fig> element
-  // --------
-  //
-
-  this.figure = function(state, figure) {
-    var doc = state.doc;
-
-    var label = figure.querySelector("label");
-
-    // Top level figure node
-    var figureNode = {
-      "type": "figure",
-      "id": state.nextId("figure"),
-      "source_id": figure.getAttribute("id"),
-      "label": label ? label.textContent : "Figure",
-      "url": "",
-      "caption": null
-    };
-
-    // Add a caption if available
-    var caption = figure.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) figureNode.caption = captionNode.id;
-    }
-
-    var attrib = figure.querySelector("attrib");
-    if (attrib) {
-      figureNode.attrib = attrib.textContent;
-    }
-
-    // Lets the configuration patch the figure node properties
-    state.config.enhanceFigure(state, figureNode, figure);
-    doc.create(figureNode);
-
-    return figureNode;
-  };
-
-  // Handle <supplementary-material> element
-  // --------
-  //
-  // eLife Example:
-  //
-  // <supplementary-material id="SD1-data">
-  //   <object-id pub-id-type="doi">10.7554/eLife.00299.013</object-id>
-  //   <label>Supplementary file 1.</label>
-  //   <caption>
-  //     <title>Compilation of the tables and figures (XLS).</title>
-  //     <p>This is a static version of the
-  //       <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink">
-  //         Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
-  //     <p>
-  //       <bold>DOI:</bold>
-  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link>
-  //     </p>
-  //   </caption>
-  //   <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
-  // </supplementary-material>
-  //
-  // LB Example:
-  //
-  // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
-  //   <label>Additional material</label>
-  //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
-  // </supplementary-material>
-
-  this.supplement = function(state, supplement) {
-    var doc = state.doc;
-
-    //get supplement info
-    var label = supplement.querySelector("label");
-
-    var mediaEl = supplement.querySelector("media");
-    var url = mediaEl ? mediaEl.getAttribute("xlink:href") : null;
-    var doi = supplement.querySelector("object-id[pub-id-type='doi']");
-    doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
-
-    //create supplement node using file ids
-    var supplementNode = {
-      "id": state.nextId("supplement"),
-      "source_id": supplement.getAttribute("id"),
-      "type": "supplement",
-      "label": label ? label.textContent : "",
-      "url": url,
-      "caption": null
-    };
-
-    // Add a caption if available
-    var caption = supplement.querySelector("caption");
-
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) supplementNode.caption = captionNode.id;
-    }
-
-    // Let config enhance the node
-    state.config.enhanceSupplement(state, supplementNode, supplement);
-    doc.create(supplementNode);
-
-    return supplementNode;
-  };
-
-  // Used by Figure, Table, Video, Supplement types.
-  // --------
-
-  this.caption = function(state, caption) {
-    var doc = state.doc;
-
-    var captionNode = {
-      "id": state.nextId("caption"),
-      "source_id": caption.getAttribute("id"),
-      "type": "caption",
-      "title": "",
-      "children": []
-    };
-
-    // Titles can be annotated, thus delegate to paragraph
-    var title = caption.querySelector("title");
-    if (title) {
-      // Resolve title by delegating to the paragraph
-      var node = this.paragraph(state, title);
-      if (node) {
-        captionNode.title = node.id;
-      }
-    }
-
-    var children = [];
-    var paragraphs = caption.querySelectorAll("p");
-    _.each(paragraphs, function(p) {
-      // Only consider direct children
-      if (p.parentNode !== caption) return;
-      var node = this.paragraph(state, p);
-      if (node) children.push(node.id);
-    }, this);
-
-    captionNode.children = children;
-    doc.create(captionNode);
-
-    return captionNode;
-  };
-
-
-  // Example video element
-  //
-  // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
-  //   <object-id pub-id-type="doi">
-  //     10.7554/eLife.00005.013</object-id>
-  //   <label>Movie 1.</label>
-  //   <caption>
-  //     <title>Movement of GFP tag.</title>
-  //     <p>
-  //       <bold>DOI:</bold>
-  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link>
-  //     </p>
-  //   </caption>
-  // </media>
-
-  this.video = function(state, video) {
-    var doc = state.doc;
-
-    var label = video.querySelector("label").textContent;
-
-    var id = state.nextId("video");
-    var videoNode = {
-      "id": id,
-      "source_id": video.getAttribute("id"),
-      "type": "video",
-      "label": label,
-      "title": "",
-      "caption": null,
-      "poster": ""
-    };
-
-    // Add a caption if available
-    var caption = video.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) videoNode.caption = captionNode.id;
-    }
-
-    state.config.enhanceVideo(state, videoNode, video);
-    doc.create(videoNode);
-
-    return videoNode;
-  };
-
-  this.tableWrap = function(state, tableWrap) {
-    var doc = state.doc;
-    var label = tableWrap.querySelector("label");
-
-    var tableNode = {
-      "id": state.nextId("html_table"),
-      "source_id": tableWrap.getAttribute("id"),
-      "type": "html_table",
-      "title": "",
-      "label": label ? label.textContent : "Table",
-      "content": "",
-      "caption": null,
-      // Not supported yet ... need examples
-      footers: [],
-      // doi: "" needed?
-    };
-
-    // Note: using a DOM div element to create HTML
-    var table = tableWrap.querySelector("table");
-    if (table) {
-      tableNode.content = this.toHtml(table);
-    }
-    this.extractTableCaption(state, tableNode, tableWrap);
-
-    state.config.enhanceTable(state, tableNode, tableWrap);
-    doc.create(tableNode);
-    return tableNode;
-  };
-
-  this.extractTableCaption = function(state, tableNode, tableWrap) {
-    // Add a caption if available
-    var caption = tableWrap.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) tableNode.caption = captionNode.id;
-    } else {
-      console.error('caption node not found for', tableWrap);
-    }
   };
 
   // Article
@@ -1418,6 +949,66 @@ NlmToLensConverter.Prototype = function() {
     // <custom-meta-group> Custom Metadata Group, zero or one
   };
 
+  this.extractAffilitations = function(state, article) {
+    var affiliations =  article.querySelectorAll("aff");
+    for (var i = 0; i < affiliations.length; i++) {
+      this.affiliation(state, affiliations[i]);
+    }
+  };
+
+  this.extractContributors = function(state, article) {
+    // TODO: the spec says, that there may be any combination of
+    // 'contrib-group', 'aff', 'aff-alternatives', and 'x'
+    // However, in the articles seen so far, these were sub-elements of 'contrib-group', which itself was single
+    var contribGroup = article.querySelector("article-meta contrib-group");
+    if (contribGroup) {
+      this.contribGroup(state, contribGroup);
+    }
+
+  };
+
+  this.extractFigures = function(state, xmlDoc) {
+    // Globally query all figure-ish content, <fig>, <supplementary-material>, <table-wrap>, <media video>
+    // mimetype="video"
+    var body = xmlDoc.querySelector("body");
+    var figureElements = body.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
+    var figureNodes = [];
+    var node;
+
+    for (var i = 0; i < figureElements.length; i++) {
+      var figEl = figureElements[i];
+      var type = util.dom.getNodeType(figEl);
+
+      if (type === "fig") {
+        node = this.figure(state, figEl);
+        if (node) figureNodes.push(node);
+      }
+      else if (type === "table-wrap") {
+        node = this.tableWrap(state, figEl);
+        if (node) figureNodes.push(node);
+        // nodes = nodes.concat(this.section(state, child));
+      } else if (type === "media") {
+        node = this.video(state, figEl);
+        if (node) figureNodes.push(node);
+      } else if (type === "supplementary-material") {
+
+        node = this.supplement(state, figEl);
+        if (node) figureNodes.push(node);
+      }
+    }
+
+    // Show the figures
+    if (figureNodes.length > 0) {
+      this.show(state, figureNodes);
+    }
+  };
+
+  this.extractCitations = function(state, xmlDoc) {
+    var refList = xmlDoc.querySelector("ref-list");
+    if (refList) {
+      this.refList(state, refList);
+    }
+  };
 
   // articleIds: array of <article-id> elements
   this.articleIds = function(state, articleIds) {
@@ -1934,6 +1525,232 @@ NlmToLensConverter.Prototype = function() {
     return listNode;
   };
 
+  // Handle <fig> element
+  // --------
+  //
+
+  this.figure = function(state, figure) {
+    var doc = state.doc;
+
+    var label = figure.querySelector("label");
+
+    // Top level figure node
+    var figureNode = {
+      "type": "figure",
+      "id": state.nextId("figure"),
+      "source_id": figure.getAttribute("id"),
+      "label": label ? label.textContent : "Figure",
+      "url": "",
+      "caption": null
+    };
+
+    // Add a caption if available
+    var caption = figure.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) figureNode.caption = captionNode.id;
+    }
+
+    var attrib = figure.querySelector("attrib");
+    if (attrib) {
+      figureNode.attrib = attrib.textContent;
+    }
+
+    // Lets the configuration patch the figure node properties
+    state.config.enhanceFigure(state, figureNode, figure);
+    doc.create(figureNode);
+
+    return figureNode;
+  };
+
+  // Handle <supplementary-material> element
+  // --------
+  //
+  // eLife Example:
+  //
+  // <supplementary-material id="SD1-data">
+  //   <object-id pub-id-type="doi">10.7554/eLife.00299.013</object-id>
+  //   <label>Supplementary file 1.</label>
+  //   <caption>
+  //     <title>Compilation of the tables and figures (XLS).</title>
+  //     <p>This is a static version of the
+  //       <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink">
+  //         Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
+  //     <p>
+  //       <bold>DOI:</bold>
+  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link>
+  //     </p>
+  //   </caption>
+  //   <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
+  // </supplementary-material>
+  //
+  // LB Example:
+  //
+  // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
+  //   <label>Additional material</label>
+  //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
+  // </supplementary-material>
+
+  this.supplement = function(state, supplement) {
+    var doc = state.doc;
+
+    //get supplement info
+    var label = supplement.querySelector("label");
+
+    var mediaEl = supplement.querySelector("media");
+    var url = mediaEl ? mediaEl.getAttribute("xlink:href") : null;
+    var doi = supplement.querySelector("object-id[pub-id-type='doi']");
+    doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
+
+    //create supplement node using file ids
+    var supplementNode = {
+      "id": state.nextId("supplement"),
+      "source_id": supplement.getAttribute("id"),
+      "type": "supplement",
+      "label": label ? label.textContent : "",
+      "url": url,
+      "caption": null
+    };
+
+    // Add a caption if available
+    var caption = supplement.querySelector("caption");
+
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) supplementNode.caption = captionNode.id;
+    }
+
+    // Let config enhance the node
+    state.config.enhanceSupplement(state, supplementNode, supplement);
+    doc.create(supplementNode);
+
+    return supplementNode;
+  };
+
+  // Used by Figure, Table, Video, Supplement types.
+  // --------
+
+  this.caption = function(state, caption) {
+    var doc = state.doc;
+
+    var captionNode = {
+      "id": state.nextId("caption"),
+      "source_id": caption.getAttribute("id"),
+      "type": "caption",
+      "title": "",
+      "children": []
+    };
+
+    // Titles can be annotated, thus delegate to paragraph
+    var title = caption.querySelector("title");
+    if (title) {
+      // Resolve title by delegating to the paragraph
+      var node = this.paragraph(state, title);
+      if (node) {
+        captionNode.title = node.id;
+      }
+    }
+
+    var children = [];
+    var paragraphs = caption.querySelectorAll("p");
+    _.each(paragraphs, function(p) {
+      // Only consider direct children
+      if (p.parentNode !== caption) return;
+      var node = this.paragraph(state, p);
+      if (node) children.push(node.id);
+    }, this);
+
+    captionNode.children = children;
+    doc.create(captionNode);
+
+    return captionNode;
+  };
+
+
+  // Example video element
+  //
+  // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
+  //   <object-id pub-id-type="doi">
+  //     10.7554/eLife.00005.013</object-id>
+  //   <label>Movie 1.</label>
+  //   <caption>
+  //     <title>Movement of GFP tag.</title>
+  //     <p>
+  //       <bold>DOI:</bold>
+  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link>
+  //     </p>
+  //   </caption>
+  // </media>
+
+  this.video = function(state, video) {
+    var doc = state.doc;
+
+    var label = video.querySelector("label").textContent;
+
+    var id = state.nextId("video");
+    var videoNode = {
+      "id": id,
+      "source_id": video.getAttribute("id"),
+      "type": "video",
+      "label": label,
+      "title": "",
+      "caption": null,
+      "poster": ""
+    };
+
+    // Add a caption if available
+    var caption = video.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) videoNode.caption = captionNode.id;
+    }
+
+    state.config.enhanceVideo(state, videoNode, video);
+    doc.create(videoNode);
+
+    return videoNode;
+  };
+
+  this.tableWrap = function(state, tableWrap) {
+    var doc = state.doc;
+    var label = tableWrap.querySelector("label");
+
+    var tableNode = {
+      "id": state.nextId("html_table"),
+      "source_id": tableWrap.getAttribute("id"),
+      "type": "html_table",
+      "title": "",
+      "label": label ? label.textContent : "Table",
+      "content": "",
+      "caption": null,
+      // Not supported yet ... need examples
+      footers: [],
+      // doi: "" needed?
+    };
+
+    // Note: using a DOM div element to create HTML
+    var table = tableWrap.querySelector("table");
+    if (table) {
+      tableNode.content = this.toHtml(table);
+    }
+    this.extractTableCaption(state, tableNode, tableWrap);
+
+    state.config.enhanceTable(state, tableNode, tableWrap);
+    doc.create(tableNode);
+    return tableNode;
+  };
+
+  this.extractTableCaption = function(state, tableNode, tableWrap) {
+    // Add a caption if available
+    var caption = tableWrap.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) tableNode.caption = captionNode.id;
+    } else {
+      console.error('caption node not found for', tableWrap);
+    }
+  };
+
   // Formula Node Type
   // --------
 
@@ -2161,6 +1978,193 @@ NlmToLensConverter.Prototype = function() {
     // No processing at the moment
     return null;
   };
+
+
+  // Annotations
+  // -----------
+
+  this.createAnnotation = function(state, el, start, end) {
+    // do not create an annotaiton if there is no range
+    if (start === end) return;
+    var type = el.tagName.toLowerCase();
+    var anno = {
+      type: "annotation",
+      path: _.last(state.stack).path,
+      range: [start, end],
+    };
+    this.addAnnotationData(state, anno, el, type);
+    state.config.enhanceAnnotationData(state, anno, el, type);
+
+    // assign an id after the type has been extracted to be able to create typed ids
+    anno.id = state.nextId(anno.type);
+    state.annotations.push(anno);
+  };
+
+  // Called for annotation types registered in this._annotationTypes
+  this.addAnnotationData = function(state, anno, el, type) {
+    anno.type = this._annotationTypes[type] || "annotation";
+    if (type === 'xref') {
+      this.addAnnotationDataForXref(state, anno, el);
+    } else if (type === "ext-link") {
+      anno.url = el.getAttribute("xlink:href");
+      // Add 'http://' to URIs without a protocol, such as 'www.google.com'
+      // Except: Url starts with a slash, then we consider them relative
+      var extLinkType = el.getAttribute('ext-link-type') || '';
+      if (extLinkType.toLowerCase() === 'uri' && !/^\w+:\/\//.exec(anno.url) && !/^\//.exec(anno.url)) {
+        anno.url = 'http://' + anno.url;
+      } else if (extLinkType.toLowerCase() === 'doi') {
+        anno.url = ["http://dx.doi.org/", anno.url].join("");
+      }
+    } else if (type === "email") {
+      anno.url = "mailto:" + el.textContent.trim();
+    } else if (type === 'inline-graphic') {
+      anno.url = el.getAttribute("xlink:href");
+    } else if (type === 'inline-formula') {
+      var formula = this.formula(state, el, "inline");
+      anno.target = formula.id;
+    }
+  };
+
+  this.addAnnotationDataForXref = function(state, anno, el) {
+    var refType = el.getAttribute("ref-type");
+    var sourceId = el.getAttribute("rid");
+    // Default reference is a cross_reference
+    anno.type = this._refTypeMapping[refType] || "cross_reference";
+    if (sourceId) anno.target = sourceId.split(" ")[0];
+  };
+
+  // Parse annotated text
+  // --------------------
+  // Make sure you call this method only for nodes where `this.isParagraphish(node) === true`
+  //
+  this.annotatedText = function(state, node, path, options) {
+    options = options || {};
+    state.stack.push({
+      path: path,
+      ignore: options.ignore
+    });
+    var childIterator = new util.dom.ChildNodeIterator(node);
+    var text = this._annotatedText(state, childIterator, options.offset || 0);
+    state.stack.pop();
+    return text;
+  };
+
+  // Internal function for parsing annotated text
+  // --------------------------------------------
+  // As annotations are nested this is a bit more involved and meant for
+  // internal use only.
+  //
+  this._annotatedText = function(state, iterator, charPos, nested) {
+    var plainText = "";
+
+    if (charPos === undefined) {
+      charPos = 0;
+    }
+
+    while(iterator.hasNext()) {
+      var el = iterator.next();
+      // Plain text nodes...
+      if (el.nodeType === Node.TEXT_NODE) {
+        var text = state.acceptText(el.textContent);
+        plainText += text;
+        charPos += text.length;
+      }
+      // Annotations...
+      else {
+        var annotatedText;
+        var type = util.dom.getNodeType(el);
+        if (this.isAnnotation(type)) {
+          if (state.top().ignore.indexOf(type) < 0) {
+            var start = charPos;
+
+            if (this._annotationTextHandler[type]) {
+              annotatedText = this._annotationTextHandler[type].call(this, state, el, type, charPos);
+            } else {
+              annotatedText = this._getAnnotationText(state, el, type, charPos);
+            }
+
+            plainText += annotatedText;
+            charPos += annotatedText.length;
+            if (!state.ignoreAnnotations) {
+              this.createAnnotation(state, el, start, charPos);
+            }
+          }
+        }
+        // Unsupported...
+        else {
+          if (nested) {
+            console.error("Node not yet supported in annoted text: " + type);
+          }
+          else {
+            // on paragraph level other elements can break a text block
+            // we shift back the position and finish this call
+            iterator.back();
+            break;
+          }
+        }
+      }
+    }
+    return plainText;
+  };
+
+  // A place to register handlers to override how the text of an annotation is created.
+  // The default implementation is this._getAnnotationText() which extracts the plain text and creates
+  // nested annotations if necessary.
+  // Examples for other implementations:
+  //   - links: the label of a link may be shortened in certain cases
+  //   - inline elements: we model inline elements by a pair of annotation and a content node, and we create a custom label.
+
+  this._annotationTextHandler = {};
+
+  this._getAnnotationText = function(state, el, type, charPos) {
+    // recurse into the annotation element to collect nested annotations
+    // and the contained plain text
+    var childIterator = new util.dom.ChildNodeIterator(el);
+    var annotatedText = this._annotatedText(state, childIterator, charPos, "nested");
+    return annotatedText;
+  };
+
+  this._annotationTextHandler['ext-link'] = function(state, el, type, charPos) {
+    var annotatedText = this._getAnnotationText(state, el, charPos);
+    // Shorten label for URL links (i.e. if label === url )
+    if (type === 'ext-link' && el.getAttribute('xlink:href') === annotatedText.trim()) {
+      annotatedText = this.shortenLinkLabel(state, annotatedText);
+    }
+    return annotatedText;
+  };
+
+  this._annotationTextHandler['inline-formula'] = function(state) {
+    // ATTENTION: as we skip the regular mechanism for collecting text
+    // it is necessary to specify the last scanned character to achieve
+    // a correct whitespace handling.
+    state.lastChar = '}';
+    return "{{inline-formula}}";
+  };
+
+  this.shortenLinkLabel = function(state, linkLabel) {
+    var LINK_MAX_LENGTH = 50;
+    var MARGIN = 10;
+    // The strategy is preferably to shorten the fragment after the host part, preferring the tail.
+    // If this is not possible, both parts are shortened.
+    if (linkLabel.length > LINK_MAX_LENGTH) {
+      var match = /((?:\w+:\/\/)?[\/]?[^\/]+[\/]?)(.*)/.exec(linkLabel);
+      if (!match) {
+        linkLabel = linkLabel.substring(0, LINK_MAX_LENGTH - MARGIN) + '...' + linkLabel.substring(linkLabel.length - MARGIN - 3);
+      } else {
+        var host = match[1] || '';
+        var tail = match[2] || '';
+        if (host.length > LINK_MAX_LENGTH - MARGIN) {
+          linkLabel = host.substring(0, LINK_MAX_LENGTH - MARGIN) + '...' + tail.substring(tail.length - MARGIN - 3);
+        } else {
+          var margin = Math.max(LINK_MAX_LENGTH - host.length - 3, MARGIN - 3);
+          linkLabel = host + '...' + tail.substring(tail.length - margin);
+        }
+      }
+    }
+    return linkLabel;
+  };
+
+
 };
 
 NlmToLensConverter.State = function(converter, xmlDoc, doc) {
