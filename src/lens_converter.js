@@ -1777,6 +1777,10 @@ NlmToLensConverter.Prototype = function() {
   this.paragraph = function(state, children) {
     var doc = state.doc;
 
+    // Reset whitespace handling at the beginning of a paragraph.
+    // I.e., whitespaces at the beginning will be removed rigorously.
+    state.skipWS = true;
+
     var node = {
       id: state.nextId("paragraph"),
       type: "paragraph",
@@ -2173,6 +2177,8 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
   var TABS_OR_NL = /[\t\n\r]+/g;
 
   this.lastChar = "";
+  this.skipWS = false;
+
   this.acceptText = function(text) {
     if (!this.options.TRIM_WHITESPACES) {
       return text;
@@ -2184,11 +2190,13 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
     //text = text.replace(ALL_WS_NOTSPACE_RIGHT, "");
     text = text.replace(TABS_OR_NL, "");
 
-    if (this.lastChar === SPACE) {
+    if (this.lastChar === SPACE || this.skipWS) {
       text = text.replace(WS_LEFT_ALL, "");
     } else {
       text = text.replace(WS_LEFT, SPACE);
     }
+    // this state is only kept for one call
+    this.skipWS = false;
 
     text = text.replace(WS_RIGHT, SPACE);
 
