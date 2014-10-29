@@ -652,18 +652,18 @@ NlmToLensConverter.Prototype = function() {
         var affNode = doc.getNodeBySourceId(affId);
         if (affNode) {
           contribNode.affiliations.push(affNode.id);
+          state.used[affId] = true;
         }
       } else if (xref.getAttribute("ref-type") === "other") {
-
+        // FIXME: it seems *very* custom to interprete every 'other' that way
+        // TODO: try to find and document when this is applied
+        console.error("FIXME: please add documentation about using 'other' as indicator for extracting an awardGroup.");
         var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!awardGroup) return;
-
         var fundingSource = awardGroup.querySelector("funding-source");
         if (!fundingSource) return;
-
         var awardId = awardGroup.querySelector("award-id");
         awardId = awardId ? ", "+awardId.textContent : "";
-
         // Funding source nodes are looking like this
         //
         // <funding-source>
@@ -672,37 +672,52 @@ NlmToLensConverter.Prototype = function() {
         // </funding-source>
         //
         // and we only want to display the first text node, excluding the funder id
-
         var fundingSourceName = fundingSource.childNodes[0].textContent;
         contribNode.fundings.push([fundingSourceName, awardId].join(''));
-
       } else if (xref.getAttribute("ref-type") === "corresp") {
-        var corresp = state.xmlDoc.getElementById(xref.getAttribute("rid"));
+        var correspId = xref.getAttribute("rid");
+        var corresp = state.xmlDoc.getElementById(correspId);
         if (!corresp) return;
+        state.used[correspId] = true;
         var email = corresp.querySelector("email");
         if (!email) return;
         contribNode.emails.push(email.textContent);
-
       } else if (xref.getAttribute("ref-type") === "fn") {
-        var elem = state.xmlDoc.getElementById(xref.getAttribute("rid"));
-
-        if (elem && elem.getAttribute("fn-type") === "con") {
-          contribNode.contribution = elem.textContent;
-        } else if (elem && elem.getAttribute("fn-type") === "conflict") {
-          // skipping...
-          compInterests.push(elem.textContent.trim());
-        } else if (elem && elem.getAttribute("fn-type") === "present-address") {
-          // Extract present address
-          contribNode.present_address = elem.querySelector("p").textContent;
-        } else if (elem && elem.getAttribute("fn-type") === "equal") {
-          // Extract equal contributors
-          equalContribs = this._getEqualContribs(state, contrib, elem.getAttribute("id"));
-        } else if (elem && elem.getAttribute("fn-type") === "other" && elem.getAttribute("id").indexOf("equal-contrib")>=0) {
-          // skipping...
-          equalContribs = this._getEqualContribs(state, contrib, elem.getAttribute("id"));
-        } else {
-          // skipping...
+        var fnId = xref.getAttribute("rid");
+        var fnElem = state.xmlDoc.getElementById(fnId);
+        var used = true;
+        if (fnElem) {
+          var fnType = fnElem.getAttribute("fn-type");
+          switch (fnType) {
+            case "con":
+              contribNode.contribution = fnElem.textContent;
+              break;
+            case "conflict":
+              compInterests.push(fnElem.textContent.trim());
+              break;
+            case "present-address":
+              contribNode.present_address = fnElem.querySelector("p").textContent;
+              break;
+            case "equal":
+              console.log("FIXME: isn't fnElem.getAttribute(id) === fnId?");
+              equalContribs = this._getEqualContribs(state, contrib, fnElem.getAttribute("id"));
+              break;
+            case "other":
+              // HACK: sometimes equal contribs are encoded as 'other' plus special id
+              console.log("FIXME: isn't fnElem.getAttribute(id) === fnId?");
+              if (fnElem.getAttribute("id").indexOf("equal-contrib")>=0) {
+                equalContribs = this._getEqualContribs(state, contrib, fnElem.getAttribute("id"));
+              } else {
+                used = false;
+              }
+              break;
+            default:
+              used = false;
+          }
+          if (used) state.used[fnId] = true;
         }
+      } else {
+        console.log("Skipping xref in contrib node", xref.textContent);
       }
     }, this);
 
@@ -2174,6 +2189,9 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
     ids[type]++;
     return type +"_"+ids[type];
   };
+
+  // store ids here which have been processed already
+  this.used = {};
 
   // Note: it happens that some XML files are edited without considering the meaning of whitespaces
   // to increase readability.
