@@ -722,7 +722,9 @@ NlmToLensConverter.Prototype = function() {
         var correspId = xref.getAttribute("rid");
         var corresp = state.xmlDoc.getElementById(correspId);
         if (!corresp) return;
-        state.used[correspId] = true;
+        // TODO: a corresp element allows *much* more than just an email
+        // Thus, we are leaving this like untouched, so that it may be grabbed by extractAuthorNotes()
+        // state.used[correspId] = true;
         var email = corresp.querySelector("email");
         if (!email) return;
         contribNode.emails.push(email.textContent);
@@ -2076,13 +2078,11 @@ NlmToLensConverter.Prototype = function() {
         if (this.isAnnotation(type)) {
           if (state.top().ignore.indexOf(type) < 0) {
             var start = charPos;
-
             if (this._annotationTextHandler[type]) {
               annotatedText = this._annotationTextHandler[type].call(this, state, el, type, charPos);
             } else {
               annotatedText = this._getAnnotationText(state, el, type, charPos);
             }
-
             plainText += annotatedText;
             charPos += annotatedText.length;
             if (!state.ignoreAnnotations) {
