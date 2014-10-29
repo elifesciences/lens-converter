@@ -827,7 +827,8 @@ NlmToLensConverter.Prototype = function() {
   this.annotatedText = function(state, node, path, options) {
     options = options || {};
     state.stack.push({
-      path: path
+      path: path,
+      ignore: options.ignore
     });
     var childIterator = new util.dom.ChildNodeIterator(node);
     var text = this._annotatedText(state, childIterator, options.offset || 0);
@@ -860,7 +861,7 @@ NlmToLensConverter.Prototype = function() {
         var annotatedText;
         var type = util.dom.getNodeType(el);
         if (this.isAnnotation(type)) {
-          if (!state.skipTypes[type]) {
+          if (state.top().ignore.indexOf(type) < 0) {
             var start = charPos;
 
             if (this._annotationTextHandler[type]) {
@@ -1412,11 +1413,9 @@ NlmToLensConverter.Prototype = function() {
     var doc = state.doc;
     var articleTitle = titleGroup.querySelector("article-title");
     if (articleTitle) {
-      state.skipTypes = {
-        'xref': true
-      };
-      doc.title = this.annotatedText(state, articleTitle, ['document', 'title']);
-      state.skipTypes = {};
+      doc.title = this.annotatedText(state, articleTitle, ['document', 'title'], {
+        ignore: ['xref']
+      });
     }
     // Not yet supported:
     // <subtitle> Document Subtitle, zero or one
@@ -1805,7 +1804,6 @@ NlmToLensConverter.Prototype = function() {
     };
     var nodes = [];
 
-
     var iterator = new util.dom.ChildNodeIterator(children);
     while (iterator.hasNext()) {
       var child = iterator.next();
@@ -2143,6 +2141,8 @@ NlmToLensConverter.Prototype = function() {
 };
 
 NlmToLensConverter.State = function(converter, xmlDoc, doc) {
+  var self = this;
+
   // the input xml document
   this.xmlDoc = xmlDoc;
 
@@ -2166,8 +2166,6 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
 
   // Tracks all available affiliations
   this.affiliations = [];
-
-  this.skipTypes = {};
 
   // an id generator for different types
   var ids = {};
@@ -2226,7 +2224,14 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
     return text;
   };
 
+  this.top = function() {
+    var top = _.last(self.stack);
+    top = top || {};
+    top.ignore = top.ignore || [];
+    return top;
+  };
 };
+
 NlmToLensConverter.prototype = new NlmToLensConverter.Prototype();
 NlmToLensConverter.prototype.constructor = NlmToLensConverter;
 
