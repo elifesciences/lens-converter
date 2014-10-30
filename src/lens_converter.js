@@ -1772,6 +1772,12 @@ NlmToLensConverter.Prototype = function() {
             data: child.getAttribute('xlink:href')
           });
           break;
+        case "svg":
+          result.push({
+            format: "svg",
+            data: this.toHtml(child)
+          });
+          break;
         case "mml:math":
           result.push({
             format: "mathml",
