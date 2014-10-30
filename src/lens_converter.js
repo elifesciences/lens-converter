@@ -2141,11 +2141,7 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this._annotationTextHandler['inline-formula'] = function(state) {
-    // ATTENTION: as we skip the regular mechanism for collecting text
-    // it is necessary to specify the last scanned character to achieve
-    // a correct whitespace handling.
-    state.lastChar = '}';
-    return "{{inline-formula}}";
+    return state.acceptText("{{inline-formula}}")
   };
 
   this.shortenLinkLabel = function(state, linkLabel) {
