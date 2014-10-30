@@ -807,7 +807,6 @@ NlmToLensConverter.Prototype = function() {
   this.document = function(state, xmlDoc) {
     var doc = state.doc;
     var article = xmlDoc.querySelector("article");
-
     if (!article) {
       throw new ImporterError("Expected to find an 'article' element.");
     }
@@ -2102,7 +2101,6 @@ NlmToLensConverter.Prototype = function() {
         // Unsupported...
         else if (!breakOnUnknown) {
           if (state.top().ignore.indexOf(type) < 0) {
-            var start = charPos;
             annotatedText = this._getAnnotationText(state, el, type, charPos);
             plainText += annotatedText;
             charPos += annotatedText.length;
@@ -2150,7 +2148,7 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this._annotationTextHandler['inline-formula'] = function(state) {
-    return state.acceptText("{{inline-formula}}")
+    return state.acceptText("{{inline-formula}}");
   };
 
   this.shortenLinkLabel = function(state, linkLabel) {
