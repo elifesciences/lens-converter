@@ -811,30 +811,29 @@ NlmToLensConverter.Prototype = function() {
     if (!article) {
       throw new ImporterError("Expected to find an 'article' element.");
     }
-
     // recursive-descent for the main body of the article
     this.article(state, article);
-
     // post-processing:
+    this.postProcessAnnotations(state);
+    // Rebuild views to ensure consistency
+    _.each(doc.containers, function(container) {
+      container.rebuild();
+    });
+    return doc;
+  };
 
+  this.postProcessAnnotations = function(state) {
     // Creating the annotations afterwards, to make sure
     // that all referenced nodes are available
     for (var i = 0; i < state.annotations.length; i++) {
       var anno = state.annotations[i];
       if (anno.target) {
         var targetNode = state.doc.getNodeBySourceId(anno.target);
+        console.log("Could not lookup targetNode for annotation", anno);
         if (targetNode) anno.target = targetNode.id;
       }
-
-      doc.create(state.annotations[i]);
+      state.doc.create(state.annotations[i]);
     }
-
-    // Rebuild views to ensure consistency
-    _.each(doc.containers, function(container) {
-      container.rebuild();
-    });
-
-    return doc;
   };
 
   // Article
