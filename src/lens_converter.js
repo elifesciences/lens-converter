@@ -1300,7 +1300,12 @@ NlmToLensConverter.Prototype = function() {
 
     // create a heading
     var title = section.querySelector('title');
-    if (title) {
+    // Recursive Descent: get all section body nodes
+    nodes = nodes.concat(this.bodyNodes(state, children, {
+      ignore: ["title"]
+    }));
+
+    if (nodes.length > 0 && title) {
       var id = state.nextId("heading");
       var heading = {
         id: id,
@@ -1311,13 +1316,12 @@ NlmToLensConverter.Prototype = function() {
       };
       if (heading.content.length > 0) {
         doc.create(heading);
-        nodes.push(heading);
+        nodes.unshift(heading);
       }
+    } else if (nodes.length === 0) {
+      console.info("NOTE: skipping section without content:", title ? title.innerHTML : "no title");
     }
-    // Recursive Descent: get all section body nodes
-    nodes = nodes.concat(this.bodyNodes(state, children, {
-      ignore: ["title"]
-    }));
+
     // popping the section level
     state.sectionLevel--;
     return nodes;
