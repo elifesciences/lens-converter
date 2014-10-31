@@ -828,8 +828,11 @@ NlmToLensConverter.Prototype = function() {
       var anno = state.annotations[i];
       if (anno.target) {
         var targetNode = state.doc.getNodeBySourceId(anno.target);
-        console.log("Could not lookup targetNode for annotation", anno);
-        if (targetNode) anno.target = targetNode.id;
+        if (targetNode) {
+          anno.target = targetNode.id;
+        } else {
+          console.log("Could not lookup targetNode for annotation", anno);
+        }
       }
       state.doc.create(state.annotations[i]);
     }
