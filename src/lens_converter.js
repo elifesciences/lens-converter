@@ -1791,6 +1791,9 @@ NlmToLensConverter.Prototype = function() {
             data: child.textContent
           });
           break;
+        case "label":
+          // Skipping - is handled in this.formula()
+          break;
         default:
           console.error('Unsupported formula element of type ' + type);
       }
