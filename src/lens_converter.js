@@ -1780,6 +1780,7 @@ NlmToLensConverter.Prototype = function() {
           });
           break;
         case "mml:math":
+        case "math":
           result.push({
             format: "mathml",
             data: this.toHtml(child)
