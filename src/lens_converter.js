@@ -579,6 +579,8 @@ NlmToLensConverter.Prototype = function() {
   this.contributor = function(state, contrib) {
     var doc = state.doc;
 
+    
+
     var id = state.nextId("contributor");
     var contribNode = {
       id: id,
@@ -588,6 +590,7 @@ NlmToLensConverter.Prototype = function() {
       affiliations: [],
       fundings: [],
       bio: [],
+
       // Not yet supported... need examples
       image: "",
       deceased: false,
@@ -595,6 +598,13 @@ NlmToLensConverter.Prototype = function() {
       contribution: "",
       members: []
     };
+
+    // Extract role
+    var role = contrib.querySelector("role");
+
+    if (role) {
+      contribNode["role"] = role.textContent;
+    }
 
     // Search for author bio and author image
     var bio = contrib.querySelector("bio");
