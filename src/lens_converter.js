@@ -1299,8 +1299,12 @@ NlmToLensConverter.Prototype = function() {
     var children = util.dom.getChildren(section);
     var nodes = [];
 
+    // Optional heading label
+    var label = section.querySelector('label');
+
     // create a heading
     var title = section.querySelector('title');
+
     // Recursive Descent: get all section body nodes
     nodes = nodes.concat(this.bodyNodes(state, children, {
       ignore: ["title"]
@@ -1315,6 +1319,11 @@ NlmToLensConverter.Prototype = function() {
         level: state.sectionLevel,
         content: this.annotatedText(state, title, [id, 'content'])
       };
+
+      if (label) {
+        heading.label = label.textContent;
+      }
+
       if (heading.content.length > 0) {
         doc.create(heading);
         nodes.unshift(heading);
