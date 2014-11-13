@@ -81,6 +81,19 @@ NlmToLensConverter.Prototype = function() {
     return tmp.innerHTML;
   };
 
+  this.selectDirectChildren = function(scopeEl, selector) {
+    // Note: if the ':scope' pseudo class was supported by more browsers
+    // it would be the correct selector based solution.
+    // However, for now we do simple filtering.
+    var result = [];
+    var els = scopeEl.querySelectorAll(selector);
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (el.parentElement === scopeEl) result.push(el);
+    }
+    return result;
+  };
+
   // ### The main entry point for starting an import
 
   this.import = function(input) {
@@ -1310,10 +1323,13 @@ NlmToLensConverter.Prototype = function() {
     var nodes = [];
 
     // Optional heading label
-    var label = section.querySelector('label');
+    var label = this.selectDirectChildren(section, "label")[0];
 
     // create a heading
-    var title = section.querySelector('title');
+    var title = this.selectDirectChildren(section, 'title')[0];
+    if (!title) {
+      console.error("FIXME: every section should have a title", this.toHtml(section));
+    }
 
     // Recursive Descent: get all section body nodes
     nodes = nodes.concat(this.bodyNodes(state, children, {
@@ -1327,7 +1343,7 @@ NlmToLensConverter.Prototype = function() {
         source_id: section.getAttribute("id"),
         type: "heading",
         level: state.sectionLevel,
-        content: this.annotatedText(state, title, [id, 'content'])
+        content: title ? this.annotatedText(state, title, [id, 'content']) : ""
       };
 
       if (label) {
