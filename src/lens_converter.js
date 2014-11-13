@@ -81,6 +81,12 @@ NlmToLensConverter.Prototype = function() {
     return tmp.innerHTML;
   };
 
+  this.mmlToHtmlString = function(el) {
+    var html = this.toHtml(el);
+    html = html.replace(/<(\/)?mml:([^>]+)>/g, "<$1$2>");
+    return html;
+  }
+
   this.selectDirectChildren = function(scopeEl, selector) {
     // Note: if the ':scope' pseudo class was supported by more browsers
     // it would be the correct selector based solution.
@@ -1822,7 +1828,7 @@ NlmToLensConverter.Prototype = function() {
         case "math":
           result.push({
             format: "mathml",
-            data: this.toHtml(child)
+            data: this.mmlToHtmlString(child)
           });
           break;
         case "tex-math":
