@@ -579,7 +579,7 @@ NlmToLensConverter.Prototype = function() {
   this.contributor = function(state, contrib) {
     var doc = state.doc;
 
-    
+
 
     var id = state.nextId("contributor");
     var contribNode = {
@@ -2005,6 +2005,8 @@ NlmToLensConverter.Prototype = function() {
 
     doc.create(citationNode);
     doc.show("citations", id);
+
+    return citationNode;
   };
 
   // Article.Back
