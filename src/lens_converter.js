@@ -1574,17 +1574,21 @@ NlmToLensConverter.Prototype = function() {
   this.figure = function(state, figure) {
     var doc = state.doc;
 
-    var label = figure.querySelector("label");
 
     // Top level figure node
     var figureNode = {
       "type": "figure",
       "id": state.nextId("figure"),
       "source_id": figure.getAttribute("id"),
-      "label": label ? label.textContent : "Figure",
+      "label": "Figure",
       "url": "",
       "caption": null
     };
+
+    var labelEl = figure.querySelector("label");
+    if (labelEl) {
+      figureNode.label = this.annotatedText(state, labelEl, [figureNode.id, 'label']);
+    }
 
     // Add a caption if available
     var caption = figure.querySelector("caption");
