@@ -14,8 +14,9 @@ var DefaultConfiguration = require("./configurations/default");
 var PLOSConfiguration = require("./configurations/plos");
 var PeerJConfiguration = require("./configurations/peerj");
 
-var NlmToLensConverter = function(options) {
+var NlmToLensConverter = function(xmlAdapter, options) {
   this.options = options || NlmToLensConverter.DefaultOptions;
+  this.xmlAdapter = xmlAdapter;
 };
 
 NlmToLensConverter.Prototype = function() {
@@ -48,10 +49,12 @@ NlmToLensConverter.Prototype = function() {
     return this._annotationTypes[type] !== undefined;
   };
 
-  this.isParagraphish = function(node) {
-    for (var i = 0; i < node.childNodes.length; i++) {
+  this.isParagraphish = function(element) {
+    var childNodes = this.xmlAdapter.childNodes(element);
+    for (var i = 0; i < childNodes.length; i++) {
       var el = node.childNodes[i];
-      if (el.nodeType !== Node.TEXT_NODE && !this.isAnnotation(el.tagName.toLowerCase())) return false;
+      var type = this.xmlAdapter.getType(el);
+      if (type === "text" && !this.isAnnotation(type)) return false;
     }
     return true;
   };
@@ -63,22 +66,19 @@ NlmToLensConverter.Prototype = function() {
     if (!nameEl) return "N/A";
     var names = [];
 
-    var surnameEl = nameEl.querySelector("surname");
-    var givenNamesEl = nameEl.querySelector("given-names");
-    var suffix = nameEl.querySelector("suffix");
-
-    if (givenNamesEl) names.push(givenNamesEl.textContent);
-    if (surnameEl) names.push(surnameEl.textContent);
-    if (suffix) return [names.join(" "), suffix.textContent].join(", ");
+    var surnameEl = this.xmlAdapter.find(nameEl, "/surname");
+    var givenNamesEl = this.xmlAdapter.find(nameEl, "/given-names");
+    var suffix = this.xmlAdapter.find(nameEl, "/suffix");
+    if (givenNamesEl) names.push(this.xmlAdapter.getText(givenNamesEl));
+    if (surnameEl) names.push(this.xmlAdapter.getText(surnameEl));
+    if (suffix) return [names.join(" "), this.xmlAdapter.getText(suffix)].join(", ");
 
     return names.join(" ");
   };
 
   this.toHtml = function(el) {
     if (!el) return "";
-    var tmp = document.createElement("DIV");
-    tmp.appendChild(el.cloneNode(true));
-    return tmp.innerHTML;
+    return this.xmlAdapter.toString(el);
   };
 
   this.mmlToHtmlString = function(el) {
@@ -86,19 +86,6 @@ NlmToLensConverter.Prototype = function() {
     html = html.replace(/<(\/)?mml:([^>]+)>/g, "<$1$2>");
     return html;
   }
-
-  this.selectDirectChildren = function(scopeEl, selector) {
-    // Note: if the ':scope' pseudo class was supported by more browsers
-    // it would be the correct selector based solution.
-    // However, for now we do simple filtering.
-    var result = [];
-    var els = scopeEl.querySelectorAll(selector);
-    for (var i = 0; i < els.length; i++) {
-      var el = els[i];
-      if (el.parentElement === scopeEl) result.push(el);
-    }
-    return result;
-  };
 
   // ### The main entry point for starting an import
 
@@ -148,7 +135,8 @@ NlmToLensConverter.Prototype = function() {
   // To solve this generically, we would need a certain place/service to register configurations.
   this.getConfiguration = function(xmlDoc) {
     var config;
-    var publisherName = xmlDoc.querySelector("publisher-name").textContent;
+    // ATTENTION: publisher-name is not necessarily unique in the document!
+    var publisherName = this.xmlAdapter.getText(this.xmlAdapter.find(xmlDoc, "//publisher-name"));
     if (publisherName === "Landes Bioscience") {
       config = new LandesConfiguration();
     } else if (publisherName === "eLife Sciences Publications, Ltd") {
@@ -183,12 +171,12 @@ NlmToLensConverter.Prototype = function() {
   this.extractDate = function(dateEl) {
     if (!dateEl) return null;
 
-    var year = dateEl.querySelector("year");
-    var month = dateEl.querySelector("month");
-    var day = dateEl.querySelector("day");
+    var year = this.xmlAdapter.find(dateEl, "//year");
+    var month = this.xmlAdapter.find(dateEl, "//month");
+    var day = this.xmlAdapter.find(dateEl, "//day");
 
-    var res = [year.textContent, month.textContent];
-    if (day) res.push(day.textContent);
+    var res = [this.xmlAdapter.getText(year), this.xmlAdapter.getText(month)];
+    if (day) res.push(this.xmlAdapter.getText(day));
 
     return res.join("-");
   };
@@ -196,23 +184,23 @@ NlmToLensConverter.Prototype = function() {
   this.extractPublicationInfo = function(state, article) {
     var doc = state.doc;
 
-    var articleMeta = article.querySelector("article-meta");
-    var pubDate = articleMeta.querySelector("pub-date");
-    var history = articleMeta.querySelectorAll("history date");
+    var articleMeta = this.xmlAdapter.find(article, "//article-meta");
+    var pubDate = this.xmlAdapter.find(articleMeta, "/pub-date");
+    var history = this.xmlAdapter.findAll(articleMeta, "/history/date");
 
     // Journal title
     //
-    var journalTitle = article.querySelector("journal-title");
+    var journalTitle = this.xmlAdapter.find(article, "//journal-title");
 
     // DOI
     //
     // <article-id pub-id-type="doi">10.7554/eLife.00003</article-id>
-    var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
+    var articleDOI = this.xmlAdapter.find(article, "//article-id[@pub-id-type='doi']");
 
     // Related article if exists
     //
     // TODO: can't there be more than one?
-    var relatedArticle = article.querySelector("related-article");
+    var relatedArticle = this.xmlAdapter.find(article, "//related-article");
 
     // Article information
     var articleInfo = this.extractArticleInfo(state, article);
@@ -224,9 +212,9 @@ NlmToLensConverter.Prototype = function() {
       "id": "publication_info",
       "type": "publication_info",
       "published_on": this.extractDate(pubDate),
-      "journal": journalTitle ? journalTitle.textContent : "",
-      "related_article": relatedArticle ? relatedArticle.getAttribute("xlink:href") : "",
-      "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
+      "journal": journalTitle ? this.xmlAdapter.getText(journalTitle) : "",
+      "related_article": relatedArticle ? this.xmlAdapter.getAttribute(relatedArticle, "xlink:href") : "",
+      "doi": articleDOI ? ["http://dx.doi.org/", this.xmlAdapter.getText(articleDOI)].join("") : "",
       "article_info": articleInfo.id,
       // TODO: 'article_type' should not be optional; we need to find a good default implementation
       "article_type": "",
@@ -248,7 +236,7 @@ NlmToLensConverter.Prototype = function() {
     for (var i = 0; i < history.length; i++) {
       var dateEl = history[i];
       var historyEntry = {
-        type: dateEl.getAttribute('date-type'),
+        type: this.xmlAdapter.getAttribute(dateEl, 'date-type'),
         date: this.extractDate(dateEl)
       };
       pubInfoNode.history.push(historyEntry);
@@ -292,7 +280,7 @@ NlmToLensConverter.Prototype = function() {
     var doc = state.doc;
     var nodes = [];
     // Get the author's impact statement
-    var meta = article.querySelectorAll("meta-value");
+    var meta = this.xmlAdapter.findAll(article, "//meta-value");
     var impact = meta[1];
 
     if (impact) {
@@ -320,16 +308,17 @@ NlmToLensConverter.Prototype = function() {
     var nodes = [];
     var doc = state.doc;
 
-    var editor = article.querySelector("contrib[contrib-type=editor]");
+    // TODO: is there always only one?
+    var editor = this.xmlAdapter.find(article, "//contrib[contrib-type=editor]");
     if (editor) {
       var content = [];
 
-      var name = this.getName(editor.querySelector('name'));
+      var name = this.getName(this.xmlAdapter.find(editor, "/name"));
       if (name) content.push(name);
-      var inst = editor.querySelector("institution");
-      if (inst) content.push(inst.textContent);
-      var country = editor.querySelector("country");
-      if (country) content.push(country.textContent);
+      var inst = this.xmlAdapter.find(editor, "/institution");
+      if (inst) content.push(this.xmlAdapter.getText(inst));
+      var country = this.xmlAdapter.find(editor, "/country");
+      if (country) content.push(this.xmlAdapter.getText(country));
 
       var h1 = {
         "type": "heading",
@@ -361,10 +350,10 @@ NlmToLensConverter.Prototype = function() {
     var nodes = [];
     var doc = state.doc;
 
-    var datasets = article.querySelectorAll('sec');
+    var datasets = this.xmlAdapter.findAll(article, "//sec");
     for (var i = 0;i <datasets.length;i++){
       var data = datasets[i];
-      var type = data.getAttribute('sec-type');
+      var type = this.xmlAdapter.getAttribute(data,'sec-type');
       if (type === 'datasets') {
         var h1 = {
           "type" : "heading",
@@ -374,7 +363,7 @@ NlmToLensConverter.Prototype = function() {
         };
         doc.create(h1);
         nodes.push(h1.id);
-        var ids = this.datasets(state, util.dom.getChildren(data));
+        var ids = this.datasets(state, this.xmlAdapter.getChildrenElements(data));
         for (var j=0;j < ids.length;j++) {
           if (ids[j]) {
             nodes.push(ids[j]);
@@ -407,21 +396,21 @@ NlmToLensConverter.Prototype = function() {
     var nodes = [];
     var doc = state.doc;
 
-    var acks = article.querySelectorAll("ack");
+    var acks = this.xmlAdapter.findAll(article, "//ack");
     if (acks && acks.length > 0) {
       _.each(acks, function(ack) {
-        var title = ack.querySelector('title');
+        var title = this.xmlAdapter.find(ack, "/title");
         var header = {
           "type" : "heading",
           "id" : state.nextId("heading"),
           "level" : 3,
-          "content" : title ? this.capitalized(title.textContent.toLowerCase(), "all") : "Acknowledgements"
+          "content" : title ? this.capitalized(this.xmlAdapter.getText(title).toLowerCase(), "all") : "Acknowledgements"
         };
         doc.create(header);
         nodes.push(header.id);
 
         // There may be multiple paragraphs per ack element
-        var pars = this.bodyNodes(state, util.dom.getChildren(ack), {
+        var pars = this.bodyNodes(state, this.xmlAdapter.getChildrenElements(ack), {
           ignore: ["title"]
         });
         _.each(pars, function(par) {
@@ -452,7 +441,7 @@ NlmToLensConverter.Prototype = function() {
     var nodes = [];
     var doc = state.doc;
 
-    var license = article.querySelector("permissions");
+    var license = this.xmlAdapter.find(article, "//permissions");
     if (license) {
       var h1 = {
         "type" : "heading",
@@ -467,13 +456,13 @@ NlmToLensConverter.Prototype = function() {
       // and do that rendering related things there, e.g., '. ' separator
 
       var par;
-      var copyright = license.querySelector("copyright-statement");
+      var copyright = this.xmlAdapter.find(license, "/copyright-statement");
       if (copyright) {
         par = this.paragraphGroup(state, copyright);
         if (par && par.length) {
           nodes = nodes.concat( _.map(par, function(p) { return p.id; } ) );
           // append '.' only if there is none yet
-          if (copyright.textContent.trim().slice(-1) !== '.') {
+          if (this.xmlAdapter.getText(copyright).trim().slice(-1) !== '.') {
             // TODO: this needs to be more robust... what if there are no children
             var textid = _.last(_.last(par).children);
             doc.nodes[textid].content += ". ";
@@ -482,15 +471,15 @@ NlmToLensConverter.Prototype = function() {
       }
       var lic = license.querySelector("license");
       if (lic) {
-        for (var child = lic.firstElementChild; child; child = child.nextElementSibling) {
-          var type = util.dom.getNodeType(child);
+        this.xmlAdapter.eachChildElement(lic, function(child) {
+          var type = this.xmlAdapter.getType(child);
           if (type === 'p' || type === 'license-p') {
             par = this.paragraphGroup(state, child);
             if (par && par.length) {
               nodes = nodes.concat( _.pluck(par, 'id') );
             }
           }
-        }
+        }, this);
       }
     }
 
@@ -560,24 +549,24 @@ NlmToLensConverter.Prototype = function() {
   // We use the first author found in the contribGroup for the 'creator' property.
   this.contribGroup = function(state, contribGroup) {
     var i;
-    var contribs = contribGroup.querySelectorAll("contrib");
+    var contribs = this.xmlAdapter.findAll(contribGroup, "//contrib");
     for (i = 0; i < contribs.length; i++) {
       this.contributor(state, contribs[i]);
     }
     // Extract on-behalf-of element and stick it to the document
     var doc = state.doc;
-    var onBehalfOf = contribGroup.querySelector("on-behalf-of");
-    if (onBehalfOf) doc.on_behalf_of = onBehalfOf.textContent.trim();
+    var onBehalfOf = this.xmlAdapter.find(contribGroup, "/on-behalf-of");
+    if (onBehalfOf) doc.on_behalf_of = this.xmlAdapter.getText(onBehalfOf).trim();
   };
 
   this.affiliation = function(state, aff) {
     var doc = state.doc;
 
-    var institution = aff.querySelector("institution");
-    var country = aff.querySelector("country");
-    var label = aff.querySelector("label");
-    var department = aff.querySelector("addr-line named-content[content-type=department]");
-    var city = aff.querySelector("addr-line named-content[content-type=city]");
+    var institution = this.xmlAdapter.find(aff, "institution");
+    var country = this.xmlAdapter.find(aff, "country");
+    var label = this.xmlAdapter.find(aff, "label");
+    var department = this.xmlAdapter.find(aff, "/addr-line//named-content[@content-type='department']");
+    var city = this.xmlAdapter.find(aff, "/addr-line//named-content[@content-type='city']");
 
     // TODO: this is a potential place for implementing a catch-bin
     // For that, iterate all children elements and fill into properties as needed or add content to the catch-bin
@@ -585,25 +574,22 @@ NlmToLensConverter.Prototype = function() {
     var affiliationNode = {
       id: state.nextId("affiliation"),
       type: "affiliation",
-      source_id: aff.getAttribute("id"),
-      label: label ? label.textContent : null,
-      department: department ? department.textContent : null,
-      city: city ? city.textContent : null,
-      institution: institution ? institution.textContent : null,
-      country: country ? country.textContent: null
+      source_id: this.xmlAdapter.getAttribute(aff, "id"),
+      label: label ? this.xmlAdapter.getText(label) : null,
+      department: department ? this.xmlAdapter.getText(department) : null,
+      city: city ? this.xmlAdapter.getText(city) : null,
+      institution: institution ? this.xmlAdapter.getText(institution) : null,
+      country: country ? this.xmlAdapter.getText(country): null
     };
     doc.create(affiliationNode);
   };
 
   this.contributor = function(state, contrib) {
     var doc = state.doc;
-
-
-
     var id = state.nextId("contributor");
     var contribNode = {
       id: id,
-      source_id: contrib.getAttribute("id"),
+      source_id: this.xmlAdapter.getAttribute(contrib, "id"),
       type: "contributor",
       name: "",
       affiliations: [],
@@ -619,19 +605,19 @@ NlmToLensConverter.Prototype = function() {
     };
 
     // Extract role
-    var role = contrib.querySelector("role");
+    var role = this.xmlAdapter.find(contrib, "role");
 
     if (role) {
-      contribNode["role"] = role.textContent;
+      contribNode["role"] = this.xmlAdapter.getText(role);
     }
 
     // Search for author bio and author image
-    var bio = contrib.querySelector("bio");
+    var bio = this.xmlAdapter.find(contrib, "bio");
     if (bio) {
       _.each(util.dom.getChildren(bio), function(par) {
-        var graphic = par.querySelector("graphic");
+        var graphic = this.xmlAdapter.find(par, "graphic");
         if (graphic) {
-          var imageUrl = graphic.getAttribute("xlink:href");
+          var imageUrl = this.xmlAdapter.getAttribute(graphic, "xlink:href");
           contribNode.image = imageUrl;
         } else {
           var pars = this.paragraphGroup(state, par);
@@ -644,7 +630,7 @@ NlmToLensConverter.Prototype = function() {
 
     // Deceased?
 
-    if (contrib.getAttribute("deceased") === "yes") {
+    if (this.xmlAdapter.getAttribute(contrib, "deceased") === "yes") {
       contribNode.deceased = true;
     }
 
@@ -653,20 +639,20 @@ NlmToLensConverter.Prototype = function() {
     //
     // <uri content-type="orcid" xlink:href="http://orcid.org/0000-0002-7361-560X"/>
 
-    var orcidURI = contrib.querySelector("uri[content-type=orcid]");
+    var orcidURI = this.xmlAdapter.find(contrib, ("//uri[@content-type='orcid']");
     if (orcidURI) {
-      contribNode.orcid = orcidURI.getAttribute("xlink:href");
+      contribNode.orcid = this.xmlAdapter.getAttribute(orcidURI, "xlink:href");
     }
 
     // Extracting equal contributions
-    var nameEl = contrib.querySelector("name");
+    var nameEl = this.xmlAdapter.find(contrib, "name");
     if (nameEl) {
       contribNode.name = this.getName(nameEl);
     } else {
-      var collab = contrib.querySelector("collab");
+      var collab = this.xmlAdapter.find(contrib, "collab");
       // Assuming this is an author group
       if (collab) {
-        contribNode.name = collab.textContent;
+        contribNode.name = this.xmlAdapter.getText(collab);
       } else {
         contribNode.name = "N/A";
       }
@@ -691,7 +677,7 @@ NlmToLensConverter.Prototype = function() {
       });
     }
 
-    if (contrib.getAttribute("contrib-type") === "author") {
+    if (this.xmlAdapter.getAttribute(contrib, "contrib-type") === "author") {
       doc.nodes.document.authors.push(id);
     }
 
@@ -701,11 +687,11 @@ NlmToLensConverter.Prototype = function() {
 
   this._getEqualContribs = function (state, contrib, contribId) {
     var result = [];
-    var refs = state.xmlDoc.querySelectorAll("xref[rid="+contribId+"]");
+    var refs = this.xmlAdapter.findAll(state.xmlDoc, "//xref[@rid='"+contribId+"'']");
     // Find xrefs within contrib elements
     _.each(refs, function(ref) {
-      var c = ref.parentNode;
-      if (c !== contrib) result.push(this.getName(c.querySelector("name")));
+      var c = this.xmlAdapter.getParent(ref);
+      if (c !== contrib) result.push(this.getName(this.xmlAdapter.find(c, "name")));
     }, this);
     return result;
   };
@@ -718,25 +704,26 @@ NlmToLensConverter.Prototype = function() {
     var compInterests = [];
 
     // extract affiliations stored as xrefs
-    var xrefs = contrib.querySelectorAll("xref");
+    var xrefs = this.xmlAdapter.findAll(contrib, "//xref");
     _.each(xrefs, function(xref) {
-      if (xref.getAttribute("ref-type") === "aff") {
-        var affId = xref.getAttribute("rid");
-        var affNode = doc.getNodeBySourceId(affId);
+      var rid = this.xmlAdapter.getAttribute(xref, "rid");
+      var refType = this.xmlAdapter.getAttribute(xref, "ref-type");
+      if (refType === "aff") {
+        var affNode = doc.getNodeBySourceId(rid);
         if (affNode) {
           contribNode.affiliations.push(affNode.id);
-          state.used[affId] = true;
+          state.used[rid] = true;
         }
-      } else if (xref.getAttribute("ref-type") === "other") {
+      } else if ( === "other") {
         // FIXME: it seems *very* custom to interprete every 'other' that way
         // TODO: try to find and document when this is applied
         console.error("FIXME: please add documentation about using 'other' as indicator for extracting an awardGroup.");
-        var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
+        var awardGroup = this.xmlAdapter.getElementById(state.xmlDoc, rid);
         if (!awardGroup) return;
-        var fundingSource = awardGroup.querySelector("funding-source");
+        var fundingSource = this.xmlAdapter.find(awardGroup, "funding-source");
         if (!fundingSource) return;
-        var awardId = awardGroup.querySelector("award-id");
-        awardId = awardId ? ", "+awardId.textContent : "";
+        var awardId = this.xmlAdapter.find(awardGroup, "award-id");
+        awardId = awardId ?  ", "+this.xmlAdapter.getText(awardId) : "";
         // Funding source nodes are looking like this
         //
         // <funding-source>
@@ -745,43 +732,41 @@ NlmToLensConverter.Prototype = function() {
         // </funding-source>
         //
         // and we only want to display the first text node, excluding the funder id
-        var fundingSourceName = fundingSource.childNodes[0].textContent;
+        var fundingSourceName = this.xmlAdapter.getText(this.xmlAdapter.getChildNodes(fundingSource)[0]);
         contribNode.fundings.push([fundingSourceName, awardId].join(''));
-      } else if (xref.getAttribute("ref-type") === "corresp") {
-        var correspId = xref.getAttribute("rid");
-        var corresp = state.xmlDoc.getElementById(correspId);
+      } else if (refType === "corresp") {
+        var correspId = rid;
+        var corresp = this.xmlAdapter.getElementById(state.xmlDoc, correspId);
         if (!corresp) return;
         // TODO: a corresp element allows *much* more than just an email
         // Thus, we are leaving this like untouched, so that it may be grabbed by extractAuthorNotes()
         // state.used[correspId] = true;
-        var email = corresp.querySelector("email");
+        var email = this.xmlAdapter.find("email");
         if (!email) return;
-        contribNode.emails.push(email.textContent);
-      } else if (xref.getAttribute("ref-type") === "fn") {
-        var fnId = xref.getAttribute("rid");
-        var fnElem = state.xmlDoc.getElementById(fnId);
+        contribNode.emails.push(this.xmlAdapter.getText(email));
+      } else if (refType === "fn") {
+        var fnElem = this.xmlAdapter.getElementById(state.xmlDoc, rid);
+        var fnId = this.xmlAdapter.getAttribute(fnElem, "id");
         var used = true;
         if (fnElem) {
-          var fnType = fnElem.getAttribute("fn-type");
+          var fnType = this.xmlAdapter.getAttribute(fnElem, "fn-type");
           switch (fnType) {
             case "con":
-              contribNode.contribution = fnElem.textContent;
+              contribNode.contribution = this.xmlAdapter.getText(fnElem);
               break;
             case "conflict":
-              compInterests.push(fnElem.textContent.trim());
+              compInterests.push(this.xmlAdapter.getText(fnElem).trim());
               break;
             case "present-address":
-              contribNode.present_address = fnElem.querySelector("p").textContent;
+              contribNode.present_address = this.xmlAdapter.getText(this.xmlAdapter.find(fnElem, "p"));
               break;
             case "equal":
-              console.log("FIXME: isn't fnElem.getAttribute(id) === fnId?");
-              equalContribs = this._getEqualContribs(state, contrib, fnElem.getAttribute("id"));
+              equalContribs = this._getEqualContribs(state, contrib, fnId);
               break;
             case "other":
               // HACK: sometimes equal contribs are encoded as 'other' plus special id
-              console.log("FIXME: isn't fnElem.getAttribute(id) === fnId?");
-              if (fnElem.getAttribute("id").indexOf("equal-contrib")>=0) {
-                equalContribs = this._getEqualContribs(state, contrib, fnElem.getAttribute("id"));
+              if (fnId.indexOf("equal-contrib")>=0) {
+                equalContribs = this._getEqualContribs(state, contrib, fnId);
               } else {
                 used = false;
               }
@@ -789,12 +774,12 @@ NlmToLensConverter.Prototype = function() {
             default:
               used = false;
           }
-          if (used) state.used[fnId] = true;
+          if (used) state.used[rid] = true;
         }
       } else {
         // TODO: this is a potential place for implementing a catch-bin
         // For that, we could push the content of the referenced element into the contrib's catch-bin
-        console.log("Skipping contrib's xref", xref.textContent);
+        console.log("Skipping contrib's xref",  this.xmlAdapter.getText(xref));
       }
     }, this);
 
@@ -809,13 +794,13 @@ NlmToLensConverter.Prototype = function() {
     }
 
     contribNode.competing_interests = compInterests;
-    var memberList = contrib.querySelector("xref[ref-type=other]");
+    var memberList =  this.xmlAdapter.find(contrib, "//xref[@ref-type='other']");
 
     if (memberList) {
-      var memberListId = memberList.getAttribute("rid");
-      var members = state.xmlDoc.querySelectorAll("#"+memberListId+" contrib");
+      var memberListId = this.xmlAdapter.getAttribute(memberList, "rid");
+      var members = this.xmlAdapter.findAll(state.xmlDoc, "//*[id='"+memberListId+"']/contrib");
       contribNode.members = _.map(members, function(m) {
-        return this.getName(m.querySelector("name"));
+        return this.getName(this.xmlAdapter.find(m, "name"));
       }, this);
     }
 
@@ -835,7 +820,7 @@ NlmToLensConverter.Prototype = function() {
 
   this.document = function(state, xmlDoc) {
     var doc = state.doc;
-    var article = xmlDoc.querySelector("article");
+    var article = this.xmlAdapter.find(xmlDoc, "//article");
     if (!article) {
       throw new ImporterError("Expected to find an 'article' element.");
     }
@@ -883,10 +868,10 @@ NlmToLensConverter.Prototype = function() {
     var doc = state.doc;
 
     // Assign id
-    var articleId = article.querySelector("article-id");
+    var articleId = this.xmlAdapter.find(article, "//article-id");
     // Note: Substance.Article does only support one id
     if (articleId) {
-      doc.id = articleId.textContent;
+      doc.id = this.xmlAdapter.getText(articleId);
     } else {
       // if no id was set we create a random one
       doc.id = util.uuid();
@@ -914,7 +899,7 @@ NlmToLensConverter.Prototype = function() {
     // Populate Publication Info node
     this.extractPublicationInfo(state, article);
 
-    var body = article.querySelector("body");
+    var body = this.xmlAdapter.find(article, "body");
     if (body) {
       this.body(state, body);
     }
@@ -925,22 +910,17 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.extractDefinitions = function(state /*, article*/) {
-    var defItems = state.xmlDoc.querySelectorAll("def-item");
-
+    var defItems = this.xmlAdapter.findAll(state.xmlDoc, "//def-item");
     _.each(defItems, function(defItem) {
-      var term = defItem.querySelector("term");
-      var def = defItem.querySelector("def");
-
-      // using hwp:id as a fallback MCP articles don't have def.id set
-      var id = def.id || def.getAttribute("hwp:id") || state.nextId('definition');
-
+      var term = this.xmlAdapter.find(defItem, "term");
+      var def = this.xmlAdapter.find(defItem, "def");
+      var id = this.xmlAdapter.getAttribute(def, 'id') || state.nextId('definition');
       var definitionNode = {
         id: id,
         type: "definition",
-        title: term.textContent,
-        description: def.textContent
+        title: this.xmlAdapter.getText(term),
+        description: this.xmlAdapter.getText(def)
       };
-
       state.doc.create(definitionNode);
       state.doc.show("definitions", definitionNode.id);
     });
@@ -952,23 +932,23 @@ NlmToLensConverter.Prototype = function() {
   this.extractArticleMeta = function(state, article) {
     // var doc = state.doc;
 
-    var articleMeta = article.querySelector("article-meta");
+    var articleMeta = this.xmlAdapter.find(article, "article-meta");
     if (!articleMeta) {
       throw new ImporterError("Expected element: 'article-meta'");
     }
 
     // <article-id> Article Identifier, zero or more
-    var articleIds = articleMeta.querySelectorAll("article-id");
+    var articleIds = this.xmlAdapter.findAll(articleMeta, "article-id");
     this.articleIds(state, articleIds);
 
     // <title-group> Title Group, zero or one
-    var titleGroup = articleMeta.querySelector("title-group");
+    var titleGroup = this.xmlAdapter.find(articleMeta, "title-group");
     if (titleGroup) {
       this.titleGroup(state, titleGroup);
     }
 
     // <pub-date> Publication Date, zero or more
-    var pubDates = articleMeta.querySelectorAll("pub-date");
+    var pubDates = this.xmlAdapter.findAll(articleMeta, "pub-date");
     this.pubDates(state, pubDates);
 
     this.abstracts(state, articleMeta);
@@ -982,7 +962,7 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.extractAffilitations = function(state, article) {
-    var affiliations =  article.querySelectorAll("aff");
+    var affiliations = this.xmlAdapter.findAll(article, "//aff");
     for (var i = 0; i < affiliations.length; i++) {
       this.affiliation(state, affiliations[i]);
     }
@@ -992,25 +972,23 @@ NlmToLensConverter.Prototype = function() {
     // TODO: the spec says, that there may be any combination of
     // 'contrib-group', 'aff', 'aff-alternatives', and 'x'
     // However, in the articles seen so far, these were sub-elements of 'contrib-group', which itself was single
-    var contribGroup = article.querySelector("article-meta contrib-group");
+    var contribGroup = this.xmlAdapter.find(article, "//article-meta/contrib-group");
     if (contribGroup) {
       this.contribGroup(state, contribGroup);
     }
-
   };
 
   this.extractFigures = function(state, xmlDoc) {
     // Globally query all figure-ish content, <fig>, <supplementary-material>, <table-wrap>, <media video>
     // mimetype="video"
-    var body = xmlDoc.querySelector("body");
-    var figureElements = body.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
+    var body = this.xmlAdapter.find(xmlDoc, "//body");
+    var figureElements = this.xmlAdapter.findAll(body, "//fig|//table-wrap|//supplementary-material|//media[@mimetype='video']");
     var figureNodes = [];
     var node;
 
     for (var i = 0; i < figureElements.length; i++) {
       var figEl = figureElements[i];
-      var type = util.dom.getNodeType(figEl);
-
+      var type = this.xmlAdapter.getType(figEl);
       if (type === "fig") {
         node = this.figure(state, figEl);
         if (node) figureNodes.push(node);
@@ -1036,7 +1014,7 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.extractCitations = function(state, xmlDoc) {
-    var refList = xmlDoc.querySelector("ref-list");
+    var refList = this.xmlAdapter.find(xmlDoc, "//ref-list");
     if (refList) {
       this.refList(state, refList);
     }
@@ -1048,7 +1026,7 @@ NlmToLensConverter.Prototype = function() {
 
     // Note: Substance.Article does only support one id
     if (articleIds.length > 0) {
-      doc.id = articleIds[0].textContent;
+      doc.id = this.xmlAdapter.getText(articleIds[0]);
     } else {
       // if no id was set we create a random one
       doc.id = util.uuid();
@@ -1057,7 +1035,7 @@ NlmToLensConverter.Prototype = function() {
 
   this.titleGroup = function(state, titleGroup) {
     var doc = state.doc;
-    var articleTitle = titleGroup.querySelector("article-title");
+    var articleTitle = this.xmlAdapter.find(titleGroup, "article-title");
     if (articleTitle) {
       doc.title = this.annotatedText(state, articleTitle, ['document', 'title'], {
         ignore: ['xref']
@@ -1083,10 +1061,9 @@ NlmToLensConverter.Prototype = function() {
     var day = -1;
     var month = -1;
     var year = -1;
-    _.each(util.dom.getChildren(pubDate), function(el) {
-      var type = util.dom.getNodeType(el);
-
-      var value = el.textContent;
+    this.xmlAdapter.eachChildElement(pubDate, function(el) {
+      var type = this.xmlAdapter.getType(el);
+      var value = this.xmlAdapter.getText(el);
       if (type === "day") {
         day = parseInt(value, 10);
       } else if (type === "month") {
@@ -1103,7 +1080,7 @@ NlmToLensConverter.Prototype = function() {
 
   this.abstracts = function(state, articleMeta) {
     // <abstract> Abstract, zero or more
-    var abstracts = articleMeta.querySelectorAll("abstract");
+    var abstracts = this.xmlAdapter.findAll(articleMeta, "//abstract");
     _.each(abstracts, function(abs) {
       this.abstract(state, abs);
     }, this);
@@ -1112,14 +1089,12 @@ NlmToLensConverter.Prototype = function() {
   this.abstract = function(state, abs) {
     var doc = state.doc;
     var nodes = [];
-
-    var title = abs.querySelector("title");
-
+    var title = this.xmlAdapter.find(abs, "title");
     var heading = {
       id: state.nextId("heading"),
       type: "heading",
       level: 1,
-      content: title ? title.textContent : "Abstract"
+      content: title ? this.xmlAdapter.getText(title) : "Abstract"
     };
 
     doc.create(heading);
@@ -1128,7 +1103,7 @@ NlmToLensConverter.Prototype = function() {
     // with eLife there are abstracts having an object-id.
     // TODO: we should store that in the model instead of dropping it
 
-    nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(abs), {
+    nodes = nodes.concat(this.bodyNodes(state, this.xmlAdapter.getChildren(abs), {
       ignore: ["title", "object-id"]
     }));
 
@@ -1149,7 +1124,7 @@ NlmToLensConverter.Prototype = function() {
       content: "Main Text"
     };
     doc.create(heading);
-    var nodes = [heading].concat(this.bodyNodes(state, util.dom.getChildren(body)));
+    var nodes = [heading].concat(this.bodyNodes(state, this.xmlAdapter.getChildren(body)));
     if (nodes.length > 0) {
       this.show(state, nodes);
     }
@@ -1171,7 +1146,7 @@ NlmToLensConverter.Prototype = function() {
 
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
-      var type = util.dom.getNodeType(child);
+      var type = this.xmlAdapter.getType(child);
 
       if (this._bodyNodes[type]) {
         var result = this._bodyNodes[type].call(this, state, child);
@@ -1234,14 +1209,14 @@ NlmToLensConverter.Prototype = function() {
   this.boxedText = function(state, box) {
     var doc = state.doc;
     // Assuming that there are no nested <boxed-text> elements
-    var childNodes = this.bodyNodes(state, util.dom.getChildren(box));
+    var childdren = this.bodyNodes(state, this.xmlAdapter.getChildren(box));
     var boxId = state.nextId("box");
     var boxNode = {
       "type": "box",
       "id": boxId,
-      "source_id": box.getAttribute("id"),
+      "source_id": this.xmlAdapter.getAttribute(box, "id"),
       "label": "",
-      "children": _.pluck(childNodes, 'id')
+      "children": _.pluck(children, 'id')
     };
     doc.create(boxNode);
     return boxNode;
@@ -1252,9 +1227,9 @@ NlmToLensConverter.Prototype = function() {
 
     for (var i=0;i<datasets.length;i++) {
       var data = datasets[i];
-      var type = util.dom.getNodeType(data);
+      var type = this.xmlAdapter.getType(data);
       if (type === 'p') {
-        var obj = data.querySelector('related-object');
+        var obj = this.xmlAdapter.find(data, 'related-object');
         if (obj) {
           nodes = nodes.concat(this.indivdata(state,obj));
         }
@@ -1281,13 +1256,13 @@ NlmToLensConverter.Prototype = function() {
       "content" : ""
     };
     p1.children.push(text1.id);
-    var input = util.dom.getChildren(indivdata);
+    var input = this.xmlAdapter.getChildrenElements(indivdata);
     for (var i = 0;i<input.length;i++) {
       var info = input[i];
-      var type = util.dom.getNodeType(info);
+      var type = this.xmlAdapter.getType(info);
       var par;
       if (type === "name") {
-        var children = util.dom.getChildren(info);
+        var children = this.xmlAdapter.getChildrenElements(info);
         for (var j = 0;j<children.length;j++) {
           var name = children[j];
           if (j === 0) {
@@ -1325,37 +1300,31 @@ NlmToLensConverter.Prototype = function() {
     state.sectionLevel++;
 
     var doc = state.doc;
-    var children = util.dom.getChildren(section);
+    var children = this.xmlAdapter.getChildrenElements(section);
     var nodes = [];
-
     // Optional heading label
-    var label = this.selectDirectChildren(section, "label")[0];
-
+    var label = this.xmlAdapter.find(section, "label");
     // create a heading
-    var title = this.selectDirectChildren(section, 'title')[0];
+    var title = this.xmlAdapter.find(section, 'title');
     if (!title) {
       console.error("FIXME: every section should have a title", this.toHtml(section));
     }
-
     // Recursive Descent: get all section body nodes
     nodes = nodes.concat(this.bodyNodes(state, children, {
       ignore: ["title"]
     }));
-
     if (nodes.length > 0 && title) {
       var id = state.nextId("heading");
       var heading = {
         id: id,
-        source_id: section.getAttribute("id"),
+        source_id: this.xmlAdapter.getAttribute(section, "id"),
         type: "heading",
         level: state.sectionLevel,
         content: title ? this.annotatedText(state, title, [id, 'content']) : ""
       };
-
       if (label) {
-        heading.label = label.textContent;
+        heading.label = this.xmlAdapter.getText(label);
       }
-
       if (heading.content.length > 0) {
         doc.create(heading);
         nodes.unshift(heading);
@@ -1363,7 +1332,6 @@ NlmToLensConverter.Prototype = function() {
     } else if (nodes.length === 0) {
       console.info("NOTE: skipping section without content:", title ? title.innerHTML : "no title");
     }
-
     // popping the section level
     state.sectionLevel--;
     return nodes;
@@ -1397,12 +1365,12 @@ NlmToLensConverter.Prototype = function() {
   this.segmentParagraphElements = function(paragraph) {
     var blocks = [];
     var lastType = "";
-    var iterator = new util.dom.ChildNodeIterator(paragraph);
+    var iterator = this.xmlAdapter.getChildNoteIterator(paragraph);
 
     // first fragment the childNodes into blocks
     while (iterator.hasNext()) {
       var child = iterator.next();
-      var type = util.dom.getNodeType(child);
+      var type = this.xmlAdapter.getType(child);
 
       // ignore some elements
       if (this.ignoredParagraphElements[type]) continue;
@@ -1442,7 +1410,7 @@ NlmToLensConverter.Prototype = function() {
       var node;
       if (block.handler === "paragraph") {
         node = this.paragraph(state, block.nodes);
-        if (node) node.source_id = paragraph.getAttribute("id");
+        if (node) node.source_id = this.xmlAdapter.getAttribute(paragraph, "id");
       } else {
         node = this[block.handler](state, block.node);
       }
@@ -1466,10 +1434,10 @@ NlmToLensConverter.Prototype = function() {
     };
     var nodes = [];
 
-    var iterator = new util.dom.ChildNodeIterator(children);
+    var iterator = this.xmlAdapter.getChildNoteIterator(children);
     while (iterator.hasNext()) {
       var child = iterator.next();
-      var type = util.dom.getNodeType(child);
+      var type = this.xmlAdapter.getType(child);
 
       // annotated text node
       if (type === "text" || this.isAnnotation(type)) {
@@ -1502,7 +1470,7 @@ NlmToLensConverter.Prototype = function() {
 
       // inline image node
       else if (type === "inline-graphic") {
-        var url = child.getAttribute("xlink:href");
+        var url = this.xmlAdapter.getAttribute(child, "xlink:href");
         var img = {
           id: state.nextId("image"),
           type: "image",
@@ -1546,24 +1514,24 @@ NlmToLensConverter.Prototype = function() {
 
     var listNode = {
       "id": state.nextId("list"),
-      "source_id": list.getAttribute("id"),
+      "source_id": this.xmlAdapter.getAttribute(list, "id"),
       "type": "list",
       "items": [],
       "ordered": false
     };
 
     // TODO: better detect ordererd list types (need examples)
-    if (list.getAttribute("list-type") === "ordered") {
+    if (this.xmlAdapter.getAttribute(list, "list-type") === "ordered") {
       listNode.ordered = true;
     }
 
-    var listItems = list.querySelectorAll("list-item");
+    var listItems = this.xmlAdapter.findAll(list, "/list-item");
     for (var i = 0; i < listItems.length; i++) {
       var listItem = listItems[i];
       // Note: we do not care much about what is served as items
       // However, we do not have complex nodes on paragraph level
       // They will be extract as sibling items
-      var nodes = this.bodyNodes(state, util.dom.getChildren(listItem));
+      var nodes = this.bodyNodes(state, this.xmlAdapter.getChildrenElements(listItem));
       for (var j = 0; j < nodes.length; j++) {
         listNode.items.push(nodes[j].id);
       }
@@ -1585,27 +1553,26 @@ NlmToLensConverter.Prototype = function() {
     var figureNode = {
       "type": "figure",
       "id": state.nextId("figure"),
-      "source_id": figure.getAttribute("id"),
+      "source_id": this.xmlAdapter.getAttribute(figure, "id"),
       "label": "Figure",
       "url": "",
       "caption": null
     };
 
-    var labelEl = figure.querySelector("label");
+    var labelEl = this.xmlAdapter.find(figure, "label");
     if (labelEl) {
       figureNode.label = this.annotatedText(state, labelEl, [figureNode.id, 'label']);
     }
-
     // Add a caption if available
-    var caption = figure.querySelector("caption");
+    var caption = this.xmlAdapter.find(figure, "caption");
     if (caption) {
       var captionNode = this.caption(state, caption);
       if (captionNode) figureNode.caption = captionNode.id;
     }
 
-    var attrib = figure.querySelector("attrib");
+    var attrib = this.xmlAdapter.find(figure, "attrib");
     if (attrib) {
-      figureNode.attrib = attrib.textContent;
+      figureNode.attrib = this.xmlAdapter.getText(attrib);
     }
 
     // Lets the configuration patch the figure node properties
@@ -1647,25 +1614,25 @@ NlmToLensConverter.Prototype = function() {
     var doc = state.doc;
 
     //get supplement info
-    var label = supplement.querySelector("label");
+    var label = this.xmlAdapter.find(supplement, "label");
 
-    var mediaEl = supplement.querySelector("media");
-    var url = mediaEl ? mediaEl.getAttribute("xlink:href") : null;
-    var doi = supplement.querySelector("object-id[pub-id-type='doi']");
-    doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
+    var mediaEl = this.xmlAdapter.find(supplement, "media");
+    var url = mediaEl ? this.xmlAdapter.getAttribute(mediaEl, "xlink:href") : null;
+    var doi = this.xmlAdapter.find(supplement, "//object-id[@pub-id-type='doi']");
+    doi = doi ? "http://dx.doi.org/" + this.xmlAdapter.getText(doi) : "";
 
     //create supplement node using file ids
     var supplementNode = {
       "id": state.nextId("supplement"),
-      "source_id": supplement.getAttribute("id"),
+      "source_id": this.xmlAdapter.getAttribute(supplement, "id"),
       "type": "supplement",
-      "label": label ? label.textContent : "",
+      "label": label ? this.xmlAdapter.getText(label) : "",
       "url": url,
       "caption": null
     };
 
     // Add a caption if available
-    var caption = supplement.querySelector("caption");
+    var caption = this.xmlAdapter.find(supplement, "caption");
 
     if (caption) {
       var captionNode = this.caption(state, caption);
@@ -1687,14 +1654,14 @@ NlmToLensConverter.Prototype = function() {
 
     var captionNode = {
       "id": state.nextId("caption"),
-      "source_id": caption.getAttribute("id"),
+      "source_id": this.xmlAdapter.getAttribute(caption, "id"),
       "type": "caption",
       "title": "",
       "children": []
     };
 
     // Titles can be annotated, thus delegate to paragraph
-    var title = caption.querySelector("title");
+    var title = this.xmlAdapter.find(caption, "title");
     if (title) {
       // Resolve title by delegating to the paragraph
       var node = this.paragraph(state, title);
@@ -1704,7 +1671,7 @@ NlmToLensConverter.Prototype = function() {
     }
 
     var children = [];
-    var paragraphs = caption.querySelectorAll("p");
+    var paragraphs = this.xmlAdapter.findAll(caption, "p");
     _.each(paragraphs, function(p) {
       // Only consider direct children
       if (p.parentNode !== caption) return;
@@ -1737,12 +1704,12 @@ NlmToLensConverter.Prototype = function() {
   this.video = function(state, video) {
     var doc = state.doc;
 
-    var label = video.querySelector("label").textContent;
+    var label = this.xmlAdapter.getText(this.xmlAdapter.find(video, "label"));
 
     var id = state.nextId("video");
     var videoNode = {
       "id": id,
-      "source_id": video.getAttribute("id"),
+      "source_id": this.xmlAdapter.getAttribute(video, "id"),
       "type": "video",
       "label": label,
       "title": "",
@@ -1751,7 +1718,7 @@ NlmToLensConverter.Prototype = function() {
     };
 
     // Add a caption if available
-    var caption = video.querySelector("caption");
+    var caption = this.xmlAdapter.find(video, "caption");
     if (caption) {
       var captionNode = this.caption(state, caption);
       if (captionNode) videoNode.caption = captionNode.id;
@@ -1765,14 +1732,14 @@ NlmToLensConverter.Prototype = function() {
 
   this.tableWrap = function(state, tableWrap) {
     var doc = state.doc;
-    var label = tableWrap.querySelector("label");
+    var label = this.xmlAdapter.find(tableWrap, "label");
 
     var tableNode = {
       "id": state.nextId("html_table"),
-      "source_id": tableWrap.getAttribute("id"),
+      "source_id": this.xmlAdapter.getAttribute(tableWrap, "id"),
       "type": "html_table",
       "title": "",
-      "label": label ? label.textContent : "Table",
+      "label": label ? this.xmlAdapter.getText(label) : "Table",
       "content": "",
       "caption": null,
       // Not supported yet ... need examples
@@ -1781,7 +1748,7 @@ NlmToLensConverter.Prototype = function() {
     };
 
     // Note: using a DOM div element to create HTML
-    var table = tableWrap.querySelector("table");
+    var table = this.xmlAdapter.find(tableWrap, "table");
     if (table) {
       tableNode.content = this.toHtml(table);
     }
@@ -1794,7 +1761,7 @@ NlmToLensConverter.Prototype = function() {
 
   this.extractTableCaption = function(state, tableNode, tableWrap) {
     // Add a caption if available
-    var caption = tableWrap.querySelector("caption");
+    var caption = this.xmlAdapter.find(tableWrap, "caption");
     if (caption) {
       var captionNode = this.caption(state, caption);
       if (captionNode) tableNode.caption = captionNode.id;
@@ -1808,14 +1775,14 @@ NlmToLensConverter.Prototype = function() {
 
   this._getFormulaData = function(formulaElement) {
     var result = [];
-    for (var child = formulaElement.firstElementChild; child; child = child.nextElementSibling) {
-      var type = util.dom.getNodeType(child);
+    this.xmlAdapter.eachChildElement(formulaElement, function(child) {
+      var type = this.xmlAdapter.getType(child);
       switch (type) {
         case "graphic":
         case "inline-graphic":
           result.push({
             format: 'image',
-            data: child.getAttribute('xlink:href')
+            data: this.xmlAdapter.getAttribute(child, 'xlink:href')
           });
           break;
         case "svg":
@@ -1834,7 +1801,7 @@ NlmToLensConverter.Prototype = function() {
         case "tex-math":
           result.push({
             format: "latex",
-            data: child.textContent
+            data: this.xmlAdapter.getText(child)
           });
           break;
         case "label":
@@ -1843,7 +1810,7 @@ NlmToLensConverter.Prototype = function() {
         default:
           console.error('Unsupported formula element of type ' + type);
       }
-    }
+    }, this);
     return result;
   };
 
@@ -1851,15 +1818,15 @@ NlmToLensConverter.Prototype = function() {
     var doc = state.doc;
     var formulaNode = {
       id: state.nextId("formula"),
-      source_id: formulaElement.getAttribute("id"),
+      source_id: this.xmlAdapter.getAttribute(formulaElement, "id"),
       type: "formula",
       label: "",
       inline: !!inline,
       data: [],
       format: [],
     };
-    var label = formulaElement.querySelector("label");
-    if (label) formulaNode.label = label.textContent;
+    var label = this.xmlAdapter.find(formulaElement, "label");
+    if (label) formulaNode.label = this.xmlAdapter.getText(label);
     var formulaData = this._getFormulaData(formulaElement, inline);
     for (var i = 0; i < formulaData.length; i++) {
       formulaNode.format.push(formulaData[i].format);
@@ -1878,18 +1845,17 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.refList = function(state, refList) {
-    var refs = refList.querySelectorAll("ref");
+    var refs = this.xmlAdapter.findAll(refList, "ref");
     for (var i = 0; i < refs.length; i++) {
       this.ref(state, refs[i]);
     }
   };
 
   this.ref = function(state, ref) {
-    var children = util.dom.getChildren(ref);
+    var children = this.xmlAdapter.getChildrenElements(ref);
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
-      var type = util.dom.getNodeType(child);
-
+      var type = this.xmlAdapter.getType((child);
       if (this.citationTypes[type]) {
         this.citation(state, ref, child);
       } else if (type === "label") {
@@ -1939,7 +1905,7 @@ NlmToLensConverter.Prototype = function() {
 
     // TODO: we should consider to have a more structured citation type
     // and let the view decide how to render it instead of blobbing everything here.
-    var personGroup = citation.querySelector("person-group");
+    var personGroup = this.xmlAdapter.find(citation, "person-group");
 
     // HACK: we try to create a 'articleCitation' when there is structured
     // content (ATM, when personGroup is present)
@@ -1948,7 +1914,7 @@ NlmToLensConverter.Prototype = function() {
 
       citationNode = {
         "id": id,
-        "source_id": ref.getAttribute("id"),
+        "source_id": this.xmlAdapter.getAttribute(ref, "id"),
         "type": "citation",
         "title": "N/A",
         "label": "",
@@ -1961,25 +1927,25 @@ NlmToLensConverter.Prototype = function() {
         "citation_urls": []
       };
 
-      var nameElements = personGroup.querySelectorAll("name");
+      var nameElements = this.xmlAdapter.findAll(personGroup, "name");
       for (i = 0; i < nameElements.length; i++) {
         citationNode.authors.push(this.getName(nameElements[i]));
       }
 
       // Consider collab elements (treat them as authors)
-      var collabElements = personGroup.querySelectorAll("collab");
+      var collabElements = this.xmlAdapter.findAll(personGroup, "collab");
       for (i = 0; i < collabElements.length; i++) {
-        citationNode.authors.push(collabElements[i].textContent);
+        citationNode.authors.push(this.xmlAdapter.getText(collabElements[i]));
       }
 
-      var source = citation.querySelector("source");
-      if (source) citationNode.source = source.textContent;
+      var source = this.xmlAdapter.find(citation, "source");
+      if (source) citationNode.source = this.xmlAdapter.getText(source);
 
-      var articleTitle = citation.querySelector("article-title");
+      var articleTitle = this.xmlAdapter.find(citation, "article-title");
       if (articleTitle) {
         citationNode.title = this.annotatedText(state, articleTitle, [id, 'title']);
       } else {
-        var comment = citation.querySelector("comment");
+        var comment = this.xmlAdapter.find(citation, "comment");
         if (comment) {
           citationNode.title = this.annotatedText(state, comment, [id, 'title']);
         } else {
@@ -1992,41 +1958,33 @@ NlmToLensConverter.Prototype = function() {
         }
       }
 
+      var volume = this.xmlAdapter.find(citation, "volume");
+      if (volume) citationNode.volume = this.xmlAdapter.getText(volume);
 
+      var publisherLoc = this.xmlAdapter.find(citation, "publisher-loc");
+      if (publisherLoc) citationNode.publisher_location = this.xmlAdapter.getText(publisherLoc);
 
-      var volume = citation.querySelector("volume");
-      if (volume) citationNode.volume = volume.textContent;
+      var publisherName = this.xmlAdapter.find(citation, "publisher-name");
+      if (publisherName) citationNode.publisher_name = this.xmlAdapter.getText(publisherName);
 
-      var publisherLoc = citation.querySelector("publisher-loc");
-      if (publisherLoc) citationNode.publisher_location = publisherLoc.textContent;
+      var fpage = this.xmlAdapter.find(citation, "fpage");
+      if (fpage) citationNode.fpage = this.xmlAdapter.getText(fpage);
 
-      var publisherName = citation.querySelector("publisher-name");
-      if (publisherName) citationNode.publisher_name = publisherName.textContent;
+      var lpage = this.xmlAdapter.find(citation, "lpage");
+      if (lpage) citationNode.lpage = this.xmlAdapter.getText(lpage);
 
-      var fpage = citation.querySelector("fpage");
-      if (fpage) citationNode.fpage = fpage.textContent;
-
-      var lpage = citation.querySelector("lpage");
-      if (lpage) citationNode.lpage = lpage.textContent;
-
-      var year = citation.querySelector("year");
-      if (year) citationNode.year = year.textContent;
+      var year = this.xmlAdapter.find(citation, "year");
+      if (year) citationNode.year = this.xmlAdapter.getText(year);
 
       // Note: the label is child of 'ref'
-      var label = ref.querySelector("label");
-      if(label) citationNode.label = label.textContent;
+      var label = this.xmlAdapter.find(ref, "label");
+      if(label) citationNode.label = this.xmlAdapter.getText(label);
 
-      var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
-      if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;
+      var doi = this.xmlAdapter.find(citation, "//pub-id[@pub-id-type='doi']|//ext-link[@ext-link-type='doi']");
+      if(doi) citationNode.doi = "http://dx.doi.org/" + this.xmlAdapter.getText(doi);
     } else {
       console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...", citation);
       return;
-      // citationNode = {
-      //   id: id,
-      //   type: "mixed_citation",
-      //   citation: citation.textContent,
-      //   doi: ""
-      // };
     }
 
     doc.create(citationNode);
@@ -2050,7 +2008,7 @@ NlmToLensConverter.Prototype = function() {
   this.createAnnotation = function(state, el, start, end) {
     // do not create an annotaiton if there is no range
     if (start === end) return;
-    var type = el.tagName.toLowerCase();
+    var type = this.xmlAdapter.getType(el);
     var anno = {
       type: "annotation",
       path: _.last(state.stack).path,
@@ -2070,19 +2028,19 @@ NlmToLensConverter.Prototype = function() {
     if (type === 'xref') {
       this.addAnnotationDataForXref(state, anno, el);
     } else if (type === "ext-link") {
-      anno.url = el.getAttribute("xlink:href");
+      anno.url = this.xmlAdapter.getAttribute(el, "xlink:href");
       // Add 'http://' to URIs without a protocol, such as 'www.google.com'
       // Except: Url starts with a slash, then we consider them relative
-      var extLinkType = el.getAttribute('ext-link-type') || '';
+      var extLinkType = this.xmlAdapter.getAttribute(el, 'ext-link-type') || '';
       if (extLinkType.toLowerCase() === 'uri' && !/^\w+:\/\//.exec(anno.url) && !/^\//.exec(anno.url)) {
         anno.url = 'http://' + anno.url;
       } else if (extLinkType.toLowerCase() === 'doi') {
         anno.url = ["http://dx.doi.org/", anno.url].join("");
       }
     } else if (type === "email") {
-      anno.url = "mailto:" + el.textContent.trim();
+      anno.url = "mailto:" + this.xmlAdapter.getText(el).trim();
     } else if (type === 'inline-graphic') {
-      anno.url = el.getAttribute("xlink:href");
+      anno.url = this.xmlAdapter.getAttribute(el, "xlink:href");
     } else if (type === 'inline-formula') {
       var formula = this.formula(state, el, "inline");
       anno.target = formula.id;
@@ -2090,8 +2048,8 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.addAnnotationDataForXref = function(state, anno, el) {
-    var refType = el.getAttribute("ref-type");
-    var sourceId = el.getAttribute("rid");
+    var refType = this.xmlAdapter.getAttribute(el, "ref-type");
+    var sourceId = this.xmlAdapter.getAttribute(el, "rid");
     // Default reference is a cross_reference
     anno.type = this._refTypeMapping[refType] || "cross_reference";
     if (sourceId) anno.target = sourceId.split(" ")[0];
@@ -2107,7 +2065,7 @@ NlmToLensConverter.Prototype = function() {
       path: path,
       ignore: options.ignore
     });
-    var childIterator = new util.dom.ChildNodeIterator(node);
+    var childIterator = this.xmlAdapter.getChildNoteIterator(node);
     var text = this._annotatedText(state, childIterator, options);
     state.stack.pop();
     return text;
@@ -2127,16 +2085,16 @@ NlmToLensConverter.Prototype = function() {
 
     while(iterator.hasNext()) {
       var el = iterator.next();
+      var type = this.xmlAdapter.getType(el);
       // Plain text nodes...
-      if (el.nodeType === Node.TEXT_NODE) {
-        var text = state.acceptText(el.textContent);
+      if (type === "text") {
+        var text = state.acceptText(this.xmlAdapter.getText(el));
         plainText += text;
         charPos += text.length;
       }
       // Annotations...
       else {
         var annotatedText;
-        var type = util.dom.getNodeType(el);
         if (this.isAnnotation(type)) {
           if (state.top().ignore.indexOf(type) < 0) {
             var start = charPos;
@@ -2187,7 +2145,7 @@ NlmToLensConverter.Prototype = function() {
   this._getAnnotationText = function(state, el, type, charPos) {
     // recurse into the annotation element to collect nested annotations
     // and the contained plain text
-    var childIterator = new util.dom.ChildNodeIterator(el);
+    var childIterator = this.xmlAdapter.getChildNoteIterator(el);
     var annotatedText = this._annotatedText(state, childIterator, { offset: charPos, nested: true });
     return annotatedText;
   };
@@ -2195,7 +2153,7 @@ NlmToLensConverter.Prototype = function() {
   this._annotationTextHandler['ext-link'] = function(state, el, type, charPos) {
     var annotatedText = this._getAnnotationText(state, el, charPos);
     // Shorten label for URL links (i.e. if label === url )
-    if (type === 'ext-link' && el.getAttribute('xlink:href') === annotatedText.trim()) {
+    if (type === 'ext-link' && this.xmlAdapter.getAttribute(el, 'xlink:href') === annotatedText.trim()) {
       annotatedText = this.shortenLinkLabel(state, annotatedText);
     }
     return annotatedText;
