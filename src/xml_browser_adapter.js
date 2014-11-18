@@ -50,7 +50,7 @@ XmlBrowserAdapter.Prototype = function() {
     if (el.getElementById) {
       return el.getElementById(id);
     } else {
-      return this.find(el, ".//*[@id='"+id+"']");
+      return XmlAdapter.prototype.getElementById.call(this, el, id);
     }
   };
 

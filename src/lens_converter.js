@@ -4,7 +4,11 @@ var _ = require("underscore");
 var util = require("substance-util");
 var errors = util.errors;
 var ImporterError = errors.define("ImporterError");
-var XmlBrowserAdapter = require('./xml_browser_adapter')
+
+var XmlBrowserAdapter;
+if (typeof window !== "undefined") {
+  XmlBrowserAdapter = require('./xml_browser_adapter');
+}
 
 // Available configurations
 // --------
@@ -16,7 +20,7 @@ var PLOSConfiguration = require("./configurations/plos");
 var PeerJConfiguration = require("./configurations/peerj");
 
 var NlmToLensConverter = function(options) {
-  this.options = options || NlmToLensConverter.DefaultOptions;
+  this.options = _.extend({}, NlmToLensConverter.DefaultOptions, options);
   this.xmlAdapter = this.options.xmlAdapter || new XmlBrowserAdapter();
 };
 
@@ -109,7 +113,7 @@ NlmToLensConverter.Prototype = function() {
     var doc = this.createDocument();
 
     // For debug purposes
-    window.doc = doc;
+    // window.doc = doc;
 
     // A deliverable state which makes this importer stateless
     var state = this.createState(xmlDoc, doc);
@@ -469,7 +473,7 @@ NlmToLensConverter.Prototype = function() {
           }
         }
       }
-      var lic = license.querySelector("license");
+      var lic = this.xmlAdapter.find(license, "license");
       if (lic) {
         this.xmlAdapter.eachChildElement(lic, function(child) {
           var type = this.xmlAdapter.getType(child);

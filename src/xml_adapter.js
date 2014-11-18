@@ -20,7 +20,7 @@ XmlAdapter.Prototype = function() {
   };
 
   this.getElementById = function(el, id) {
-    throw new Error("This method is abstract");
+    return this.find(el, ".//*[@id='"+id+"']");
   };
 
   this.getAttribute = function(el, name) {
