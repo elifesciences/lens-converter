@@ -8,24 +8,20 @@ PLOSConfiguration.Prototype = function() {
 
   // Resolve figure urls
   // --------
-  // 
+  //
 
-  this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-
+  this.resolveFigureURL = function(state, url) {
     url = [
       "http://www.plosone.org/article/fetchObject.action?uri=",
       url,
       "&representation=PNG_L"
     ].join('');
-
-    node.url = url;
+    return url;
   };
 
   // Assign video url
   // --------
-  // 
+  //
 
   this.enhanceVideo = function(state, node, element) {
     node.url = "http://mickey.com/mouse.mp4";

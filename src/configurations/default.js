@@ -12,8 +12,10 @@ DefaultConfiguration.Prototype = function() {
   //
 
   this.getBaseURL = function(state) {
+    var xmlAdapter = state.xmlAdapter;
     // Use xml:base attribute if present
-    var baseURL = state.xmlDoc.querySelector("article").getAttribute("xml:base");
+    var articleEl = xmlAdapter.find(state.xmlDoc, "article");
+    var baseURL = xmlAdapter.getAttribute(articleEl, "xml:base");
     return baseURL || state.options.baseURL;
   };
 
@@ -27,9 +29,10 @@ DefaultConfiguration.Prototype = function() {
 
   // Implements resolving of relative urls
   this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-    node.url = this.resolveURL(state, url);
+    var xmlAdapter = state.xmlAdapter;
+    var graphic = xmlAdapter.find(element, "graphic");
+    var url = xmlAdapter.getAttribute(graphic, "xlink:href");
+    node.url = this.resolveFigureURL(state, url);
   };
 
   this.enhancePublicationInfo = function(converter, state, article) {
@@ -49,10 +52,11 @@ DefaultConfiguration.Prototype = function() {
   //
 
   this.enhanceVideo = function(state, node, element) {
-    var el = element.querySelector("media") || element;
+    var xmlAdapter = state.xmlAdapter;
+    var el = xmlAdapter.find(element, "media") || element;
     // xlink:href example: elife00778v001.mov
 
-    var url = element.getAttribute("xlink:href");
+    var url = xmlAdapter.getAttribute(element, "xlink:href");
     var name;
     // Just return absolute urls
     if (url.match(/http:/)) {
@@ -73,18 +77,14 @@ DefaultConfiguration.Prototype = function() {
     }
   };
 
-  this.extractDate = function(dateEl) {
-    if (!dateEl) return null;
-    var day = dateEl.querySelector("day").textContent;
-    var month = dateEl.querySelector("month").textContent;
-    var year = dateEl.querySelector("year").textContent;
-    return [year, month, day].join("-");
-  };
-
   // Default figure url resolver
   // --------
   //
   // For relative urls it uses the same basebath as the source XML
+
+  this.resolveFigureURL = function(state, url) {
+    return this.resolveURL(state, url);
+  };
 
   this.resolveURL = function(state, url) {
     // Just return absolute urls
@@ -94,6 +94,7 @@ DefaultConfiguration.Prototype = function() {
       url
     ].join('');
   };
+
 
   this.viewMapping = {
     // "image": "figures",

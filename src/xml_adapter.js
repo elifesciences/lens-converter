@@ -7,11 +7,19 @@ var XmlAdapter = function() {
 
 XmlAdapter.Prototype = function() {
 
+  this.parserXML = function(string) {
+    throw new Error("This method is abstract");
+  };
+
   this.findAll = function(el, xpath) {
     throw new Error("This method is abstract");
   };
 
   this.find = function(el, xpath) {
+    throw new Error("This method is abstract");
+  };
+
+  this.getElementById = function(el, id) {
     throw new Error("This method is abstract");
   };
 
@@ -29,7 +37,7 @@ XmlAdapter.Prototype = function() {
     throw new Error("This method is abstract");
   };
 
-  this.getTextContent = function(el) {
+  this.getText = function(el) {
     throw new Error("This method is abstract");
   };
 
@@ -75,11 +83,10 @@ XmlAdapter.Prototype = function() {
 XmlAdapter.prototype = new XmlAdapter.Prototype();
 
 XmlAdapter.ChildNodeIterator = function(xmlAdapter, arg) {
-  this.xmlAdapter = xmlAdapter;
   if(_.isArray(arg)) {
     this.nodes = arg;
   } else {
-    this.nodes = xmlAdapter.getChildNodes();
+    this.nodes = xmlAdapter.getChildNodes(arg);
   }
   this.length = this.nodes.length;
   this.pos = -1;
@@ -101,4 +108,4 @@ XmlAdapter.ChildNodeIterator.prototype = {
   }
 };
 
-module.export = XmlAdapter;
+module.exports = XmlAdapter;

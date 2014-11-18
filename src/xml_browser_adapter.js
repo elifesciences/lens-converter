@@ -10,23 +10,48 @@ var XmlBrowserAdapter = function() {
 };
 
 var NSResolver = {
-  lookupNamespaceURI: function(prefix) {
+  lookupNamespaceURI: function() {
     return "void";
   }
 };
 
 XmlBrowserAdapter.Prototype = function() {
 
+  this.parseXML = function(xmlString) {
+    var parser = new DOMParser();
+    var xmlDoc = parser.parseFromString(xmlString,"text/xml");
+    return xmlDoc;
+  };
+
   this.findAll = function(el, xpath) {
     // TODO: the last arg is a ns resolver
-    var elements = window.document.evaluate(xpath, el, NSResolver);
+    var elements = window.document.evaluate(xpath, el, NSResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
     if (!elements) return [];
+    var result = [];
+    var next = elements.iterateNext();
+    while(next) {
+      result.push(next);
+      next = elements.iterateNext();
+    }
+    return result;
   };
 
   this.find = function(el, xpath) {
-    var elements = window.document.evaluate(xpath, el, NSResolver);
-    if (!elements || elements.length === 0) return null;
-    else return elements[0];
+    var xpathResult;
+    // try {
+      xpathResult = window.document.evaluate(xpath, el, NSResolver, XPathResult.FIRST_ORDERED_NODE_TYPE);
+      return xpathResult.singleNodeValue;
+    // } catch (err) {
+    //   debugger;
+    // }
+  };
+
+  this.getElementById = function(el, id) {
+    if (el.getElementById) {
+      return el.getElementById(id);
+    } else {
+      return this.find(el, ".//*[@id='"+id+"']");
+    }
   };
 
   this.getAttribute = function(el, name) {
@@ -50,7 +75,7 @@ XmlBrowserAdapter.Prototype = function() {
     return el.outerHTML;
   };
 
-  this.getTextContent = function(el) {
+  this.getText = function(el) {
     return el.textContent;
   };
 
@@ -79,4 +104,4 @@ XmlBrowserAdapter.Prototype = function() {
 XmlBrowserAdapter.Prototype.prototype = XmlAdapter.prototype;
 XmlBrowserAdapter.prototype = new XmlBrowserAdapter.Prototype();
 
-module.export = XmlBrowserAdapter;
+module.exports = XmlBrowserAdapter;

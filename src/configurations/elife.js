@@ -19,11 +19,12 @@ ElifeConfiguration.Prototype = function() {
     var nodes = [];
     var doc = state.doc;
     var heading, body;
+    var xmlAdapter = state.xmlAdapter;
 
     // Decision letter (if available)
     // -----------
 
-    var articleCommentary = article.querySelector("#SA1");
+    var articleCommentary = xmlAdapter.getElementById(article, "SA1");
     if (articleCommentary) {
       heading = {
         id: state.nextId("heading"),
@@ -43,14 +44,14 @@ ElifeConfiguration.Prototype = function() {
       doc.create(heading);
       nodes.push(heading);
 
-      body = articleCommentary.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
+      body = xmlAdapter.find(articleCommentary, "body");
+      nodes = nodes.concat(converter.bodyNodes(state, xmlAdapter.getChildrenElements(body)));
     }
 
     // Author response
     // -----------
 
-    var authorResponse = article.querySelector("#SA2");
+    var authorResponse = xmlAdapter.getElementById(article, "SA2");
     if (authorResponse) {
 
       heading = {
@@ -62,8 +63,8 @@ ElifeConfiguration.Prototype = function() {
       doc.create(heading);
       nodes.push(heading);
 
-      body = authorResponse.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
+      body = xmlAdapter.find(authorResponse, "body");
+      nodes = nodes.concat(converter.bodyNodes(state, xmlAdapter.getChildrenElements(body)));
     }
 
     // Show them off
@@ -75,19 +76,15 @@ ElifeConfiguration.Prototype = function() {
   };
 
   this.enhanceCover = function(state, node, element) {
-    var category;
-    var dispChannel = element.querySelector("subj-group[subj-group-type=display-channel] subject").textContent;
-    try {
-      category = element.querySelector("subj-group[subj-group-type=heading] subject").textContent;
-    } catch(err) {
-      category = null;
-    }
-
+    var xmlAdapter = state.xmlAdapter;
+    var dispChannelEl = xmlAdapter.find(element, ".//subj-group[subj-group-type=display-channel]//subject");
+    var dispChannel = dispChannelEl ? xmlAdapter.getText(dispChannelEl) : "";
+    var categoryEl = xmlAdapter.find(element, ".//subj-group[subj-group-type=heading]//subject");
+    var category = categoryEl ? xmlAdapter.getText(categoryEl) : null;
     node.breadcrumbs = [
       { name: "eLife", url: "http://elifesciences.org/", image: "http://lens.elifesciences.org/lens-elife/styles/elife.png" },
       { name: dispChannel, url: "http://elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase() },
     ];
-
     if (category) node.breadcrumbs.push( { name: category, url: "http://elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() } );
   };
 
@@ -96,8 +93,9 @@ ElifeConfiguration.Prototype = function() {
   //
 
   this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
+    var xmlAdapter = state.xmlAdapter;
+    var graphic = xmlAdapter.find(element, "graphic");
+    var url = xmlAdapter.getAttribute(graphic, "xlink:href");
     node.url = this.resolveURL(state, url);
   };
 
@@ -105,9 +103,9 @@ ElifeConfiguration.Prototype = function() {
   // ---------
   //
   this.enhanceVideo = function(state, node, element) {
-    var href = element.getAttribute("xlink:href").split(".");
+    var xmlAdapter = state.xmlAdapter;
+    var href = xmlAdapter.getAttribute(element, "xlink:href").split(".");
     var name = href[0];
-
     node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
     node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
     node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
@@ -151,8 +149,9 @@ ElifeConfiguration.Prototype = function() {
   };
 
   this.enhancePublicationInfo = function(state) {
-    var article = state.xmlDoc.querySelector("article");
-    var articleMeta = article.querySelector("article-meta");
+    var xmlAdapter = state.xmlAdapter;
+    var article = xmlAdapter.find(state.xmlDoc, "article");
+    var articleMeta = xmlAdapter.find(article, "front/article-meta");
 
     var publicationInfo = state.doc.get('publication_info');
 
@@ -167,7 +166,7 @@ ElifeConfiguration.Prototype = function() {
     // <kwd>E. coli</kwd>
     // <kwd>Mouse</kwd>
     // </kwd-group>
-    var organisms = articleMeta.querySelectorAll("kwd-group[kwd-group-type=research-organism] kwd");
+    var organisms = xmlAdapter.findAll(articleMeta, "kwd-group[kwd-group-type=research-organism]/kwd");
 
     // Extract keywords
     // ------------
@@ -179,7 +178,7 @@ ElifeConfiguration.Prototype = function() {
     //  <kwd>lipid droplet</kwd>
     //  <kwd>anti-bacterial</kwd>
     // </kwd-group>
-    var keyWords = articleMeta.querySelectorAll("kwd-group[kwd-group-type=author-keywords] kwd");
+    var keyWords = xmlAdapter.findAll(articleMeta, "kwd-group[kwd-group-type=author-keywords]/kwd");
 
     // Extract subjects
     // ------------
@@ -191,7 +190,7 @@ ElifeConfiguration.Prototype = function() {
     // <subject>Microbiology and infectious disease</subject>
     // </subj-group>
 
-    var subjects = articleMeta.querySelectorAll("subj-group[subj-group-type=heading] subject");
+    var subjects = xmlAdapter.findAll(articleMeta, "subj-group[subj-group-type=heading]/subject");
 
     // Article Type
     //
@@ -199,20 +198,20 @@ ElifeConfiguration.Prototype = function() {
     //   <subject>Research article</subject>
     // </subj-group>
 
-    var articleType = articleMeta.querySelector("subj-group[subj-group-type=display-channel] subject");
+    var articleType = xmlAdapter.findAll(articleMeta, "subj-group[subj-group-type=display-channel]/subject");
 
     // Extract PDF link
     // ---------------
     //
     // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
 
-    var pdfURI = article.querySelector("self-uri[content-type=pdf]");
+    var pdfURI = xmlAdapter.find(article, ".//self-uri[content-type=pdf]");
 
     var pdfLink = [
       "http://cdn.elifesciences.org/elife-articles/",
       state.doc.id,
       "/pdf/",
-      pdfURI ? pdfURI.getAttribute("xlink:href") : "#"
+      pdfURI ? xmlAdapter.getAttribute(pdfURI, "xlink:href") : "#"
     ].join('');
 
     // Collect Links
@@ -242,10 +241,10 @@ ElifeConfiguration.Prototype = function() {
       type: "json"
     });
 
-    publicationInfo.research_organisms = _.pluck(organisms, "textContent");
-    publicationInfo.keywords = _.pluck(keyWords, "textContent");
-    publicationInfo.subjects = _.pluck(subjects, "textContent");
-    publicationInfo.article_type = articleType ? articleType.textContent : "";
+    publicationInfo.research_organisms = _.map(organisms, function(el) { return xmlAdapter.getText(el); });
+    publicationInfo.keywords = _.map(keyWords, function(el) { return xmlAdapter.getText(el); });
+    publicationInfo.subjects = _.map(subjects, function(el) { return xmlAdapter.getText(el); });
+    publicationInfo.article_type = articleType ? xmlAdapter.getText(articleType) : "";
     publicationInfo.links = links;
 
     if (publicationInfo.related_article) publicationInfo.related_article = "http://dx.doi.org/" + publicationInfo.related_article;
@@ -266,7 +265,8 @@ ElifeConfiguration.Prototype = function() {
   };
 
   this.enhanceVideo = function(state, node, element) {
-    var href = element.getAttribute("xlink:href").split(".");
+    var xmlAdapter = state.xmlAdapter;
+    var href = xmlAdapter.getAttribute(element, "xlink:href").split(".");
     var name = href[0];
     node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
     node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
@@ -299,10 +299,11 @@ ElifeConfiguration.Prototype = function() {
 
   var AUTHOR_CALLOUT = /author-callout-style/;
   this.enhanceAnnotationData = function(state, anno, element, type) {
+    var xmlAdapter = state.xmlAdapter;
     // HACK: elife specific hack: there are 'styling' annotations to annotate
     // text in a certain color associated to one author.
     if (type === "named-content") {
-      var contentType = element.getAttribute("content-type");
+      var contentType = xmlAdapter.getAttribute(element, "content-type");
       if (AUTHOR_CALLOUT.test(contentType)) {
         anno.type = "author_callout";
         anno.style = contentType;

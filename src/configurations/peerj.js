@@ -6,20 +6,13 @@ var PeerJConfiguration = function() {
 
 PeerJConfiguration.Prototype = function() {
 
-  // Resolve figure urls
-  // --------
-  // 
-
-  this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-
-    node.url = url;
+  this.resolveFigureURL = function(state, url) {
+    return url;
   };
 
   // Assign video url
   // --------
-  // 
+  //
 
   this.enhanceVideo = function(state, node, element) {
     node.url = "http://mickey.com/mouse.mp4";
