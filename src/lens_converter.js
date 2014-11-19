@@ -2234,7 +2234,11 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
 
   // an id generator for different types
   var ids = {};
+  if (this.options.shortIds) ids = 0;
   this.nextId = function(type) {
+    if (this.options.shortIds) {
+      return ""+ids++;
+    }
     ids[type] = ids[type] || 0;
     ids[type]++;
     return type +"_"+ids[type];
