@@ -691,7 +691,7 @@ NlmToLensConverter.Prototype = function() {
 
   this._getEqualContribs = function (state, contrib, contribId) {
     var result = [];
-    var refs = this.xmlAdapter.findAll(state.xmlDoc, "//xref[@rid='"+contribId+"'']");
+    var refs = this.xmlAdapter.findAll(state.xmlDoc, "//xref[@rid='"+contribId+"']");
     // Find xrefs within contrib elements
     _.each(refs, function(ref) {
       var c = this.xmlAdapter.getParent(ref);
