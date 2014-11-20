@@ -256,7 +256,7 @@ NlmToLensConverter.Prototype = function() {
     // Initialize the Article Info object
     var articleInfo = {
       "id": "articleinfo",
-      "type": "paragraph",
+      "type": "composite",
     };
     var doc = state.doc;
 
@@ -459,17 +459,17 @@ NlmToLensConverter.Prototype = function() {
       // TODO: this is quite messy. We should introduce a dedicated note for article info
       // and do that rendering related things there, e.g., '. ' separator
 
-      var par;
+      var pars;
       var copyright = this.xmlAdapter.find(license, "copyright-statement");
       if (copyright) {
-        par = this.paragraphGroup(state, copyright);
-        if (par && par.length) {
-          nodes = nodes.concat( _.map(par, function(p) { return p.id; } ) );
+        pars = this.paragraphGroup(state, copyright);
+        if (pars && pars.length) {
+          nodes = nodes.concat( _.map(pars, function(p) { return p.id; } ) );
           // append '.' only if there is none yet
           if (this.xmlAdapter.getText(copyright).trim().slice(-1) !== '.') {
             // TODO: this needs to be more robust... what if there are no children
-            var textid = _.last(_.last(par).children);
-            doc.nodes[textid].content += ". ";
+            var par = _.last(pars);
+            par.content += ". ";
           }
         }
       }
@@ -1237,6 +1237,8 @@ NlmToLensConverter.Prototype = function() {
     return boxNode;
   };
 
+  // TODO: rewrite that. It is actually worthless, as it is completely lacking of comments, why and when this is used
+  // What 'indivdata' should model is completely unclear. Looking at the implementation of 'indivdata' makes this a pile of b***t.
   this.datasets = function(state, datasets) {
     var nodes = [];
 
@@ -1249,20 +1251,21 @@ NlmToLensConverter.Prototype = function() {
           nodes = nodes.concat(this.indivdata(state,obj));
         }
         else {
-          var par = this.paragraphGroup(state, data);
-          if (par.length > 0) nodes.push(par[0].id);
+          var pars = this.paragraphGroup(state, data);
+          if (pars.length > 0) nodes.push(pars[0].id);
         }
       }
     }
     return nodes;
   };
 
+  // TODO: this is really not ok. So many hackz - no comments.
   this.indivdata = function(state,indivdata) {
     var doc = state.doc;
 
     var p1 = {
-      "type" : "paragraph",
-      "id" : state.nextId("paragraph"),
+      "type" : "composite",
+      "id" : state.nextId("indivdata"),
       "children" : []
     };
     var text1 = {
@@ -1282,7 +1285,7 @@ NlmToLensConverter.Prototype = function() {
           var name = children[j];
           if (j === 0) {
             par = this.paragraphGroup(state,name);
-            p1.children.push(par[0].children[0]);
+            p1.children.push(par[0].id);
           }
           else {
             var text2 = {
@@ -1293,15 +1296,15 @@ NlmToLensConverter.Prototype = function() {
             doc.create(text2);
             p1.children.push(text2.id);
             par = this.paragraphGroup(state,name);
-            p1.children.push(par[0].children[0]);
+            p1.children.push(par[0].id);
           }
         }
       }
       else {
         par = this.paragraphGroup(state,info);
         // Smarter null reference check?
-        if (par && par[0] && par[0].children) {
-          p1.children.push(par[0].children[0]);
+        if (par && par[0]) {
+          p1.children.push(par[0].id);
         }
       }
     }
@@ -1368,8 +1371,8 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.inlineParagraphElements = {
-    "inline-graphic": true,
-    "inline-formula": true
+    // "inline-graphic": true,
+    // "inline-formula": true
   };
 
   // Segments children elements of a NLM <p> element
@@ -1377,6 +1380,8 @@ NlmToLensConverter.Prototype = function() {
   // - "text", "inline-graphic", "inline-formula", and annotations
   // - ignore comments, supplementary-materials
   // - others are treated as singles
+  // FIXME: it would be nicer if we could preprocess the XML and go ahead with real elements instead
+  // of such array of primitive nodes
   this.segmentParagraphElements = function(paragraph) {
     var blocks = [];
     var lastType = "";
@@ -1408,7 +1413,6 @@ NlmToLensConverter.Prototype = function() {
     return blocks;
   };
 
-
   // A 'paragraph' is given a '<p>' tag
   // An NLM <p> can contain nested elements that are represented flattened in a Substance.Article
   // Hence, this function returns an array of nodes
@@ -1424,6 +1428,7 @@ NlmToLensConverter.Prototype = function() {
       var block = blocks[i];
       var node;
       if (block.handler === "paragraph") {
+        // FIXME: need to provide a p element or use paragraphGroup
         node = this.paragraph(state, block.nodes);
         if (node) node.source_id = this.xmlAdapter.getAttribute(paragraph, "id");
       } else {
@@ -1435,88 +1440,29 @@ NlmToLensConverter.Prototype = function() {
     return nodes;
   };
 
-  this.paragraph = function(state, children) {
+  this.paragraph = function(state, paragraphEl) {
     var doc = state.doc;
-
     // Reset whitespace handling at the beginning of a paragraph.
     // I.e., whitespaces at the beginning will be removed rigorously.
     state.skipWS = true;
-
     var node = {
       id: state.nextId("paragraph"),
       type: "paragraph",
-      children: null
+      content: ""
     };
-    var nodes = [];
-
-    var iterator = this.xmlAdapter.getChildNodeIterator(children);
-    while (iterator.hasNext()) {
-      var child = iterator.next();
-      var type = this.xmlAdapter.getType(child);
-
-      // annotated text node
-      if (type === "text" || this.isAnnotation(type)) {
-        var textNode = {
-          id: state.nextId("text"),
-          type: "text",
-          content: null
-        };
-        // pushing information to the stack so that annotations can be created appropriately
-        state.stack.push({
-          path: [textNode.id, "content"]
-        });
-        // Note: this will consume as many textish elements (text and annotations)
-        // but will return when hitting the first un-textish element.
-        // In that case, the iterator will still have more elements
-        // and the loop is continued
-        // Before descending, we reset the iterator to provide the current element again.
-        var annotatedText = this._annotatedText(state, iterator.back(), { offset: 0, breakOnUnknown: true });
-
-        // Ignore empty paragraphs
-        if (annotatedText.length > 0) {
-          textNode.content = annotatedText;
-          doc.create(textNode);
-          nodes.push(textNode);
-        }
-
-        // popping the stack
-        state.stack.pop();
-      }
-
-      // inline image node
-      else if (type === "inline-graphic") {
-        var url = this.xmlAdapter.getAttribute(child, "xlink:href");
-        var img = {
-          id: state.nextId("image"),
-          type: "image",
-          url: state.config.resolveURL(state, url)
-        };
-        doc.create(img);
-        nodes.push(img);
-      }
-      else if (type === "inline-formula") {
-        var formula = this.formula(state, child, "inline");
-        if (formula) {
-          nodes.push(formula);
-        }
-      }
+    // FIXME: it would be nicer if we could preprocess the XML and go ahead with real elements instead
+    // of such array of primitive nodes
+    if (_.isArray(paragraphEl)) {
+      var nodes = paragraphEl;
+      state.stack.push({
+        path: [node.id, 'content']
+      });
+      var childIterator = this.xmlAdapter.getChildNodeIterator(nodes);
+      node.content = this._annotatedText(state, childIterator, { offset: 0 });
+      state.stack.pop();
+    } else {
+      node.content = this.annotatedText(state, paragraphEl, [node.id, 'label']);
     }
-
-    // return if there is no content
-    if (nodes.length === 0) return null;
-
-    // FIXME: ATM we can not unwrap single nodes, as there is code relying
-    // on getting a paragraph with children
-    // // if there is only a single node, do not create a paragraph around it
-    // if (nodes.length === 1) {
-    //   return nodes[0];
-    // } else {
-    //   node.children = _.map(nodes, function(n) { return n.id; } );
-    //   doc.create(node);
-    //   return node;
-    // }
-
-    node.children = _.map(nodes, function(n) { return n.id; } );
     doc.create(node);
     return node;
   };
@@ -1675,21 +1621,14 @@ NlmToLensConverter.Prototype = function() {
       "children": []
     };
 
-    // Titles can be annotated, thus delegate to paragraph
     var title = this.xmlAdapter.find(caption, "title");
     if (title) {
-      // Resolve title by delegating to the paragraph
-      var node = this.paragraph(state, title);
-      if (node) {
-        captionNode.title = node.id;
-      }
+      captionNode.title = this.annotatedText(state, title, [captionNode.id, 'title']);
     }
 
     var children = [];
     var paragraphs = this.xmlAdapter.findAll(caption, "p");
     _.each(paragraphs, function(p) {
-      // Only consider direct children
-      if (p.parentNode !== caption) return;
       var node = this.paragraph(state, p);
       if (node) children.push(node.id);
     }, this);
