@@ -17,7 +17,7 @@ var NSResolver = {
 
 XmlBrowserAdapter.Prototype = function() {
 
-  this.parseXML = function(xmlString) {
+  this.parseString = function(xmlString) {
     var parser = new DOMParser();
     var xmlDoc = parser.parseFromString(xmlString,"text/xml");
     return xmlDoc;
@@ -73,6 +73,10 @@ XmlBrowserAdapter.Prototype = function() {
 
   this.toString = function(el) {
     return el.outerHTML;
+  };
+
+  this.getInnerHtml = function(el) {
+    return el.innerHTML;
   };
 
   this.getText = function(el) {

@@ -7,7 +7,7 @@ var XmlAdapter = function() {
 
 XmlAdapter.Prototype = function() {
 
-  this.parserXML = function(string) {
+  this.parseString = function(string) {
     throw new Error("This method is abstract");
   };
 
@@ -34,6 +34,10 @@ XmlAdapter.Prototype = function() {
   };
 
   this.toString = function(el) {
+    throw new Error("This method is abstract");
+  };
+
+  this.getInnerHtml = function(el) {
     throw new Error("This method is abstract");
   };
 

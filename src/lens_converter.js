@@ -100,7 +100,7 @@ NlmToLensConverter.Prototype = function() {
     // Note: when we are using jqueries get("<file>.xml") we
     // magically get a parsed XML document already
     if (_.isString(input)) {
-      xmlDoc = this.xmlAdapter.parseXML(input);
+      xmlDoc = this.xmlAdapter.parseString(input);
     } else {
       xmlDoc = input;
     }
