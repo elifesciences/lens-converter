@@ -292,9 +292,10 @@ NlmToLensConverter.Prototype = function() {
     var doc = state.doc;
     var nodes = [];
     // Get the author's impact statement
+    // FIXME: this is stupid.
+    // Why should that work in general? NB this picks all meta-value elements in the whole article, wherever it might be
     var meta = article.querySelectorAll("meta-value");
     var impact = meta[1];
-
     if (impact) {
       var h1 = {
         "type": "heading",
