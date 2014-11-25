@@ -5,6 +5,7 @@ var util = require("substance-util");
 var errors = util.errors;
 var ImporterError = errors.define("ImporterError");
 
+
 // Available configurations
 // --------
 
@@ -43,6 +44,37 @@ NlmToLensConverter.Prototype = function() {
     "supplementary-material": "figure_reference",
     "other": "figure_reference",
     "list": "definition_reference",
+  };
+
+  // mapping of contrib type to human readable names
+  // Can be overriden in specialized converter
+  this._contribTypeMapping = {
+    "author": "Author",
+    "author non-byline": "Author",
+    "autahor": "Author",
+    "auther": "Author",
+    "editor": "Editor",
+    "guest-editor": "Guest Editor",
+    "group-author": "Group Author",
+    "collab": "Collaborator",
+    "reviewed-by": "Reviewer",
+    "nominated-by": "Nominator",
+    "corresp": "Corresponding Author",
+    "other": "Other",
+    "assoc-editor": "Associate Editor",
+    "associate editor": "Associate Editor",
+    "series-editor": "Series Editor",
+    "contributor": "Contributor",
+    "chairman": "Chairman",
+    "monographs-editor": "Monographs Editor",
+    "contrib-author": "Contributing Author",
+    "organizer": "Organizer",
+    "chair": "Chair",
+    "discussant": "Discussant",
+    "presenter": "Presenter",
+    "guest-issue-editor": "Guest Issue Editor",
+    "participant": "Participant",
+    "translator": "Translator"
   };
 
   this.isAnnotation = function(type) {
@@ -633,8 +665,6 @@ NlmToLensConverter.Prototype = function() {
   this.contributor = function(state, contrib) {
     var doc = state.doc;
 
-
-
     var id = state.nextId("contributor");
     var contribNode = {
       id: id,
@@ -653,9 +683,14 @@ NlmToLensConverter.Prototype = function() {
       members: []
     };
 
+    // Extract contrib type
+    var contribType = contrib.getAttribute("contrib-type");
+
+    // Assign human readable version
+    contribNode["contributor_type"] = this._contribTypeMapping[contribType];
+
     // Extract role
     var role = contrib.querySelector("role");
-
     if (role) {
       contribNode["role"] = role.textContent;
     }
