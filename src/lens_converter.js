@@ -31,7 +31,8 @@ NlmToLensConverter.Prototype = function() {
     "xref": "",
     "email": "link",
     "named-content": "",
-    "inline-formula": "inline-formula"
+    "inline-formula": "inline-formula",
+    "uri": "link"
   };
 
   // mapping from xref.refType to node type
@@ -2070,12 +2071,12 @@ NlmToLensConverter.Prototype = function() {
     anno.type = this._annotationTypes[type] || "annotation";
     if (type === 'xref') {
       this.addAnnotationDataForXref(state, anno, el);
-    } else if (type === "ext-link") {
+    } else if (type === "ext-link" || type === "uri") {
       anno.url = el.getAttribute("xlink:href");
       // Add 'http://' to URIs without a protocol, such as 'www.google.com'
       // Except: Url starts with a slash, then we consider them relative
       var extLinkType = el.getAttribute('ext-link-type') || '';
-      if (extLinkType.toLowerCase() === 'uri' && !/^\w+:\/\//.exec(anno.url) && !/^\//.exec(anno.url)) {
+      if ((type === "uri" || extLinkType.toLowerCase() === 'uri') && !/^\w+:\/\//.exec(anno.url) && !/^\//.exec(anno.url)) {
         anno.url = 'http://' + anno.url;
       } else if (extLinkType.toLowerCase() === 'doi') {
         anno.url = ["http://dx.doi.org/", anno.url].join("");
