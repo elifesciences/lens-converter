@@ -302,49 +302,24 @@ NlmToLensConverter.Prototype = function() {
     var doc = state.doc;
 
     var nodes = [];
-    // Impact statement
-    nodes = nodes.concat(this.extractAuthorImpactStatement(state, article));
+
     // Reviewing editor
     nodes = nodes.concat(this.extractEditor(state, article));
     // Datasets
     nodes = nodes.concat(this.extractDatasets(state, article));
+    // Includes meta information (such as impact statement for eLife)
+    nodes = nodes.concat(this.extractCustomMetaGroup(state, article));
     // Acknowledgments
     nodes = nodes.concat(this.extractAcknowledgements(state, article));
     // License and Copyright
     nodes = nodes.concat(this.extractCopyrightAndLicense(state, article));
     // Notes (Footnotes + Author notes)
     nodes = nodes.concat(this.extractNotes(state, article));
-    //
-    nodes = nodes.concat(this.extractCustomMetaGroup(state, article));
 
     articleInfo.children = nodes;
     doc.create(articleInfo);
 
     return articleInfo;
-  };
-
-  this.extractAuthorImpactStatement = function(state, article) {
-    var doc = state.doc;
-    var nodes = [];
-    // Get the author's impact statement
-    // FIXME: this is stupid.
-    // Why should that work in general? NB this picks all meta-value elements in the whole article, wherever it might be
-    var meta = article.querySelectorAll("meta-value");
-    var impact = meta[1];
-    if (impact) {
-      var h1 = {
-        "type": "heading",
-        "id": state.nextId("heading"),
-        "level": 3,
-        "content": "Impact",
-      };
-      doc.create(h1);
-      nodes.push(h1.id);
-
-      var par = this.paragraphGroup(state, impact);
-      nodes.push(par[0].id);
-    }
-    return nodes;
   };
 
   // Get reviewing editor
