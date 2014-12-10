@@ -1384,7 +1384,7 @@ NlmToLensConverter.Prototype = function() {
 
     // Recursive Descent: get all section body nodes
     nodes = nodes.concat(this.bodyNodes(state, children, {
-      ignore: ["title"]
+      ignore: ["title", "label"]
     }));
 
     if (nodes.length > 0 && title) {
