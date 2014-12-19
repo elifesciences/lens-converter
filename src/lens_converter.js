@@ -260,7 +260,7 @@ NlmToLensConverter.Prototype = function() {
       "published_on": this.extractDate(pubDate),
       "journal": journalTitle ? journalTitle.textContent : "",
       "related_article": relatedArticle ? relatedArticle.getAttribute("xlink:href") : "",
-      "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
+      "doi": articleDOI ? articleDOI.textContent : "",
       "article_info": articleInfo.id,
       // TODO: 'article_type' should not be optional; we need to find a good default implementation
       "article_type": "",
