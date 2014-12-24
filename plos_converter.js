@@ -22,12 +22,7 @@ PLOSConverter.Prototype = function() {
 
   this.test = function(xmlDoc, documentUrl) {
     var publisherName = xmlDoc.querySelector("publisher-name").textContent;
-
-    console.log('testing', publisherName);
-    if (publisherName === "Public Library of Science") {
-      return true;
-    }
-
+    return publisherName === "Public Library of Science";
   };
 
   // Resolve figure urls
@@ -43,16 +38,7 @@ PLOSConverter.Prototype = function() {
       url,
       "&representation=PNG_L"
     ].join('');
-
     node.url = url;
-  };
-
-  // Assign video url
-  // --------
-  // 
-
-  this.enhanceVideo = function(state, node, element) {
-    node.url = "http://mickey.com/mouse.mp4";
   };
 
 };

@@ -15,9 +15,7 @@ ElifeConverter.Prototype = function() {
 
   this.test = function(xmlDoc, documentUrl) {
 		var publisherName = xmlDoc.querySelector("publisher-name").textContent;
-    if (publisherName === "eLife Sciences Publications, Ltd") {
-      return true;
-    }
+    return publisherName === "eLife Sciences Publications, Ltd";
   };
 
   // Add Decision letter and author response
