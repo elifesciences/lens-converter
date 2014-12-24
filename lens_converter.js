@@ -5,7 +5,6 @@ var util = require("substance-util");
 var errors = util.errors;
 var ImporterError = errors.define("ImporterError");
 
-
 var NlmToLensConverter = function(options) {
   this.options = options || NlmToLensConverter.DefaultOptions;
 };
@@ -68,7 +67,7 @@ NlmToLensConverter.Prototype = function() {
     "participant": "Participant",
     "translator": "Translator"
   };
-  
+
   this.test = function(xmlDoc, documentUrl) {
       return true;
   }
@@ -941,9 +940,7 @@ NlmToLensConverter.Prototype = function() {
       this.body(state, body);
     }
 
-    // Give the config the chance to add stuff
     this.enhanceArticle(state, article);
-
   };
 
   this.extractDefinitions = function(state /*, article*/) {
@@ -1602,7 +1599,6 @@ NlmToLensConverter.Prototype = function() {
   this.figure = function(state, figure) {
     var doc = state.doc;
 
-
     // Top level figure node
     var figureNode = {
       "type": "figure",
@@ -1740,7 +1736,6 @@ NlmToLensConverter.Prototype = function() {
     return captionNode;
   };
 
-
   // Example video element
   //
   // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
@@ -1758,7 +1753,6 @@ NlmToLensConverter.Prototype = function() {
 
   this.video = function(state, video) {
     var doc = state.doc;
-
     var label = video.querySelector("label").textContent;
 
     var id = state.nextId("video");
@@ -2013,8 +2007,6 @@ NlmToLensConverter.Prototype = function() {
           }
         }
       }
-
-
 
       var volume = citation.querySelector("volume");
       if (volume) citationNode.volume = volume.textContent;
@@ -2444,7 +2436,6 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
     top.ignore = top.ignore || [];
     return top;
   };
-
 };
 
 NlmToLensConverter.prototype = new NlmToLensConverter.Prototype();
