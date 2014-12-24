@@ -1,5 +1,11 @@
 "use strict";
 
-var LensConverter = require("./src/lens_converter");
+// Generic Lens converter
+// --------------
+
+var LensConverter = require("./lens_converter");
+
+// Journal-specific implementations
+// --------------
 
 module.exports = LensConverter;

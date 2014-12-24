@@ -6,15 +6,6 @@ var errors = util.errors;
 var ImporterError = errors.define("ImporterError");
 
 
-// Available configurations
-// --------
-
-var ElifeConfiguration = require("./configurations/elife");
-var LandesConfiguration = require("./configurations/landes");
-var DefaultConfiguration = require("./configurations/default");
-var PLOSConfiguration = require("./configurations/plos");
-var PeerJConfiguration = require("./configurations/peerj");
-
 var NlmToLensConverter = function(options) {
   this.options = options || NlmToLensConverter.DefaultOptions;
 };
@@ -77,6 +68,10 @@ NlmToLensConverter.Prototype = function() {
     "participant": "Participant",
     "translator": "Translator"
   };
+  
+  this.test = function(xmlDoc, documentUrl) {
+      return true;
+  }
 
   this.isAnnotation = function(type) {
     return this._annotationTypes[type] !== undefined;
@@ -88,6 +83,10 @@ NlmToLensConverter.Prototype = function() {
       if (el.nodeType !== Node.TEXT_NODE && !this.isAnnotation(el.tagName.toLowerCase())) return false;
     }
     return true;
+  };
+
+  this.test = function(xml, documentUrl) {
+    return;
   };
 
   // Helpers
@@ -161,10 +160,6 @@ NlmToLensConverter.Prototype = function() {
     // A deliverable state which makes this importer stateless
     var state = this.createState(xmlDoc, doc);
 
-    // The configuration can be provided as option or created dynamically based on the XML content
-    // by overriding this.getConfig(xmlDoc);
-    state.config = this.options.config || this.getConfiguration(xmlDoc);
-
     // Note: all other methods are called corresponding
     return this.document(state, xmlDoc);
   };
@@ -175,26 +170,6 @@ NlmToLensConverter.Prototype = function() {
   // hacks in the main converter code
 
   this.sanitizeXML = function(/*xmlDoc*/) {
-  };
-
-  // TODO: to avoid needing to adapt the core converter code each time when adding a custom configuration
-  // it would be cleaner to do this on application level.
-  // To solve this generically, we would need a certain place/service to register configurations.
-  this.getConfiguration = function(xmlDoc) {
-    var config;
-    var publisherName = xmlDoc.querySelector("publisher-name").textContent;
-    if (publisherName === "Landes Bioscience") {
-      config = new LandesConfiguration();
-    } else if (publisherName === "eLife Sciences Publications, Ltd") {
-      config = new ElifeConfiguration();
-    } else if (publisherName === "Public Library of Science") {
-      config = new PLOSConfiguration();
-    } else if (publisherName === 'PeerJ Inc.') {
-      config = new PeerJConfiguration();
-    } else {
-      config = new DefaultConfiguration();
-    }
-    return config;
   };
 
   this.createState = function(xmlDoc, doc) {
@@ -210,8 +185,8 @@ NlmToLensConverter.Prototype = function() {
 
   this.show = function(state, nodes) {
     _.each(nodes, function(n) {
-      state.config.showNode(state, n);
-    });
+      this.showNode(state, n);
+    }, this);
   };
 
   this.extractDate = function(dateEl) {
@@ -221,7 +196,8 @@ NlmToLensConverter.Prototype = function() {
     var month = dateEl.querySelector("month");
     var day = dateEl.querySelector("day");
 
-    var res = [year.textContent, month.textContent];
+    var res = [year.textContent];
+    if (month) res.push(month.textContent);
     if (day) res.push(day.textContent);
 
     return res.join("-");
@@ -291,7 +267,7 @@ NlmToLensConverter.Prototype = function() {
     doc.create(pubInfoNode);
     doc.show("info", pubInfoNode.id, 0);
 
-    state.config.enhancePublicationInfo(state, pubInfoNode);
+    this.enhancePublicationInfo(state, pubInfoNode);
   };
 
   this.extractArticleInfo = function(state, article) {
@@ -593,7 +569,7 @@ NlmToLensConverter.Prototype = function() {
     //   </subj-group>
     // </article-categories>
 
-    state.config.enhanceCover(state, cover, article);
+    this.enhanceCover(state, cover, article);
 
     doc.create(cover);
     doc.show("content", cover.id, 0);
@@ -966,7 +942,7 @@ NlmToLensConverter.Prototype = function() {
     }
 
     // Give the config the chance to add stuff
-    state.config.enhanceArticle(this, state, article);
+    this.enhanceArticle(state, article);
 
   };
 
@@ -1552,7 +1528,7 @@ NlmToLensConverter.Prototype = function() {
         var img = {
           id: state.nextId("image"),
           type: "image",
-          url: state.config.resolveURL(state, url)
+          url: this.resolveURL(state, url)
         };
         doc.create(img);
         nodes.push(img);
@@ -1655,7 +1631,7 @@ NlmToLensConverter.Prototype = function() {
     }
 
     // Lets the configuration patch the figure node properties
-    state.config.enhanceFigure(state, figureNode, figure);
+    this.enhanceFigure(state, figureNode, figure);
     doc.create(figureNode);
 
     return figureNode;
@@ -1719,7 +1695,7 @@ NlmToLensConverter.Prototype = function() {
     }
 
     // Let config enhance the node
-    state.config.enhanceSupplement(state, supplementNode, supplement);
+    this.enhanceSupplement(state, supplementNode, supplement);
     doc.create(supplementNode);
 
     return supplementNode;
@@ -1803,7 +1779,7 @@ NlmToLensConverter.Prototype = function() {
       if (captionNode) videoNode.caption = captionNode.id;
     }
 
-    state.config.enhanceVideo(state, videoNode, video);
+    this.enhanceVideo(state, videoNode, video);
     doc.create(videoNode);
 
     return videoNode;
@@ -1833,7 +1809,7 @@ NlmToLensConverter.Prototype = function() {
     }
     this.extractTableCaption(state, tableNode, tableWrap);
 
-    state.config.enhanceTable(state, tableNode, tableWrap);
+    this.enhanceTable(state, tableNode, tableWrap);
     doc.create(tableNode);
     return tableNode;
   };
@@ -2103,7 +2079,7 @@ NlmToLensConverter.Prototype = function() {
       range: [start, end],
     };
     this.addAnnotationData(state, anno, el, type);
-    state.config.enhanceAnnotationData(state, anno, el, type);
+    this.enhanceAnnotationData(state, anno, el, type);
 
     // assign an id after the type has been extracted to be able to create typed ids
     anno.id = state.nextId(anno.type);
@@ -2275,6 +2251,104 @@ NlmToLensConverter.Prototype = function() {
   };
 
 
+  // Configureable methods
+  // -----------------
+  // 
+
+  this.getBaseURL = function(state) {
+    // Use xml:base attribute if present
+    var baseURL = state.xmlDoc.querySelector("article").getAttribute("xml:base");
+    return baseURL || state.options.baseURL;
+  };
+
+  this.enhanceArticle = function(state, article) {
+    // Noop - override in custom converter
+  };
+
+  this.enhanceCover = function(state, node, element) {
+    // Noop - override in custom converter
+  };
+
+  // Implements resolving of relative urls
+  this.enhanceFigure = function(state, node, element) {
+    var graphic = element.querySelector("graphic");
+    var url = graphic.getAttribute("xlink:href");
+    node.url = this.resolveURL(state, url);
+  };
+
+  this.enhancePublicationInfo = function(converter, state, article) {
+    // Noop - override in custom converter
+  };
+
+  this.enhanceSupplement = function(state, node, element) {
+    // Noop - override in custom converter
+  };
+
+  this.enhanceTable = function(state, node, element) {
+    // Noop - override in custom converter
+  };
+
+  // Default video resolver
+  // --------
+  //
+
+  this.enhanceVideo = function(state, node, element) {
+    var el = element.querySelector("media") || element;
+    // xlink:href example: elife00778v001.mov
+
+    var url = element.getAttribute("xlink:href");
+    var name;
+    // Just return absolute urls
+    if (url.match(/http:/)) {
+      var lastdotIdx = url.lastIndexOf(".");
+      name = url.substring(0, lastdotIdx);
+      node.url = name+".mp4";
+      node.url_ogv = name+".ogv";
+      node.url_webm = name+".webm";
+      node.poster = name+".png";
+      return;
+    } else {
+      var baseURL = this.getBaseURL(state);
+      name = url.split(".")[0];
+      node.url = baseURL+name+".mp4";
+      node.url_ogv = baseURL+name+".ogv";
+      node.url_webm = baseURL+name+".webm";
+      node.poster = baseURL+name+".png";
+    }
+  };
+
+  // Default figure url resolver
+  // --------
+  //
+  // For relative urls it uses the same basebath as the source XML
+
+  this.resolveURL = function(state, url) {
+    // Just return absolute urls
+    if (url.match(/http:/)) return url;
+    return [
+      state.options.baseURL,
+      url
+    ].join('');
+  };
+
+  this.viewMapping = {
+    // "image": "figures",
+    "box": "content",
+    "supplement": "figures",
+    "figure": "figures",
+    "html_table": "figures",
+    "video": "figures"
+  };
+
+  this.enhanceAnnotationData = function(state, anno, element, type) {
+    
+  };
+
+  this.showNode = function(state, node) {
+    var view = this.viewMapping[node.type] || "content";
+    state.doc.show(view, node.id);
+  };
+
 };
 
 NlmToLensConverter.State = function(converter, xmlDoc, doc) {
@@ -2289,7 +2363,7 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
   // keep track of the options
   this.options = converter.options;
 
-  this.config = new DefaultConfiguration();
+  // this.config = new DefaultConfiguration();
 
   // store annotations to be created here
   // they will be added to the document when everything else is in place
@@ -2370,12 +2444,13 @@ NlmToLensConverter.State = function(converter, xmlDoc, doc) {
     top.ignore = top.ignore || [];
     return top;
   };
+
 };
 
 NlmToLensConverter.prototype = new NlmToLensConverter.Prototype();
 NlmToLensConverter.prototype.constructor = NlmToLensConverter;
 
-NlmToLensConverter.DefaultConfiguration = DefaultConfiguration;
+// NlmToLensConverter.DefaultConfiguration = DefaultConfiguration;
 
 NlmToLensConverter.DefaultOptions = {
   TRIM_WHITESPACES: true,

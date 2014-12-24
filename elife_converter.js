@@ -2,20 +2,28 @@
 
 var util = require("substance-util");
 var _ = require("underscore");
-var DefaultConfiguration = require('./default');
 
-var ElifeConfiguration = function() {
+var LensConverter = require('lens-converter');
 
+var ElifeConverter = function(options) {
+  LensConverter.call(this, options);
 };
 
-ElifeConfiguration.Prototype = function() {
+ElifeConverter.Prototype = function() {
 
-  var __super__ = DefaultConfiguration.prototype;
+  var __super__ = LensConverter.prototype;
+
+  this.test = function(xmlDoc, documentUrl) {
+		var publisherName = xmlDoc.querySelector("publisher-name").textContent;
+    if (publisherName === "eLife Sciences Publications, Ltd") {
+      return true;
+    }
+  };
 
   // Add Decision letter and author response
   // ---------
 
-  this.enhanceArticle = function(converter, state, article) {
+  this.enhanceArticle = function(state, article) {
     var nodes = [];
     var doc = state.doc;
     var heading, body;
@@ -44,7 +52,7 @@ ElifeConfiguration.Prototype = function() {
       nodes.push(heading);
 
       body = articleCommentary.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
+      nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(body)));
     }
 
     // Author response
@@ -63,14 +71,14 @@ ElifeConfiguration.Prototype = function() {
       nodes.push(heading);
 
       body = authorResponse.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
+      nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(body)));
     }
 
     // Show them off
     // ----------
 
     if (nodes.length > 0) {
-      converter.show(state, nodes);
+      this.show(state, nodes);
     }
   };
 
@@ -274,7 +282,6 @@ ElifeConfiguration.Prototype = function() {
     node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
   };
 
-
   // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
   this.resolveURL = function(state, url) {
     // Use absolute URL
@@ -323,10 +330,11 @@ ElifeConfiguration.Prototype = function() {
       __super__.showNode.apply(this, arguments);
     }
   };
+
 };
 
-ElifeConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
-ElifeConfiguration.prototype = new ElifeConfiguration.Prototype();
-ElifeConfiguration.prototype.constructor = ElifeConfiguration;
+ElifeConverter.Prototype.prototype = LensConverter.prototype;
+ElifeConverter.prototype = new ElifeConverter.Prototype();
+ElifeConverter.prototype.constructor = ElifeConverter;
 
-module.exports = ElifeConfiguration;
+module.exports = ElifeConverter;
