@@ -431,6 +431,9 @@ NlmToLensConverter.Prototype = function() {
     return nodes;
   };
 
+  // Can be overridden by custom converter to ignore <meta-name> values.
+  this.__ignoreCustomMetaNames = [];
+
   this.extractCustomMetaGroup = function(state, article) {
     var nodeIds = [];
     var doc = state.doc;
@@ -446,18 +449,21 @@ NlmToLensConverter.Prototype = function() {
       var metaNameEl = customMetaEl.querySelector('meta-name');
       var metaValueEl = customMetaEl.querySelector('meta-value');
 
-      var header = {
-        "type" : "heading",
-        "id" : state.nextId("heading"),
-        "level" : 3,
-        "content" : ""
-      };
-      header.content = this.annotatedText(state, metaNameEl, [header.id, 'content']);
-      doc.create(header);
-      var bodyNodes = this.paragraphGroup(state, metaValueEl);
 
-      nodeIds.push(header.id);
-      nodeIds = nodeIds.concat(_.pluck(bodyNodes, 'id'));
+      if (!_.include(this.__ignoreCustomMetaNames, metaNameEl.textContent)) {
+        var header = {
+          "type" : "heading",
+          "id" : state.nextId("heading"),
+          "level" : 3,
+          "content" : ""
+        };
+        header.content = this.annotatedText(state, metaNameEl, [header.id, 'content']);
+        doc.create(header);
+        var bodyNodes = this.paragraphGroup(state, metaValueEl);
+
+        nodeIds.push(header.id);
+        nodeIds = nodeIds.concat(_.pluck(bodyNodes, 'id'));
+      }
     }
     return nodeIds;
   };

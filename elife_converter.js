@@ -18,6 +18,14 @@ ElifeConverter.Prototype = function() {
     return publisherName === "eLife Sciences Publications, Ltd";
   };
 
+  // Config
+  // ---------
+  //
+  // This makes sure elife-xml-version does not show up in the info panel, as it's a custom metagroup that
+  // would otherwise be considered by the converter
+
+  this.__ignoreCustomMetaNames = ["elife-xml-version"];
+
   // Add Decision letter and author response
   // ---------
 
