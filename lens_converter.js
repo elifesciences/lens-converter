@@ -437,10 +437,16 @@ NlmToLensConverter.Prototype = function() {
   this.extractCustomMetaGroup = function(state, article) {
     var nodeIds = [];
     var doc = state.doc;
-    var customMetaGroup = article.querySelector('article-meta > custom-meta-group');
-    if (!customMetaGroup) return nodeIds;
 
-    var customMetaEls = customMetaGroup.querySelectorAll('custom-meta');
+    // HW articles have custom-meta elements within custom-meta-wrap instead. That's why we
+    // use a more general selector now
+    // 
+    // var customMetaGroup = article.querySelector('article-meta > custom-meta-group');
+    // if (!customMetaGroup) {
+    //   return nodeIds;
+    // }
+
+    var customMetaEls = article.querySelectorAll('article-meta custom-meta');
     if (customMetaEls.length === 0) return nodeIds;
 
     for (var i = 0; i < customMetaEls.length; i++) {
@@ -448,7 +454,6 @@ NlmToLensConverter.Prototype = function() {
 
       var metaNameEl = customMetaEl.querySelector('meta-name');
       var metaValueEl = customMetaEl.querySelector('meta-value');
-
 
       if (!_.include(this.__ignoreCustomMetaNames, metaNameEl.textContent)) {
         var header = {
