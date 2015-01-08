@@ -432,21 +432,15 @@ NlmToLensConverter.Prototype = function() {
   };
 
   // Can be overridden by custom converter to ignore <meta-name> values.
+  // TODO: Maybe switch to a whitelisting approach, so we don't show
+  // nonsense. See HighWire implementation
   this.__ignoreCustomMetaNames = [];
 
   this.extractCustomMetaGroup = function(state, article) {
     var nodeIds = [];
     var doc = state.doc;
 
-    // HW articles have custom-meta elements within custom-meta-wrap instead. That's why we
-    // use a more general selector now
-    // 
-    // var customMetaGroup = article.querySelector('article-meta > custom-meta-group');
-    // if (!customMetaGroup) {
-    //   return nodeIds;
-    // }
-
-    var customMetaEls = article.querySelectorAll('article-meta custom-meta');
+    var customMetaEls = article.querySelectorAll('article-meta-group custom-meta');
     if (customMetaEls.length === 0) return nodeIds;
 
     for (var i = 0; i < customMetaEls.length; i++) {
