@@ -756,7 +756,7 @@ NlmToLensConverter.Prototype = function() {
       } else if (xref.getAttribute("ref-type") === "other") {
         // FIXME: it seems *very* custom to interprete every 'other' that way
         // TODO: try to find and document when this is applied
-        console.console("FIXME: please add documentation about using 'other' as indicator for extracting an awardGroup.");
+        console.log("FIXME: please add documentation about using 'other' as indicator for extracting an awardGroup.");
 
         var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
         if (!awardGroup) return;
