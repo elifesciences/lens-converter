@@ -77,9 +77,9 @@ ElifeConfiguration.Prototype = function() {
 
   this.enhanceCover = function(state, node, element) {
     var xmlAdapter = state.xmlAdapter;
-    var dispChannelEl = xmlAdapter.find(element, ".//subj-group[subj-group-type=display-channel]//subject");
+    var dispChannelEl = xmlAdapter.find(element, ".//subj-group[@subj-group-type='display-channel']//subject");
     var dispChannel = dispChannelEl ? xmlAdapter.getText(dispChannelEl) : "";
-    var categoryEl = xmlAdapter.find(element, ".//subj-group[subj-group-type=heading]//subject");
+    var categoryEl = xmlAdapter.find(element, ".//subj-group[@subj-group-type='heading']//subject");
     var category = categoryEl ? xmlAdapter.getText(categoryEl) : null;
     node.breadcrumbs = [
       { name: "eLife", url: "http://elifesciences.org/", image: "http://lens.elifesciences.org/lens-elife/styles/elife.png" },
@@ -166,7 +166,7 @@ ElifeConfiguration.Prototype = function() {
     // <kwd>E. coli</kwd>
     // <kwd>Mouse</kwd>
     // </kwd-group>
-    var organisms = xmlAdapter.findAll(articleMeta, "kwd-group[kwd-group-type=research-organism]/kwd");
+    var organisms = xmlAdapter.findAll(articleMeta, ".//kwd-group[@kwd-group-type='research-organism']/kwd");
 
     // Extract keywords
     // ------------
@@ -178,7 +178,7 @@ ElifeConfiguration.Prototype = function() {
     //  <kwd>lipid droplet</kwd>
     //  <kwd>anti-bacterial</kwd>
     // </kwd-group>
-    var keyWords = xmlAdapter.findAll(articleMeta, "kwd-group[kwd-group-type=author-keywords]/kwd");
+    var keyWords = xmlAdapter.findAll(articleMeta, ".//kwd-group[@kwd-group-type='author-keywords']/kwd");
 
     // Extract subjects
     // ------------
@@ -190,7 +190,9 @@ ElifeConfiguration.Prototype = function() {
     // <subject>Microbiology and infectious disease</subject>
     // </subj-group>
 
-    var subjects = xmlAdapter.findAll(articleMeta, "subj-group[subj-group-type=heading]/subject");
+    var subjects = xmlAdapter.findAll(articleMeta, ".//subj-group[@subj-group-type='heading']/subject"); // [subj-group-type=heading]
+
+    // console.log('SUBJECTS=====', subjects);
 
     // Article Type
     //
@@ -198,14 +200,14 @@ ElifeConfiguration.Prototype = function() {
     //   <subject>Research article</subject>
     // </subj-group>
 
-    var articleType = xmlAdapter.findAll(articleMeta, "subj-group[subj-group-type=display-channel]/subject");
+    var articleType = xmlAdapter.find(articleMeta, ".//subj-group[@subj-group-type='display-channel']/subject");
 
     // Extract PDF link
     // ---------------
     //
     // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
 
-    var pdfURI = xmlAdapter.find(article, ".//self-uri[content-type=pdf]");
+    var pdfURI = xmlAdapter.find(article, ".//self-uri[@content-type='pdf']");
 
     var pdfLink = [
       "http://cdn.elifesciences.org/elife-articles/",
@@ -246,6 +248,7 @@ ElifeConfiguration.Prototype = function() {
     publicationInfo.subjects = _.map(subjects, function(el) { return xmlAdapter.getText(el); });
     publicationInfo.article_type = articleType ? xmlAdapter.getText(articleType) : "";
     publicationInfo.links = links;
+
 
     if (publicationInfo.related_article) publicationInfo.related_article = "http://dx.doi.org/" + publicationInfo.related_article;
   };
