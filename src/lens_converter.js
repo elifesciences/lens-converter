@@ -283,6 +283,7 @@ NlmToLensConverter.Prototype = function() {
   this.extractAuthorImpactStatement = function(state, article) {
     var doc = state.doc;
     var nodes = [];
+
     // Get the author's impact statement
     var meta = this.xmlAdapter.findAll(article, ".//meta-value");
     var impact = meta[1];
@@ -299,6 +300,9 @@ NlmToLensConverter.Prototype = function() {
 
       var par = this.paragraphGroup(state, impact);
       nodes.push(par[0].id);
+
+      // Store as plain text on document node (for search)
+      doc.set(["document", "impact_statement"], this.xmlAdapter.getText(impact));
     }
     return nodes;
   };
