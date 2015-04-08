@@ -115,18 +115,6 @@ ElifeConverter.Prototype = function() {
     node.url = this.resolveURL(state, url);
   };
 
-  // Add additional information to the info view
-  // ---------
-  //
-  this.enhanceVideo = function(state, node, element) {
-    var href = element.getAttribute("xlink:href").split(".");
-    var name = href[0];
-
-    node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
-    node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
-    node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
-    node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
-  };
 
   // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
   this.resolveURL = function(state, url) {
@@ -282,12 +270,10 @@ ElifeConverter.Prototype = function() {
   this.enhanceVideo = function(state, node, element) {
     var href = element.getAttribute("xlink:href").split(".");
     var name = href[0];
-
-    // console.log("ID", );
-    node.url = "http://54.173.5.29/v2/articles/"+state.doc.id+"/media/file/"+name+".mp4";
-    node.url_ogv = "http://54.173.5.29/v2/articles/"+state.doc.id+"/media/file//"+name+".ogv";
-    node.url_webm = "http://54.173.5.29/v2/articles/"+state.doc.id+"/media/file//"+name+".webm";
-    node.poster = "http://54.173.5.29/v2/articles/"+state.doc.id+"/media/file/"+name+".jpg";
+    node.url = "http://api.elifesciences.org/v2/articles/"+state.doc.id+"/media/file/"+name+".mp4";
+    node.url_ogv = "http://api.elifesciences.org/v2/articles/"+state.doc.id+"/media/file//"+name+".ogv";
+    node.url_webm = "http://api.elifesciences.org/v2/articles/"+state.doc.id+"/media/file//"+name+".webm";
+    node.poster = "http://api.elifesciences.org/v2/articles/"+state.doc.id+"/media/file/"+name+".jpg";
   };
 
   // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
