@@ -68,10 +68,6 @@ NlmToLensConverter.Prototype = function() {
     "translator": "Translator"
   };
 
-  this.test = function(xmlDoc, documentUrl) {
-      return true;
-  }
-
   this.isAnnotation = function(type) {
     return this._annotationTypes[type] !== undefined;
   };
@@ -85,7 +81,7 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.test = function(xml, documentUrl) {
-    return;
+    return true;
   };
 
   // Helpers
