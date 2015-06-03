@@ -6,7 +6,8 @@
   },
   "dependencies": {
     "underscore": "1.5.x",
-    "lens-article": "elifesciences/lens-article#master"
+    "lens-article": "elifesciences/lens-article#master",
+    "substance-util": "substance/util#lens"
   },
   "version": "0.4.0",
   "engines": {
