@@ -866,13 +866,16 @@ NlmToLensConverter.Prototype = function() {
     }
     // recursive-descent for the main body of the article
     this.article(state, article);
-    // post-processing:
-    this.postProcessAnnotations(state);
+    this.postProcess(state);
     // Rebuild views to ensure consistency
     _.each(doc.containers, function(container) {
       container.rebuild();
     });
     return doc;
+  };
+
+  this.postProcess = function(state) {
+    this.postProcessAnnotations(state);
   };
 
   this.postProcessAnnotations = function(state) {
@@ -929,9 +932,6 @@ NlmToLensConverter.Prototype = function() {
     // Same for the citations, also globally
     this.extractCitations(state, article);
 
-    // First extract all figure-ish content, using a global approach
-    this.extractFigures(state, article);
-
     // Make up a cover node
     this.extractCover(state, article);
 
@@ -945,6 +945,8 @@ NlmToLensConverter.Prototype = function() {
     if (body) {
       this.body(state, body);
     }
+
+    this.extractFigures(state, article);
 
     this.enhanceArticle(state, article);
   };
@@ -1022,13 +1024,17 @@ NlmToLensConverter.Prototype = function() {
 
   };
 
+  // Catch-all implementation for figures et al.
   this.extractFigures = function(state, xmlDoc) {
     // Globally query all figure-ish content, <fig>, <supplementary-material>, <table-wrap>, <media video>
     // mimetype="video"
     var body = xmlDoc.querySelector("body");
     var figureElements = body.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
+    var nodes = [];
     for (var i = 0; i < figureElements.length; i++) {
       var figEl = figureElements[i];
+      // skip converted elements
+      if (figEl._converted) continue;
       var type = util.dom.getNodeType(figEl);
       var node = null;
       if (type === "fig") {
@@ -1041,9 +1047,10 @@ NlmToLensConverter.Prototype = function() {
         node = this.supplement(state, figEl);
       }
       if (node) {
-        this.showNode(state, node);
+        nodes.push(node);
       }
     }
+    this.show(state, nodes);
   };
 
   this.extractCitations = function(state, xmlDoc) {
@@ -1231,6 +1238,9 @@ NlmToLensConverter.Prototype = function() {
   };
   this._bodyNodes["comment"] = function(state, child) {
     return this.comment(state, child);
+  };
+  this._bodyNodes["fig"] = function(state, child) {
+    return this.figure(state, child);
   };
 
   // Overwirte in specific converter
@@ -1618,9 +1628,17 @@ NlmToLensConverter.Prototype = function() {
       figureNode.attrib = attrib.textContent;
     }
 
+    var position = figure.getAttribute('position');
+    if (position) {
+      figureNode.position = position || '';
+    }
+
     // Lets the configuration patch the figure node properties
     this.enhanceFigure(state, figureNode, figure);
     doc.create(figureNode);
+
+    //HACK: add this information so that we can implement the catch-all converter for figures et al.
+    figure._converted = true;
 
     return figureNode;
   };
