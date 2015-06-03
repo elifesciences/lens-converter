@@ -1027,34 +1027,26 @@ NlmToLensConverter.Prototype = function() {
     // mimetype="video"
     var body = xmlDoc.querySelector("body");
     var figureElements = body.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
-    var figureNodes = [];
-    var node;
-
     for (var i = 0; i < figureElements.length; i++) {
       var figEl = figureElements[i];
       var type = util.dom.getNodeType(figEl);
-
+      // skip nodes that have been converted already
+      if (figEl._converted) {
+        continue;
+      }
+      var node = null;
       if (type === "fig") {
         node = this.figure(state, figEl);
-        if (node) figureNodes.push(node);
-      }
-      else if (type === "table-wrap") {
+      } else if (type === "table-wrap") {
         node = this.tableWrap(state, figEl);
-        if (node) figureNodes.push(node);
-        // nodes = nodes.concat(this.section(state, child));
       } else if (type === "media") {
         node = this.video(state, figEl);
-        if (node) figureNodes.push(node);
       } else if (type === "supplementary-material") {
-
         node = this.supplement(state, figEl);
-        if (node) figureNodes.push(node);
       }
-    }
-
-    // Show the figures
-    if (figureNodes.length > 0) {
-      this.show(state, figureNodes);
+      if (node) {
+        this.showNode(state, node);
+      }
     }
   };
 
