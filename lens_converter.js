@@ -81,6 +81,7 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.test = function(xml, documentUrl) {
+    /* jshint unused:false */
     return true;
   };
 
@@ -113,7 +114,7 @@ NlmToLensConverter.Prototype = function() {
     var html = this.toHtml(el);
     html = html.replace(/<(\/)?mml:([^>]+)>/g, "<$1$2>");
     return html;
-  }
+  };
 
   this.selectDirectChildren = function(scopeEl, selector) {
     // Note: if the ':scope' pseudo class was supported by more browsers
@@ -164,7 +165,8 @@ NlmToLensConverter.Prototype = function() {
   // you can solve those issues in a preprocessing step instead of adding
   // hacks in the main converter code
 
-  this.sanitizeXML = function(/*xmlDoc*/) {
+  this.sanitizeXML = function(xmlDoc) {
+    /* jshint unused:false */
   };
 
   this.createState = function(xmlDoc, doc) {
@@ -973,8 +975,6 @@ NlmToLensConverter.Prototype = function() {
   //
 
   this.extractArticleMeta = function(state, article) {
-    // var doc = state.doc;
-
     var articleMeta = article.querySelector("article-meta");
     if (!articleMeta) {
       throw new ImporterError("Expected element: 'article-meta'");
@@ -1030,10 +1030,6 @@ NlmToLensConverter.Prototype = function() {
     for (var i = 0; i < figureElements.length; i++) {
       var figEl = figureElements[i];
       var type = util.dom.getNodeType(figEl);
-      // skip nodes that have been converted already
-      if (figEl._converted) {
-        continue;
-      }
       var node = null;
       if (type === "fig") {
         node = this.figure(state, figEl);
@@ -2241,7 +2237,7 @@ NlmToLensConverter.Prototype = function() {
 
   // Configureable methods
   // -----------------
-  // 
+  //
 
   this.getBaseURL = function(state) {
     // Use xml:base attribute if present
@@ -2250,10 +2246,12 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.enhanceArticle = function(state, article) {
+    /* jshint unused:false */
     // Noop - override in custom converter
   };
 
   this.enhanceCover = function(state, node, element) {
+    /* jshint unused:false */
     // Noop - override in custom converter
   };
 
@@ -2265,14 +2263,17 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.enhancePublicationInfo = function(converter, state, article) {
+    /* jshint unused:false */
     // Noop - override in custom converter
   };
 
   this.enhanceSupplement = function(state, node, element) {
+    /* jshint unused:false */
     // Noop - override in custom converter
   };
 
   this.enhanceTable = function(state, node, element) {
+    /* jshint unused:false */
     // Noop - override in custom converter
   };
 
@@ -2281,7 +2282,6 @@ NlmToLensConverter.Prototype = function() {
   //
 
   this.enhanceVideo = function(state, node, element) {
-    var el = element.querySelector("media") || element;
     // xlink:href example: elife00778v001.mov
 
     var url = element.getAttribute("xlink:href");
@@ -2329,7 +2329,7 @@ NlmToLensConverter.Prototype = function() {
   };
 
   this.enhanceAnnotationData = function(state, anno, element, type) {
-    
+    /* jshint unused:false */
   };
 
   this.showNode = function(state, node) {
