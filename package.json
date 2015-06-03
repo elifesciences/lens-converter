@@ -5,7 +5,8 @@
     "url": "https://github.com/elifesciences/lens-converter.git"
   },
   "dependencies": {
-    "underscore": "1.5.x"
+    "underscore": "1.5.x",
+    "lens-article": "elifesciences/lens-article#master"
   },
   "version": "0.4.0",
   "engines": {
