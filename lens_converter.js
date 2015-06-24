@@ -2118,7 +2118,7 @@ NlmToLensConverter.Prototype = function() {
     var sourceId = el.getAttribute("rid");
     // Default reference is a cross_reference
     anno.type = this._refTypeMapping[refType] || "cross_reference";
-    if (sourceId) anno.target = sourceId.split(" ")[0];
+    if (sourceId) anno.target = sourceId;
   };
 
   // Parse annotated text
